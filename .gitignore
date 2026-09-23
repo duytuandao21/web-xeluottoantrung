@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.next-dev/
+out/
+.env*
+!.env.example
+npm-debug.log*
+artifacts/
+tsconfig.tsbuildinfo
+.kilo

@@ -1,0 +1,611 @@
+[
+  {
+    "route": "/chevrolet-spark-ltz-2015",
+    "status": 200,
+    "valid": true,
+    "length": 20050,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/daewoo-gentra-mt-2010",
+    "status": 200,
+    "valid": true,
+    "length": 17143,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/ford-everest-dau-mt-2013",
+    "status": 200,
+    "valid": true,
+    "length": 30050,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/ford-everest-titanium-4x2-2023",
+    "status": 200,
+    "valid": true,
+    "length": 30647,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/ford-everest-titanium-4x4-2023",
+    "status": 200,
+    "valid": true,
+    "length": 37379,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/ford-ranger-xls-at-4x2-2021",
+    "status": 200,
+    "valid": true,
+    "length": 40502,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/ford-ranger-xls-at-4x4-2023",
+    "status": 200,
+    "valid": true,
+    "length": 31291,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/ford-ranger-xlt-mt-4x4-2014",
+    "status": 200,
+    "valid": true,
+    "length": 33381,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/ford-territory-titanium-2023",
+    "status": 200,
+    "valid": true,
+    "length": 30620,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/honda-brv-l-2023",
+    "status": 404,
+    "valid": false,
+    "length": 358,
+    "title": "404"
+  },
+  {
+    "route": "/honda-city-15-cvt-2016",
+    "status": 200,
+    "valid": true,
+    "length": 30289,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/honda-crv-20l-2016",
+    "status": 200,
+    "valid": true,
+    "length": 26678,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/honda-hrv-g-2024",
+    "status": 200,
+    "valid": true,
+    "length": 28611,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/hyundai-accent-14mt-2024",
+    "status": 200,
+    "valid": true,
+    "length": 35008,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/hyundai-accent-at-base-2021",
+    "status": 404,
+    "valid": false,
+    "length": 358,
+    "title": "404"
+  },
+  {
+    "route": "/hyundai-i10-12at-2018",
+    "status": 200,
+    "valid": true,
+    "length": 38293,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/hyundai-kona-base-2018",
+    "status": 200,
+    "valid": true,
+    "length": 37051,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/hyundai-stargazer-tieu-chuan-2024-81000km",
+    "status": 200,
+    "valid": true,
+    "length": 37686,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/hyundai-stargazer-x-dac-biet-2024",
+    "status": 200,
+    "valid": true,
+    "length": 33078,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/hyundai-tucson-16t-2023",
+    "status": 404,
+    "valid": false,
+    "length": 358,
+    "title": "404"
+  },
+  {
+    "route": "/hyundai-tucson-20-dac-biet-2018",
+    "status": 200,
+    "valid": true,
+    "length": 33073,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/kia-canival-dau-signature-2022",
+    "status": 200,
+    "valid": true,
+    "length": 32669,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/kia-carnival-dau-signature-2025",
+    "status": 200,
+    "valid": true,
+    "length": 42765,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/kia-cerato-20-premium-2021",
+    "status": 200,
+    "valid": true,
+    "length": 31748,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/kia-k3-20-premium-2022",
+    "status": 404,
+    "valid": false,
+    "length": 358,
+    "title": "404"
+  },
+  {
+    "route": "/kia-k3-luxury-2024",
+    "status": 200,
+    "valid": true,
+    "length": 32464,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/kia-morning-12at-2016",
+    "status": 404,
+    "valid": false,
+    "length": 358,
+    "title": "404"
+  },
+  {
+    "route": "/kia-morning-xline-2022",
+    "status": 404,
+    "valid": false,
+    "length": 358,
+    "title": "404"
+  },
+  {
+    "route": "/kia-seltos-14-premium-2020",
+    "status": 200,
+    "valid": true,
+    "length": 41104,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/kia-sonet-deluxe-at-2025",
+    "status": 200,
+    "valid": true,
+    "length": 32564,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/kia-sonet-luxury-2025",
+    "status": 200,
+    "valid": true,
+    "length": 32515,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/lexus-es300h-2022",
+    "status": 200,
+    "valid": true,
+    "length": 23903,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-3-15-at-2018",
+    "status": 200,
+    "valid": true,
+    "length": 36394,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-3-15-at-2019-47000km",
+    "status": 200,
+    "valid": true,
+    "length": 40196,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-3-2009",
+    "status": 200,
+    "valid": true,
+    "length": 33444,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-3-at-2010",
+    "status": 200,
+    "valid": true,
+    "length": 32868,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-3-deluxe-2020",
+    "status": 200,
+    "valid": true,
+    "length": 35036,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-3-deluxe-2023",
+    "status": 200,
+    "valid": true,
+    "length": 33645,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-3-luxury-2021",
+    "status": 200,
+    "valid": true,
+    "length": 39128,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-3-luxury-2023",
+    "status": 200,
+    "valid": true,
+    "length": 32979,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-3-luxury-2025",
+    "status": 200,
+    "valid": true,
+    "length": 38396,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-6-20-premium-2017",
+    "status": 200,
+    "valid": true,
+    "length": 36532,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-6-20-premium-2023",
+    "status": 200,
+    "valid": true,
+    "length": 37966,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-cx3-luxury-2022",
+    "status": 200,
+    "valid": true,
+    "length": 36499,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-cx5-premium-2022",
+    "status": 200,
+    "valid": true,
+    "length": 36494,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-cx5-premium-2024",
+    "status": 200,
+    "valid": true,
+    "length": 33017,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-cx8-deluxe-2021",
+    "status": 200,
+    "valid": true,
+    "length": 33004,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mazda-cx8-luxury-2021",
+    "status": 200,
+    "valid": true,
+    "length": 33009,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mitsubishi-destinator-ultimate-2025",
+    "status": 404,
+    "valid": false,
+    "length": 358,
+    "title": "404"
+  },
+  {
+    "route": "/mitsubishi-outlander-cvt-2018-142000km",
+    "status": 200,
+    "valid": true,
+    "length": 31614,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mitsubishi-triton-4x2-at-2025",
+    "status": 404,
+    "valid": false,
+    "length": 358,
+    "title": "404"
+  },
+  {
+    "route": "/mitsubishi-triton-at-premium-4x2-2018",
+    "status": 404,
+    "valid": false,
+    "length": 358,
+    "title": "404"
+  },
+  {
+    "route": "/mitsubishi-triton-athlete-4x2-2022",
+    "status": 200,
+    "valid": true,
+    "length": 31507,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mitsubishi-xforce-premium-2024",
+    "status": 200,
+    "valid": true,
+    "length": 36469,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mitsubishi-xpander-at-2019",
+    "status": 200,
+    "valid": true,
+    "length": 31383,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/mitsubishi-xpander-cross-2020",
+    "status": 404,
+    "valid": false,
+    "length": 358,
+    "title": "404"
+  },
+  {
+    "route": "/mitsubishi-xpander-premium-2022",
+    "status": 200,
+    "valid": true,
+    "length": 37899,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-altis-18e-2017",
+    "status": 200,
+    "valid": true,
+    "length": 32463,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-cross-18v-2022-54000km",
+    "status": 200,
+    "valid": true,
+    "length": 32718,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-cross-hev-2022",
+    "status": 200,
+    "valid": true,
+    "length": 32438,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-fortuner-dau-at-2022",
+    "status": 200,
+    "valid": true,
+    "length": 32605,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-fortuner-dau-at-2022-86000km",
+    "status": 200,
+    "valid": true,
+    "length": 32859,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-fortuner-dau-mt-2016",
+    "status": 200,
+    "valid": true,
+    "length": 32611,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-fortuner-dau-mt-2018",
+    "status": 200,
+    "valid": true,
+    "length": 39670,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-fortuner-dau-mt-2019",
+    "status": 200,
+    "valid": true,
+    "length": 36811,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-fortuner-mt-dau-2020",
+    "status": 200,
+    "valid": true,
+    "length": 41131,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-fortuner-xang-at-2013",
+    "status": 200,
+    "valid": true,
+    "length": 35498,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-innova-20e-mt-2014",
+    "status": 200,
+    "valid": true,
+    "length": 32556,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-innova-20e-mt-2014-95000km",
+    "status": 200,
+    "valid": true,
+    "length": 35735,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-innova-cross-20v-2024",
+    "status": 200,
+    "valid": true,
+    "length": 32655,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-innova-cross-20v-2024-13000km",
+    "status": 200,
+    "valid": true,
+    "length": 32911,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-innova-e-mt-2018-149000km",
+    "status": 200,
+    "valid": true,
+    "length": 34216,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-innova-e-mt-2018-51000km",
+    "status": 200,
+    "valid": true,
+    "length": 34864,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-innova-g-mt-2011",
+    "status": 200,
+    "valid": true,
+    "length": 35265,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-raize-2023-34000km",
+    "status": 200,
+    "valid": true,
+    "length": 38127,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-rush-s-2018",
+    "status": 200,
+    "valid": true,
+    "length": 32367,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-rush-s-2021",
+    "status": 200,
+    "valid": true,
+    "length": 36390,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-rush-s-2021-60000km",
+    "status": 200,
+    "valid": true,
+    "length": 37473,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-veloz-cvt-2022",
+    "status": 200,
+    "valid": true,
+    "length": 37452,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-vios-g-2019-86000km",
+    "status": 200,
+    "valid": true,
+    "length": 37514,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/toyota-wigo-g-mt-2020",
+    "status": 200,
+    "valid": true,
+    "length": 32553,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/vinfast-lux-a-base-2022",
+    "status": 200,
+    "valid": true,
+    "length": 34584,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/vinfast-lux-a-plus-2022",
+    "status": 200,
+    "valid": true,
+    "length": 36611,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/vinfast-lux-a-premium-2021",
+    "status": 200,
+    "valid": true,
+    "length": 28369,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/vinfast-luxsa-20-base-2020",
+    "status": 200,
+    "valid": true,
+    "length": 33821,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/vinfast-vf5-plus-muapin-2023",
+    "status": 200,
+    "valid": true,
+    "length": 34206,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  },
+  {
+    "route": "/vinfast-vf8-plus-2025",
+    "status": 200,
+    "valid": true,
+    "length": 36571,
+    "title": "XE LUOT TOAN TRUNG| OTO TOAN TRUNG| TOAN TRUNG HCM|XELUOTTOANTRUNG.COM"
+  }
+]

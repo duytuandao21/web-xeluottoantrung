@@ -1,0 +1,31 @@
+{
+  "name": "xeluottoantrung-reconstruction",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "validate": "node scripts/validate-assets.mjs"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "html-react-parser": "^6.1.8",
+    "next": "15.5.25",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "react-slick": "^0.31.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@types/react-slick": "^0.23.13",
+    "playwright": "^1.63.0",
+    "typescript": "^5.8.3"
+  },
+  "overrides": {
+    "postcss": "8.5.23"
+  }
+}

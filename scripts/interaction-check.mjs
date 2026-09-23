@@ -1,0 +1,22 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[],checks=[];
+page.on('pageerror',e=>errors.push(e.message));
+await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+const visit=async path=>{await page.goto(`http://127.0.0.1:${process.env.PORT||3100}${path}`,{waitUntil:'networkidle'});};
+const test=async(name,fn)=>{await fn();checks.push(name);console.log('PASS '+name);};
+try {
+  await visit('/san-pham');
+  await test('Desktop dropdown and active menu',async()=>{await page.locator('.menu > ul > li').first().hover();assert(await page.locator('.menu > ul > li > ul').first().isVisible());assert.equal(await page.locator('.menu > ul > li > a.active').innerText(),'Mua xe');});
+  await test('Contact popup, source styles, Escape and repeated opening',async()=>{for(let i=0;i<2;i++){await page.locator('.btn-phone').click();const modal=page.locator('.migrated-dialog #nutgoi');await modal.waitFor({state:'visible'});assert((await modal.locator('a[href^="tel:"]').count())>10);assert((await modal.boundingBox()).width<=500);await page.keyboard.press('Escape');assert.equal(await page.locator('[role=dialog]').count(),0);}});
+  await test('Filter tabs, range keyboard and reset',async()=>{await page.locator('.chonloc li[data-id=".ngansach_tk"]').click();assert(await page.locator('.ngansach_tk').isVisible());const handle=page.locator('#ngansach-range [role=slider]').first();const before=Number(await handle.getAttribute('aria-valuenow'));await handle.focus();await page.keyboard.press('ArrowRight');assert.equal(Number(await handle.getAttribute('aria-valuenow')),before+10);await page.locator('.lammoi').click();assert.equal(Number(await handle.getAttribute('aria-valuenow')),before);await page.keyboard.press('Escape');assert(!(await page.locator('.wap_boloc').getAttribute('class')).includes('wap_boloc_active'));});
+  await test('Compare two captured cars and remove',async()=>{await page.locator('.c_sosanh').click();await page.locator('.wap_item > .item .id_ss').nth(0).click();await page.locator('.wap_sosanhxe .td').click();await page.locator('.wap_item > .item .id_ss').nth(1).click();assert.equal(await page.locator('.sosanhxe2 .item_ss').count(),2);await page.locator('.xoa_ss').first().click();assert.equal(await page.locator('.sosanhxe2 .item_ss').count(),1);await page.locator('.c_sosanh').click();});
+  await test('Keyword search uses captured inventory',async()=>{await page.locator('#keyword').fill('Honda BRV');await page.locator('#keyword').press('Enter');await page.waitForURL('**/san-pham?keyword=*');await page.waitForLoadState('networkidle');const names=await page.locator('.wap_item .name_sp').allTextContents();assert(names.length>0);assert(names.every(name=>name.toLowerCase().includes('honda brv')));});
+  await visit('/toyota-fortuner-dau-at-2022');
+  await test('Gallery thumbnail, full image dialog and keyboard navigation',async()=>{await page.locator('.album_pro2 .slick-slide[data-index="1"]').click();await page.waitForTimeout(700);assert.equal(await page.locator('.album_pro .slick-current').getAttribute('data-index'),'1');await page.locator('.album_pro .slick-current a').click();await page.locator('.dialog-image').waitFor({state:'visible'});const src=await page.locator('.dialog-image').getAttribute('src');await page.keyboard.press('ArrowRight');assert.notEqual(await page.locator('.dialog-image').getAttribute('src'),src);await page.keyboard.press('Escape');});
+  await page.setViewportSize({width:375,height:900});await visit('/');
+  await test('Mobile drawer submenu and Escape',async()=>{await page.locator('.icon_menu_mobi').click();assert.equal(await page.locator('.menu_mobi_add').getAttribute('aria-hidden'),'false');await page.locator('.menu_mobi_add > ul > li > a').first().click();assert(await page.locator('.menu_mobi_add > ul > li > ul').first().isVisible());await page.keyboard.press('Escape');assert.equal(await page.locator('.menu_mobi_add').getAttribute('aria-hidden'),'true');});
+  assert.deepEqual(errors,[]);checks.push('No uncaught browser errors');
+} finally {await mkdir('artifacts',{recursive:true});await writeFile('artifacts/interaction-report.json',JSON.stringify({checks,errors},null,2));await browser.close();}

@@ -1,0 +1,24 @@
+/* React integration only; layout and breakpoints come from the mirror CSS. */
+.menu > ul > li:hover > ul,
+.menu > ul > li:focus-within > ul { display:block; visibility:visible; animation:menu-reveal .3s ease; }
+@keyframes menu-reveal { from {opacity:0;transform:translateY(-4px)} to {opacity:1;transform:translateY(0)} }
+.menu_mobi_add .close_menu, .icon_menu_mobi { cursor:pointer; }
+.slick-slider { min-width:0; }
+.carousel-hydrating { visibility:hidden; }
+.slider_slick .slick-slide > div { line-height:0; }
+.album_pro .slick-slide > div { line-height:0; }
+.album_pro2 .slick-slide > div { line-height:0; }
+.slick-slide img { display:block; }
+.img_sp p { cursor:pointer; }
+.fancybox-container.migrated-dialog { display:block; }
+.migrated-dialog .fancybox-bg { opacity:.87; }
+.migrated-dialog .fancybox-slide { display:block; }
+.migrated-dialog .fancybox-content { display:inline-block !important; }
+.migrated-dialog .fancybox-button--close { position:absolute;right:0;top:0; }
+.migrated-dialog .dialog-image { max-height:85vh !important; width:auto; }
+.migrated-dialog .dialog-gallery { background:transparent;padding:0; }
+.migrated-range { touch-action:none; }
+.migrated-range .ui-slider-handle { touch-action:none; }
+body.ss .c_sosanh { position:relative;z-index:1001;background:#fff; }
+.not-found { min-height:55vh;padding-top:100px;text-align:center; }
+.not-found a { display:inline-block;margin-top:18px; }

@@ -1,0 +1,320 @@
+{
+  "menu": [
+    {
+      "label": "Mua xe",
+      "className": "lisp",
+      "children": [
+        {
+          "label": "Tất cả sản phẩm",
+          "href": "/san-pham",
+          "children": []
+        },
+        {
+          "label": "Toyota",
+          "href": "/toyota",
+          "children": []
+        },
+        {
+          "label": "Honda",
+          "href": "/honda",
+          "children": []
+        },
+        {
+          "label": "Mazda",
+          "href": "/mazda",
+          "children": []
+        },
+        {
+          "label": "Ford",
+          "href": "/ford",
+          "children": []
+        },
+        {
+          "label": "Hyundai",
+          "href": "/hyundai",
+          "children": []
+        },
+        {
+          "label": "KIA",
+          "href": "/kia",
+          "children": []
+        },
+        {
+          "label": "Mitsubishi",
+          "href": "/mitsubishi",
+          "children": []
+        },
+        {
+          "label": "Vinfast",
+          "href": "/vinfast",
+          "children": []
+        },
+        {
+          "label": "Suzuki",
+          "href": "/suzuki",
+          "children": []
+        },
+        {
+          "label": "Subaru",
+          "href": "/subaru",
+          "children": []
+        },
+        {
+          "label": "Lexus",
+          "href": "/lexus",
+          "children": []
+        },
+        {
+          "label": "Mercedes",
+          "href": "/mercedes",
+          "children": []
+        },
+        {
+          "label": "BMW",
+          "href": "/bmw",
+          "children": []
+        },
+        {
+          "label": "Chevrolet ",
+          "href": "/chevrolet",
+          "children": []
+        },
+        {
+          "label": "Peugeot",
+          "href": "/peugeot",
+          "children": []
+        },
+        {
+          "label": "Nissan",
+          "href": "/nissan",
+          "children": []
+        }
+      ]
+    },
+    {
+      "label": "Bán xe",
+      "children": [
+        {
+          "label": "Bán xe",
+          "href": "/ban-xe",
+          "children": []
+        },
+        {
+          "label": "Lên đời",
+          "href": "/len-doi",
+          "children": []
+        }
+      ]
+    },
+    {
+      "label": "Dịch vụ",
+      "children": [
+        {
+          "label": "Bảo hiểm",
+          "href": "https://baohiemtasco.com/san-pham/bao-hiem-o-to-xe-may/",
+          "target": "_blank",
+          "children": []
+        },
+        {
+          "label": "Dịch vụ Vận Chuyển nhanh",
+          "href": "/dich-vu-van-chuyen",
+          "children": []
+        },
+        {
+          "label": "Cam kết",
+          "href": "/cam-ket",
+          "children": []
+        },
+        {
+          "label": "Dịch vụ khác",
+          "href": "/dich-vu-khac",
+          "children": []
+        }
+      ]
+    },
+    {
+      "label": "Tin tức",
+      "href": "/tin-tuc",
+      "children": []
+    },
+    {
+      "label": "Giới thiệu",
+      "children": [
+        {
+          "label": "Về chúng tôi",
+          "href": "/ve-chung-toi",
+          "children": []
+        }
+      ]
+    },
+    {
+      "label": "Tuyển dụng",
+      "children": [
+        {
+          "label": "HỆ THỐNG OTO TOÀN TRUNG TUYỂN DỤNG",
+          "href": "/he-thong-oto-toan-trung-tuyen-dung",
+          "children": []
+        }
+      ]
+    }
+  ],
+  "activeMenus": {
+    "/": "",
+    "/accord": "Mua xe",
+    "/account/dang-ky": "Mua xe",
+    "/account/dang-nhap": "Mua xe",
+    "/account/quen-mat-khau": "Mua xe",
+    "/ban-xe": "Bán xe",
+    "/bmw": "Mua xe",
+    "/cam-ket": "Mua xe",
+    "/cam-nhan": "Mua xe",
+    "/camry": "Mua xe",
+    "/cau-hoi": "Mua xe",
+    "/chevrolet": "Mua xe",
+    "/chevrolet-spark-ltz-2015": "Mua xe",
+    "/chinh-sach-quyen-rieng-tu": "Mua xe",
+    "/civic": "Mua xe",
+    "/corolla": "Mua xe",
+    "/corolla-cross": "Mua xe",
+    "/coupe": "Mua xe",
+    "/cr-v": "Mua xe",
+    "/cuv": "Mua xe",
+    "/daewoo-gentra-mt-2010": "Mua xe",
+    "/dich-vu-khac": "Mua xe",
+    "/dich-vu-van-chuyen": "Mua xe",
+    "/dieu-khoan-dieu-kien-niem-yet": "Mua xe",
+    "/dieu-khoan-su-dung": "Mua xe",
+    "/fitjazz": "Mua xe",
+    "/ford": "Mua xe",
+    "/ford-everest-dau-mt-2013": "Mua xe",
+    "/ford-everest-titanium-4x2-2023": "Mua xe",
+    "/ford-everest-titanium-4x4-2023": "Mua xe",
+    "/ford-ranger-xls-at-4x2-2021": "Mua xe",
+    "/ford-ranger-xls-at-4x4-2023": "Mua xe",
+    "/ford-ranger-xlt-mt-4x4-2014": "Mua xe",
+    "/ford-territory-titanium-2023": "Mua xe",
+    "/fortuner": "Mua xe",
+    "/hatchback": "Mua xe",
+    "/he-thong-oto-toan-trung-tuyen-dung": "Tuyển dụng",
+    "/highlander": "Mua xe",
+    "/hoi-nghi-khach-hang-cong-ty-honda-viet-nam": "Mua xe",
+    "/honda": "Mua xe",
+    "/honda-brv-l-2023": "Mua xe",
+    "/honda-city-15-cvt-2016": "Mua xe",
+    "/honda-crv-20l-2016": "Mua xe",
+    "/honda-hrv-g-2024": "Mua xe",
+    "/hr-v": "Mua xe",
+    "/hyundai": "Mua xe",
+    "/hyundai-accent-14mt-2024": "Mua xe",
+    "/hyundai-accent-at-base-2021": "Mua xe",
+    "/hyundai-i10-12at-2018": "Mua xe",
+    "/hyundai-kona-base-2018": "Mua xe",
+    "/hyundai-stargazer-tieu-chuan-2024-81000km": "Mua xe",
+    "/hyundai-stargazer-x-dac-biet-2024": "Mua xe",
+    "/hyundai-tucson-16t-2023": "Mua xe",
+    "/hyundai-tucson-20-dac-biet-2018": "Mua xe",
+    "/innova": "Mua xe",
+    "/kia": "Mua xe",
+    "/kia-canival-dau-signature-2022": "Mua xe",
+    "/kia-carnival-dau-signature-2025": "Mua xe",
+    "/kia-cerato-20-premium-2021": "Mua xe",
+    "/kia-k3-20-premium-2022": "Mua xe",
+    "/kia-k3-luxury-2024": "Mua xe",
+    "/kia-morning-12at-2016": "Mua xe",
+    "/kia-morning-xline-2022": "Mua xe",
+    "/kia-seltos-14-premium-2020": "Mua xe",
+    "/kia-sonet-deluxe-at-2025": "Mua xe",
+    "/kia-sonet-luxury-2025": "Mua xe",
+    "/len-doi": "Mua xe",
+    "/lexus": "Mua xe",
+    "/lexus-es300h-2022": "Mua xe",
+    "/mazda": "Mua xe",
+    "/mazda-3-15-at-2018": "Mua xe",
+    "/mazda-3-15-at-2019-47000km": "Mua xe",
+    "/mazda-3-2009": "Mua xe",
+    "/mazda-3-at-2010": "Mua xe",
+    "/mazda-3-deluxe-2020": "Mua xe",
+    "/mazda-3-deluxe-2023": "Mua xe",
+    "/mazda-3-luxury-2021": "Mua xe",
+    "/mazda-3-luxury-2023": "Mua xe",
+    "/mazda-3-luxury-2025": "Mua xe",
+    "/mazda-6-20-premium-2017": "Mua xe",
+    "/mazda-6-20-premium-2023": "Mua xe",
+    "/mazda-cx3-luxury-2022": "Mua xe",
+    "/mazda-cx5-premium-2022": "Mua xe",
+    "/mazda-cx5-premium-2024": "Mua xe",
+    "/mazda-cx8-deluxe-2021": "Mua xe",
+    "/mazda-cx8-luxury-2021": "Mua xe",
+    "/mercedes": "Mua xe",
+    "/mitsubishi": "Mua xe",
+    "/mitsubishi-destinator-ultimate-2025": "Mua xe",
+    "/mitsubishi-outlander-cvt-2018-142000km": "Mua xe",
+    "/mitsubishi-triton-4x2-at-2025": "Mua xe",
+    "/mitsubishi-triton-at-premium-4x2-2018": "Mua xe",
+    "/mitsubishi-triton-athlete-4x2-2022": "Mua xe",
+    "/mitsubishi-xforce-premium-2024": "Mua xe",
+    "/mitsubishi-xpander-at-2019": "Mua xe",
+    "/mitsubishi-xpander-cross-2020": "Mua xe",
+    "/mitsubishi-xpander-premium-2022": "Mua xe",
+    "/mpv": "Mua xe",
+    "/nissan": "Mua xe",
+    "/odyssey": "Mua xe",
+    "/peugeot": "Mua xe",
+    "/pickup": "Mua xe",
+    "/pilot": "Mua xe",
+    "/prius": "Mua xe",
+    "/raize": "Mua xe",
+    "/rav4": "Mua xe",
+    "/san-pham": "Mua xe",
+    "/sedan": "Mua xe",
+    "/showroom-quan-12": "Mua xe",
+    "/showroom-toan-trung-9": "Mua xe",
+    "/showroom-toan-trung-gia-lai": "Mua xe",
+    "/showroom-toan-trung-luxury-car": "Mua xe",
+    "/subaru": "Mua xe",
+    "/suv": "Mua xe",
+    "/suzuki": "Mua xe",
+    "/tacoma": "Mua xe",
+    "/tim-kiem-nang-cao": "Mua xe",
+    "/tin-tuc": "Tin tức",
+    "/toyota": "Mua xe",
+    "/toyota-altis-18e-2017": "Mua xe",
+    "/toyota-cross-18v-2022-54000km": "Mua xe",
+    "/toyota-cross-hev-2022": "Mua xe",
+    "/toyota-fortuner-dau-at-2022": "Mua xe",
+    "/toyota-fortuner-dau-at-2022-86000km": "Mua xe",
+    "/toyota-fortuner-dau-mt-2016": "Mua xe",
+    "/toyota-fortuner-dau-mt-2018": "Mua xe",
+    "/toyota-fortuner-dau-mt-2019": "Mua xe",
+    "/toyota-fortuner-mt-dau-2020": "Mua xe",
+    "/toyota-fortuner-xang-at-2013": "Mua xe",
+    "/toyota-innova-20e-mt-2014": "Mua xe",
+    "/toyota-innova-20e-mt-2014-95000km": "Mua xe",
+    "/toyota-innova-cross-20v-2024": "Mua xe",
+    "/toyota-innova-cross-20v-2024-13000km": "Mua xe",
+    "/toyota-innova-e-mt-2018-149000km": "Mua xe",
+    "/toyota-innova-e-mt-2018-51000km": "Mua xe",
+    "/toyota-innova-g-mt-2011": "Mua xe",
+    "/toyota-raize-2023-34000km": "Mua xe",
+    "/toyota-rush-s-2018": "Mua xe",
+    "/toyota-rush-s-2021": "Mua xe",
+    "/toyota-rush-s-2021-60000km": "Mua xe",
+    "/toyota-veloz-cvt-2022": "Mua xe",
+    "/toyota-vios-g-2019-86000km": "Mua xe",
+    "/toyota-wigo-g-mt-2020": "Mua xe",
+    "/tundra": "Mua xe",
+    "/ve-chung-toi": "Giới thiệu",
+    "/vinfast": "Mua xe",
+    "/vinfast-lux-a-base-2022": "Mua xe",
+    "/vinfast-lux-a-plus-2022": "Mua xe",
+    "/vinfast-lux-a-premium-2021": "Mua xe",
+    "/vinfast-luxsa-20-base-2020": "Mua xe",
+    "/vinfast-vf5-plus-muapin-2023": "Mua xe",
+    "/vinfast-vf8-plus-2025": "Mua xe",
+    "/vios": "Mua xe",
+    "/yaris": "Mua xe"
+  },
+  "footer": "<div class=\"wap_footer clear\">\n    <div class=\"footer main_fix\">\n        <div class=\"main_f\">\n            <p><img alt=\"\" src=\"/upload/elfinder/NewFolder/z5423369265638_c181a69d22b766fc1e2be9c6c067d361-removebg-preview%20(1).png\" style=\"width: 804px; height: 310px;\"></p>\n            <div class=\"mxh_f\">\t\t\t\t<a href=\"https://www.facebook.com/ototoantrung\" title=\"\"><img src=\"/upload/photo/20673-8148.png\" alt=\"\" title=\"\"></a>\n\t\t\t\t\t\t<a href=\"https://www.tiktok.com/@toantrunggialai\" title=\"\"><img src=\"/upload/photo/4138198-7894.png\" alt=\"\" title=\"\"></a>\n\t\t\t\t\t\t<a href=\"https://www.youtube.com/@ototoantrung\" title=\"\"><img src=\"/upload/photo/youtube-150-4900.png\" alt=\"\" title=\"\"></a>\n\t\t</div>\n        </div>\n\n        <div class=\"nhantin_f\">\n            <p class=\"title_f\">Đăng ký nhận tin tức từ chúng tôi</p>\n            <p>Nhận những ưu đãi mới nhất, chương trình khuyến mãi &amp; nhiều quyền lợi độc quyền trực tiếp vào hòm thư của bạn</p>\n            <form class=\"form-newsletter validation-newsletter\" novalidate=\"\" method=\"post\" action=\"\" enctype=\"multipart/form-data\" id=\"FormNewsletter\">\n                <div class=\"newsletter-input\">\n                    <input type=\"email\" class=\"form-control\" id=\"email\" name=\"email\" placeholder=\"Nhập địa chỉ email của bạn\" required=\"\">\n                </div>\n                <div class=\"newsletter-button\">\n                    <input type=\"submit\" class=\"btn btn-primary\" value=\"Đăng ký\">\n                    <input type=\"hidden\" class=\"btn btn-primary\" name=\"submit-newsletter\" value=\"Gửi\">\n                    <input type=\"hidden\" name=\"recaptcha_response_newsletter\" id=\"recaptchaResponseNewsletter\">\n                </div>\n            </form>\n        </div>\n\n        <div class=\"item_f\">\n            <p class=\"title_f\">Tổng đài hỗ trợ: <span> 0777393913</span></p>\n        </div>\n    </div>\n\n    <div class=\"footer2 main_fix\">\n        <div class=\"main_f\">\n            <p class=\"title_f\">Tải ứng dụng</p>\n            <div class=\"ungdung\"></div>\n        </div>\n         <div class=\"item_f\">\n            <p class=\"title_f\">Dịch vụ<i class=\"fas fa-chevron-right hidden_d\"></i></p>\n            <ul>\n                <li><a href=\"/san-pham\">Mua xe</a></li>\n                <li><a href=\"/ban-xe\">Bán xe</a></li>\n                <li><a href=\"/len-doi\">Lên đời</a></li>\n                <li><a href=\"https://baohiemtasco.com/san-pham/bao-hiem-o-to-xe-may/\" target=\"_blank\">Bảo hiểm</a></li>\n                <li><a href=\"/cuu-ho\">Cứu hộ RSA</a></li>\n            </ul>\n        </div>\n\n        <div class=\"item_f\">\n            <p class=\"title_f\">Giới thiệu<i class=\"fas fa-chevron-right hidden_d\"></i></p>\n            <ul>\t\t\t\t<li><a href=\"/ve-chung-toi\">Về chúng tôi</a></li>\n\t\t</ul>        </div>\n\n        \n        <div class=\"item_f\">\n            <p class=\"title_f\">Tài khoản<i class=\"fas fa-chevron-right hidden_d\"></i></p>\n            <ul>\n                                    <li><a href=\"/account/dang-nhap\"><span>Đăng nhập</span></a></li>\n                    <li><a href=\"/account/dang-ky\"><span>Đăng ký</span></a></li>\n                            </ul>\n        </div>\n    </div>\n\n    <div class=\"chinhanh_f main_fix\">\n                        <div class=\"item_chin\">\n            <p class=\"ten\">Miền Nam</p>\n            <ul>\n                                    <li><b>Showroom Toàn Trung Luxury Car:</b> <a href=\"https://maps.app.goo.gl/wnUHCzjERUjwUBe38?g_st=iz\" target=\"_blank\">789 QL13, Hiệp Bình Phước, Thành phố Thủ Đức, Hồ Chí Minh</a></li>\n                                    <li><b>Showroom Toàn Trung 9:</b> <a href=\"https://maps.app.goo.gl/2ryfnuiPrgJ6pCjS8\" target=\"_blank\">793 QL13, Hiệp Bình Phước, Thủ Đức, Thành phố Hồ Chí Minh 700000, Vietnam</a></li>\n                                    <li><b>Showroom Toàn Trung 10:</b> <a href=\"https://maps.app.goo.gl/2ryfnuiPrgJ6pCjS8\" target=\"_blank\">88 QL1A, Hiệp Bình Phước, Thủ Đức, Hồ Chí Minh</a></li>\n                            </ul>\n        </div>\n                        <div class=\"item_chin\">\n            <p class=\"ten\">Miền Trung</p>\n            <ul>\n                                    <li><b>Showroom Toàn Trung Gia Lai:</b> <a href=\"https://maps.app.goo.gl/scK2U2VnSZkRXgYb7\" target=\"_blank\">276 Nguyễn Tất Thành, Phù Đổng, Thành phố Pleiku, Gia Lai 60000, Vietnam</a></li>\n                            </ul>\n        </div>\n            </div>\n</div>",
+  "copyright": "<div class=\"wap_copy clear\">\n    <div class=\"copy main_fix\">\n        <p class=\"ds\">© 2024 DoGi - Web Design </p>\n    </div>\n</div>",
+  "contacts": "\n\t<ul>\n\t\t    \t\t<li><a href=\"tel:0777393913\" title=\"Thanh Tài\"><p>Thanh Tài <span>(Tư vấn bán hàng (Gia Lai))</span></p> <b>0777393913</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777393987\" title=\"Thạch \"><p>Thạch  <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777393987</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777393924\" title=\"Nam Anh\"><p>Nam Anh <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777393924</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777393962\" title=\"Lem\"><p>Lem <span>(Thu mua và Thẩm định xe)</span></p> <b>0777393962</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777393960\" title=\"Dương\"><p>Dương <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777393960</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777393912\" title=\"Đức Chí\"><p>Đức Chí <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777393912</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777393980\" title=\"Chẩn\"><p>Chẩn <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777393980</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777393985\" title=\"Xuân\"><p>Xuân <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777393985</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777393981\" title=\"Dâng\"><p>Dâng <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777393981</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262626\" title=\"Oto Toàn Trung\"><p>Oto Toàn Trung <span>(Thu và thẩm định xe)</span></p> <b>0777262626</b></a></li>\n    \t    \t\t<li><a href=\"tel:0922325679\" title=\"Luân\"><p>Luân <span>(Thu mua và Thẩm định xe)</span></p> <b>0922325679</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262628\" title=\"Hào\"><p>Hào <span>(Thu mua và thẩm định xe (HCM))</span></p> <b>0777262628</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262607\" title=\"Minh Huy\"><p>Minh Huy <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777262607</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262629\" title=\"Ý\"><p>Ý <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777262629</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262608\" title=\"Thương\"><p>Thương <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777262608</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262693\" title=\"Định\"><p>Định <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777262693</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262623\" title=\"Nam\"><p>Nam <span>(Khiếu nại (HCM))</span></p> <b>0777262623</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262879\" title=\"Vũ\"><p>Vũ <span>(Tư vấn bán hàng (HCM))</span></p> <b>0777262879</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262678\" title=\"Tài\"><p>Tài <span>(Tư Vấn Bán Hàng (HCM))</span></p> <b>0777262678</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262679\" title=\"Bảo\"><p>Bảo <span>(Khiếu nại (HCM))</span></p> <b>0777262679</b></a></li>\n    \t    \t\t<li><a href=\"tel:0979325679\" title=\"Thiệu\"><p>Thiệu <span>(Tư Vấn Bán Hàng( HCM))</span></p> <b>0979325679</b></a></li>\n    \t    \t\t<li><a href=\"tel:0929325679\" title=\"Quốc\"><p>Quốc <span>(Tư Vấn Bán Hàng (Gia Lai))</span></p> <b>0929325679</b></a></li>\n    \t    \t\t<li><a href=\"tel:0928325679\" title=\"Vy\"><p>Vy <span>(Tư Vấn Bán Hàng (Gia Lai))</span></p> <b>0928325679</b></a></li>\n    \t    \t\t<li><a href=\"tel:0777262609\" title=\"Vân Anh\"><p>Vân Anh <span>(Tư Vấn Bán Hàng (Gia Lai))</span></p> <b>0777262609</b></a></li>\n    \t\t</ul>\n"
+}
