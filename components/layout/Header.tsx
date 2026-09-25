@@ -8,13 +8,27 @@ function MenuList({items,mobile=false,close}:{items:MenuItem[];mobile?:boolean;c
   const [expanded,setExpanded]=useState<string|null>(null);
   const pathname=usePathname();
   const active=(shared.activeMenus as Record<string,string>)[pathname];
-  return <ul>{items.map(item=><li className={item.className} key={item.label}>
-    <a href={item.href} target={item.target} rel={item.target?'noreferrer':undefined} title={item.label} className={[mobile&&expanded===item.label?'active2':'',active===item.label.trim()?'active':''].join(' ')}
-      onClick={event=>{if(mobile && item.children.length && (!item.href || (event.target as HTMLElement).closest('i'))) {event.preventDefault();setExpanded(expanded===item.label?null:item.label);} else if(item.href) close();}}>
-      {item.label}{mobile && item.children.length>0 && <i className="fas fa-chevron-right"/>}
-    </a>
-    {item.children.length>0 && <ul style={mobile?{display:expanded===item.label?'block':'none'}:undefined}>{item.children.map(child=><li key={child.label}><a href={child.href} target={child.target} rel={child.target?'noreferrer':undefined} onClick={close}>{child.label}</a></li>)}</ul>}
-  </li>)}</ul>;
+  return <ul>{items.map(item=>{
+    const hasSubmenu=item.children.length>1;
+    const destination=item.children.length===1?item.children[0]:item;
+    const isExpanded=mobile&&expanded===item.label;
+    return <li className={[item.className,hasSubmenu?'has-submenu':''].filter(Boolean).join(' ')} key={item.label}>
+      <a href={hasSubmenu?undefined:destination.href} target={destination.target} rel={destination.target?'noreferrer':undefined} title={item.label}
+        role={hasSubmenu?'button':undefined} tabIndex={hasSubmenu?0:undefined}
+        aria-haspopup={hasSubmenu?'menu':undefined} aria-expanded={hasSubmenu&&mobile?isExpanded:undefined}
+        className={[isExpanded?'active2':'',active===item.label.trim()?'active':''].filter(Boolean).join(' ')}
+        onClick={event=>{if(hasSubmenu){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}else close();}}
+        onKeyDown={event=>{if(hasSubmenu&&event.key===' '){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}}}>
+        {item.label}{hasSubmenu&&mobile&&<span className="mobile-menu-chevron" aria-hidden="true"/>}
+      </a>
+      {hasSubmenu&&<ul style={mobile?{display:isExpanded?'block':'none'}:undefined}>{item.children.map(child=><li key={child.label}>{child.href?<a href={child.href} target={child.target} rel={child.target?'noreferrer':undefined} onClick={close}>{child.label}</a>:<span className="menu-coming-soon" title="Tính năng đang được xây dựng">{child.label}</span>}</li>)}</ul>}
+    </li>;
+  })}</ul>;
+}
+function HeaderActions() {
+  return <div className="header-actions">
+    <p className="hotline">0777393913</p>
+  </div>;
 }
 export default function Header() {
   const [open,setOpen]=useState(false);const pathname=usePathname();
@@ -26,18 +40,17 @@ export default function Header() {
       <div className="header"><a className="logo" href="/">{logo}</a></div>
       <div className="wap_menu clear"><div className="menu" role="navigation" aria-label="Điều hướng chính">
         <MenuList items={shared.menu} close={()=>setOpen(false)}/>
-        <p className="hotline">0777393913</p>
-        <div className="user_login"><a href="/account/dang-nhap"><span>Đăng nhập</span></a>/{' '}<a href="/account/dang-ky"><span>Đăng ký</span></a></div>
+        <HeaderActions />
       </div></div>
     </div></div>
     <div className={`menu_mobi_add hidden_d${open?' menu_mobi_active':''}`} aria-hidden={!open}>
       <div className="logo_m logo">{logo}<span className="close_menu" role="button" tabIndex={0} aria-label="Đóng menu" onClick={()=>setOpen(false)}/></div>
-      <MenuList items={shared.menu} mobile close={()=>setOpen(false)}/><p className="hotline">0777393913</p>
+      <MenuList items={shared.menu} mobile close={()=>setOpen(false)}/><HeaderActions />
     </div>
     <div className="menu_mobi hidden_d">
       <p className="menu_baophu" style={{display:open?'block':'none'}} onClick={()=>setOpen(false)}/>
       <p className="icon_menu_mobi" role="button" tabIndex={0} aria-label="Mở menu" aria-expanded={open} onClick={()=>setOpen(true)}><i className="fas fa-bars"/></p>
-      <a className="logo" href="/">{logo}</a><a href="/account/dang-nhap" className="icon_login" aria-label="Đăng nhập"/>
+      <a className="logo" href="/">{logo}</a><span className="menu-mobile-spacer" aria-hidden="true"/>
     </div>
   </>;
 }

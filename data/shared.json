@@ -138,6 +138,27 @@
       "children": []
     },
     {
+      "label": "Tiện ích",
+      "children": [
+        {
+          "label": "Định giá xe",
+          "children": []
+        },
+        {
+          "label": "Tra cứu phạt nguội",
+          "children": []
+        },
+        {
+          "label": "Xem ngày mua xe",
+          "children": []
+        },
+        {
+          "label": "Xem giá xăng dầu",
+          "children": []
+        }
+      ]
+    },
+    {
       "label": "Giới thiệu",
       "children": [
         {

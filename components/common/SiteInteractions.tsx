@@ -104,17 +104,31 @@ export default function SiteInteractions() {
       if(target.closest('.wap_sosanhxe .td')){document.querySelector('.wap_sosanhxe')?.classList.toggle('wap_sosanhxe_active');return;}
       const remove=target.closest<HTMLElement>('.xoa_ss');if(remove){document.querySelectorAll<HTMLElement>('.id_ss_active').forEach(el=>{if(el.dataset.id===remove.dataset.id)el.classList.remove('id_ss_active');});updateComparison();return;}
       const compare=target.closest<HTMLElement>('.id_ss');if(compare){const selected=document.querySelectorAll('.id_ss_active');if(!compare.classList.contains('id_ss_active')&&selected.length>=2){notify('Chỉ so sánh 2 xe. Vui lòng tắt bớt xe.');return;}compare.classList.toggle('id_ss_active');document.querySelector('.wap_sosanhxe')?.classList.add('wap_sosanhxe_active');updateComparison();return;}
-      const service=target.closest<HTMLElement>('.cap1 li');if(service && !service.classList.contains('active')){const routes:Record<string,string>={'buoc-mua-xe':'/san-pham','buoc-ban-xe':'/ban-xe','buoc-len-doi':'/len-doi'};const route=routes[service.dataset.id||''];if(route)window.location.href=route;return;}
+      const service=target.closest<HTMLElement>('.cap1 li');if(service){
+        const id=service.dataset.id||'';
+        const panels=[...document.querySelectorAll<HTMLElement>('.wap_dichvu > .dichvu[data-service]')];
+        if(panels.length && id!=='buoc-len-doi'){
+          document.querySelectorAll<HTMLElement>('.wap_dichvu .cap1 li').forEach(tab=>{const active=tab===service;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;});
+          panels.forEach(panel=>{panel.hidden=panel.dataset.service!==id;});
+          window.dispatchEvent(new Event('resize'));
+          return;
+        }
+        if(!service.classList.contains('active')){const routes:Record<string,string>={'buoc-mua-xe':'/san-pham','buoc-ban-xe':'/ban-xe','buoc-len-doi':'/len-doi'};const route=routes[id];if(route)window.location.href=route;}
+        return;
+      }
       if(target.closest('.load_them')){event.preventDefault();notify('Vui lòng xem các xe hiện có trong mục Mua xe.');return;}
       if(target.closest('.c_tragop')){notify('Vui lòng liên hệ 0777393913 để được tư vấn trả góp.');return;}
     };
     const submit=(event:SubmitEvent)=>{
-      const form=event.target as HTMLFormElement;event.preventDefault();
+      const form=event.target as HTMLFormElement;
+      if(form.matches('.tt-footer-news-form'))return;
+      event.preventDefault();
       form.classList.add('was-validated');if(!form.checkValidity()){form.reportValidity();return;}
       if(form.closest('.banxe')){window.location.href='/ban-xe';return;}
       notify('Hiện chưa thể gửi yêu cầu trực tuyến. Vui lòng liên hệ 0777393913 để được hỗ trợ.');
     };
     const keys=(e:KeyboardEvent)=>{
+      if(['Enter',' '].includes(e.key) && (e.target as HTMLElement).matches('.wap_dichvu .cap1 [role="tab"]')){e.preventDefault();(e.target as HTMLElement).click();return;}
       if(e.key==='Escape'){document.querySelector('.wap_boloc')?.classList.remove('wap_boloc_active');}
       if(e.key==='Enter' && (e.target as HTMLElement).id==='keyword'){e.preventDefault();const value=(e.target as HTMLInputElement).value.trim();if(value)window.location.href=`/san-pham?keyword=${encodeURIComponent(value)}`;else notify('Chưa nhập từ khóa tìm kiếm');}
     };

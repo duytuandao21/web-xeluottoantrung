@@ -28,6 +28,9 @@ export async function getLegacyPage(pathname: string, searchParams: SearchParams
   if (!file) return null;
   const raw = await readFile(path.join(process.cwd(), "data", "pages", file), "utf8");
   const page=JSON.parse(raw) as LegacyPageData;
+  if (normalizedPath === "/ban-xe") {
+    page.content = page.content.replaceAll("Tìm xe của bạn liên hệ và thỏa thuận", "Liên hệ và thỏa thuận");
+  }
   return localSearch?searchSnapshot(page,searchParams):page;
 }
 
