@@ -6,6 +6,7 @@ export interface LegacyPageData {
   openGraphImage: string;
   content: string;
   sourceFile: string;
+  cars?: Record<string, import('./car').Car>;
 }
 
 export type SearchParams = Record<string, string | string[] | undefined>;

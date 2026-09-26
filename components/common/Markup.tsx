@@ -11,7 +11,7 @@ export default function Markup({html,cars={}}:{html:string;cars?:Record<string,C
     if(!(node instanceof Element)) return;
     const cls=node.attribs.class || '';
     if(node.name==='script') return <></>;
-    if(node.name==='car-card') {const car=cars[node.attribs['data-key']];return car?<CarCard car={car}/>:<></>;}
+    if(node.name==='car-card') {const car=cars[node.attribs['data-key']];return car?<CarCard key={car.id} car={car}/>:<></>;}
     if(cls.split(' ').includes('left-pro-detail')) {
       const gallery=node.children.find(child=>child instanceof Element && child.attribs.class==='album_pro');
       if(gallery instanceof Element) {
@@ -28,9 +28,9 @@ export default function Markup({html,cars={}}:{html:string;cars?:Record<string,C
     // React requires the parent select to own the initial selected option.
     if(node.name==='select') {
       const selected=node.children.find(child=>child instanceof Element && 'selected' in child.attribs) as Element|undefined;
-      return <select {...attributesToProps(node.attribs)} defaultValue={selected?.attribs.value}>{domToReact(node.children as DOMNode[],options)}</select>;
+      return <select key={node.attribs.id==='vehicle-sort'?selected?.attribs.value:undefined} {...attributesToProps(node.attribs)} defaultValue={selected?.attribs.value}>{domToReact(node.children as DOMNode[],options)}</select>;
     }
-    if(node.name==='option' && 'selected' in node.attribs) {const {selected,...attrs}=node.attribs;return <option {...attributesToProps(attrs)}>{domToReact(node.children as DOMNode[],options)}</option>;}
+    if(node.name==='option' && 'selected' in node.attribs) {const attrs={...node.attribs};delete attrs.selected;return <option {...attributesToProps(attrs)}>{domToReact(node.children as DOMNode[],options)}</option>;}
     if(node.name==='input' || node.name==='textarea') {const {value,checked,...props}=attributesToProps(node.attribs);return createElement(node.name,{...props,defaultValue:value,defaultChecked:checked},node.name==='textarea'?domToReact(node.children as DOMNode[],options):undefined);}
   }};
   return <>{parse(html,options)}</>;

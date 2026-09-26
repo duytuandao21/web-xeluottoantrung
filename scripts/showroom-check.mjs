@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import ts from 'typescript';
+const source = await readFile(new URL('../lib/showrooms.ts', import.meta.url), 'utf8');
+const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ES2022 } });
+const { groupShowrooms } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
+const regions = [{ id: 'central', name: 'Central' }, { id: 'south', name: 'South' }, { id: 'empty', name: 'Empty' }];
+const branch = (id, regionId) => ({ id, name: id, regionId, address: id });
+const branches = [branch('a', 'central'), branch('b', 'south'), branch('c', null), branch('d', 'hidden')];
+let groups = groupShowrooms(branches, regions);
+assert.deepEqual(groups.map(group => group.locations.map(row => row.name)), [['a'], ['b'], ['c']]);
+branches[0].regionId = 'south';
+groups = groupShowrooms(branches, regions);
+assert.equal(groups[0].region, 'South');
+assert.deepEqual(groups[0].locations.map(row => row.name), ['a', 'b']);
+console.log('Showroom grouping, region changes, hidden and unassigned checks passed.');

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import shared from '@/data/shared.json';
 
 interface MenuItem { label:string;href?:string;target?:string;className?:string;children:MenuItem[]; }
@@ -25,32 +26,32 @@ function MenuList({items,mobile=false,close}:{items:MenuItem[];mobile?:boolean;c
     </li>;
   })}</ul>;
 }
-function HeaderActions() {
+function HeaderActions({ phone }: { phone?: string }) {
   return <div className="header-actions">
-    <p className="hotline">0777393913</p>
+    <p className="hotline">{phone || '0777393913'}</p>
   </div>;
 }
-export default function Header() {
+export default function Header({ phone }: { phone?: string }) {
   const [open,setOpen]=useState(false);const pathname=usePathname();
   useEffect(()=>setOpen(false),[pathname]);
   useEffect(()=>{if(!open)return;const close=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false);};document.addEventListener('keydown',close);return()=>document.removeEventListener('keydown',close);},[open]);
   const logo=<img src="/upload/photo/logo-tt-gold-6981.png" alt="Logo"/>;
   return <>
     <div className="wap_header clear hidden_m"><div className="wap_header2 main_fix">
-      <div className="header"><a className="logo" href="/">{logo}</a></div>
+      <div className="header"><Link className="logo" href="/">{logo}</Link></div>
       <div className="wap_menu clear"><div className="menu" role="navigation" aria-label="Điều hướng chính">
         <MenuList items={shared.menu} close={()=>setOpen(false)}/>
-        <HeaderActions />
+        <HeaderActions phone={phone} />
       </div></div>
     </div></div>
     <div className={`menu_mobi_add hidden_d${open?' menu_mobi_active':''}`} aria-hidden={!open}>
       <div className="logo_m logo">{logo}<span className="close_menu" role="button" tabIndex={0} aria-label="Đóng menu" onClick={()=>setOpen(false)}/></div>
-      <MenuList items={shared.menu} mobile close={()=>setOpen(false)}/><HeaderActions />
+      <MenuList items={shared.menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} />
     </div>
     <div className="menu_mobi hidden_d">
       <p className="menu_baophu" style={{display:open?'block':'none'}} onClick={()=>setOpen(false)}/>
       <p className="icon_menu_mobi" role="button" tabIndex={0} aria-label="Mở menu" aria-expanded={open} onClick={()=>setOpen(true)}><i className="fas fa-bars"/></p>
-      <a className="logo" href="/">{logo}</a><span className="menu-mobile-spacer" aria-hidden="true"/>
+      <Link className="logo" href="/">{logo}</Link><span className="menu-mobile-spacer" aria-hidden="true"/>
     </div>
   </>;
 }
