@@ -4,6 +4,7 @@ import { load } from 'cheerio';
 
 export default function LegacyPage({ page }: { page: LegacyPageData }) {
   const $ = load(page.content, {}, false);
+  $('.boloc_l li.cuoi').filter((_, element) => $(element).text().trim() === 'Bộ lọc').remove();
   $('.breadCrumbs .main_fix').each((_, container) => {
     const root = $(container);
     const entries = root.find('.breadcrumb-item');

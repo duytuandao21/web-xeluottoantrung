@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   images: { unoptimized: true },
   poweredByHeader: false,
+  async rewrites() {
+    const apiOrigin = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '');
+    return [{ source: '/api/v1/:path*', destination: `${apiOrigin}/api/v1/:path*` }];
+  },
 };
 
 export default nextConfig;

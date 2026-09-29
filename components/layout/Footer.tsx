@@ -27,6 +27,9 @@ const socials = [
   { label: 'YouTube', href: 'https://www.youtube.com/@ototoantrung', image: '/upload/photo/youtube-150-4900.png' },
 ];
 
+const fallbackForLegacyEmpty = new Set(['footerAbout', 'footerAddress', 'footerPhone']);
+const safeHref = (href?: string) => href && (/^https:\/\/[^\s]+$/i.test(href) || /^\/(?!\/)[^\s]*$/.test(href) || /^#[a-z0-9-]+$/i.test(href) || /^mailto:[^\s@]+@[^\s@]+$/i.test(href)) ? href : undefined;
+
 function FooterLinks({ links }: { links: { label: string; href?: string }[] }) {
   return <ul className="tt-footer-links">{links.map(link => <li key={link.label}>
     {link.href ? <a href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>{link.label}</a> : <span>{link.label}</span>}
@@ -47,9 +50,16 @@ function RegisteredBadge() {
   </svg>;
 }
 
-export default function Footer({ showrooms, phone, address }: { showrooms: { region: string; locations: { name: string; address: string }[] }[]; phone?: string; address?: string }) {
+export default function Footer({ showrooms, phone, address, settings }: { showrooms: { region: string; locations: { name: string; address: string; mapUrl?: string | null }[] }[]; phone?: string; address?: string; settings: Record<string, string> }) {
   const [newsletterNotice, setNewsletterNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const value = (key: string, fallback: string) => settings[key] === undefined || (settings[key] === '' && fallbackForLegacyEmpty.has(key)) ? fallback : settings[key];
+  const footerPhone = value('footerPhone', phone || '0777 393 913');
+  const footerAddress = value('footerAddress', address || '338–340–342–344 Hùng Vương, Phường Pleiku, Tỉnh Gia Lai');
+  const services = serviceLinks.map((link, index) => ({ label: value(`serviceLink${index + 1}Label`, link.label) || link.label, href: safeHref(value(`serviceLink${index + 1}Href`, link.href || '')) }));
+  const about = aboutLinks.map((link, index) => ({ label: value(`aboutLink${index + 1}Label`, link.label) || link.label, href: safeHref(value(`aboutLink${index + 1}Href`, link.href || '')) }));
+  const socialLinks = socials.map(social => ({ ...social, href: safeHref(value(`${social.label.toLowerCase()}Url`, social.href)) || social.href }));
+  const certificateUrl = safeHref(value('certificateUrl', ''));
   const submitNewsletter = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -71,51 +81,51 @@ export default function Footer({ showrooms, phone, address }: { showrooms: { reg
         <div className="tt-footer-main">
           <div className="tt-footer-brand">
             <Link href="/" aria-label="Về trang chủ Toàn Trung"><img src="/upload/photo/logo-tt-gold-6981.png" alt="Auto Toàn Trung" /></Link>
-            <p>Hệ thống mua bán ô tô đã qua sử dụng, hướng tới trải nghiệm minh bạch, thuận tiện và chuyên nghiệp cho khách hàng.</p>
-            <div className="tt-footer-social" aria-label="Mạng xã hội">{socials.map(social => <a key={social.label} href={social.href} target="_blank" rel="noreferrer" aria-label={social.label} title={social.label}><img src={social.image} alt="" /></a>)}</div>
+            <p>{value('footerAbout', 'Hệ thống mua bán ô tô đã qua sử dụng, hướng tới trải nghiệm minh bạch, thuận tiện và chuyên nghiệp cho khách hàng.')}</p>
+            <div className="tt-footer-social" aria-label="Mạng xã hội">{socialLinks.map(social => <a key={social.label} href={social.href} target="_blank" rel="noopener noreferrer" aria-label={social.label} title={social.label}><img src={social.image} alt="" /></a>)}</div>
           </div>
-          <div><h2 className="tt-footer-heading">Dịch vụ</h2><FooterLinks links={serviceLinks} /></div>
-          <div><h2 className="tt-footer-heading">Về Toàn Trung</h2><FooterLinks links={aboutLinks} /></div>
+          <div><h2 className="tt-footer-heading">{value('serviceTitle', 'Dịch vụ')}</h2><FooterLinks links={services} /></div>
+          <div><h2 className="tt-footer-heading">{value('aboutTitle', 'Về Toàn Trung')}</h2><FooterLinks links={about} /></div>
           <div className="tt-footer-contact" id="tt-footer-contact">
-            <h2 className="tt-footer-heading">Liên hệ nhanh</h2>
-            <div className="tt-footer-contact-row"><span className="tt-footer-contact-icon" aria-hidden="true">☎</span><div><small>Tổng đài hỗ trợ</small><a href={`tel:${(phone || '0777393913').replace(/\D/g, '')}`}>{phone || '0777 393 913'}</a></div></div>
-            <div className="tt-footer-contact-row"><span className="tt-footer-contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg></span><div><small>Trụ sở</small><span>{address || '338–340–342–344 Hùng Vương, Phường Pleiku, Tỉnh Gia Lai'}</span></div></div>
-            <div className="tt-footer-contact-row"><span className="tt-footer-contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9Z" /></svg></span><div><small>Website</small><Link href="/">xeluottoantrung.com</Link></div></div>
+            <h2 className="tt-footer-heading">{value('contactTitle', 'Liên hệ nhanh')}</h2>
+            <div className="tt-footer-contact-row"><span className="tt-footer-contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16.4v3a2 2 0 0 1-2.2 2A18.8 18.8 0 0 1 2.6 5.2 2 2 0 0 1 4.6 3h3a2 2 0 0 1 2 1.7l.4 2.7a2 2 0 0 1-.6 1.8L7.8 10.8a15.6 15.6 0 0 0 5.4 5.4l1.6-1.6a2 2 0 0 1 1.8-.6l2.7.4A2 2 0 0 1 21 16.4Z" /></svg></span><div><small>{value('quickPhoneLabel', 'Tổng đài hỗ trợ')}</small><a href={`tel:${footerPhone.replace(/\D/g, '')}`}>{footerPhone}</a></div></div>
+            <div className="tt-footer-contact-row"><span className="tt-footer-contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg></span><div><small>{value('quickAddressLabel', 'Trụ sở')}</small><span>{footerAddress}</span></div></div>
+            <div className="tt-footer-contact-row"><span className="tt-footer-contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9Z" /></svg></span><div><small>{value('quickWebsiteLabel', 'Website')}</small>{safeHref(value('quickWebsiteUrl', '/')) ? <a href={safeHref(value('quickWebsiteUrl', '/'))}>{value('quickWebsiteText', 'xeluottoantrung.com')}</a> : <span>{value('quickWebsiteText', 'xeluottoantrung.com')}</span>}</div></div>
           </div>
         </div>
 
         <section className="tt-footer-news-cert" aria-label="Chứng nhận và đăng ký nhận tin">
           <div className="tt-footer-cert">
-            <h2 className="tt-footer-heading">Chứng nhận</h2>
-            <RegisteredBadge />
+            <h2 className="tt-footer-heading">{value('certificateTitle', 'Chứng nhận')}</h2>
+            {certificateUrl ? <a href={certificateUrl} target="_blank" rel="noopener noreferrer" aria-label="Xem chứng nhận của Toàn Trung"><RegisteredBadge /></a> : <RegisteredBadge />}
           </div>
           <div className="tt-footer-news">
-            <h2 className="tt-footer-heading">Đăng ký nhận tin từ Toàn Trung</h2>
-            <p>Nhận thông tin xe mới về, chương trình ưu đãi và những cập nhật mới nhất.</p>
+            <h2 className="tt-footer-heading">{value('newsletterTitle', 'Đăng ký nhận tin từ Toàn Trung')}</h2>
+            <p>{value('newsletterDescription', 'Nhận thông tin xe mới về, chương trình ưu đãi và những cập nhật mới nhất.')}</p>
             <form className="tt-footer-news-form" onSubmit={submitNewsletter}>
-              <input type="email" name="email" autoComplete="email" required aria-label="Địa chỉ email" placeholder="Nhập email của bạn" onChange={() => setNewsletterNotice('')} />
-              <button type="submit" disabled={submitting}>{submitting ? 'Đang gửi...' : 'Đăng ký'}</button>
+              <input type="email" name="email" autoComplete="email" required aria-label="Địa chỉ email" placeholder={value('newsletterPlaceholder', 'Nhập email của bạn')} onChange={() => setNewsletterNotice('')} />
+              <button type="submit" disabled={submitting}>{submitting ? 'Đang gửi...' : value('newsletterButton', 'Đăng ký')}</button>
             </form>
             {newsletterNotice && <p className="tt-footer-news-notice" role="status">{newsletterNotice}</p>}
           </div>
         </section>
 
         <section className="tt-footer-showrooms" id="tt-showrooms">
-          <h2 className="tt-footer-heading">Hệ thống showroom</h2>
+          <h2 className="tt-footer-heading">{value('showroomTitle', 'Hệ thống showroom')}</h2>
           <div className="tt-footer-showroom-grid">{showrooms.map(group => <div className="tt-footer-showroom-card" key={group.region}>
-            <h3>{group.region}</h3>
-            <ul>{group.locations.map(location => <li key={location.name}><strong>{location.name}</strong><span>{location.address}</span></li>)}</ul>
+            <div className="tt-footer-showroom-region"><span className="tt-footer-showroom-pin" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg></span><h3>{group.region}</h3></div>
+            <ul>{group.locations.map(location => <li key={location.name}><strong>{safeHref(location.mapUrl || '') ? <a href={safeHref(location.mapUrl || '')} target="_blank" rel="noopener noreferrer">{location.name}</a> : location.name}</strong><span>{location.address}</span></li>)}</ul>
           </div>)}</div>
         </section>
 
         <section className="tt-footer-legal" aria-label="Thông tin doanh nghiệp">
-          <div><h2>CÔNG TY TNHH MỘT THÀNH VIÊN TOÀN TRUNG</h2><p>Thông tin pháp lý doanh nghiệp</p></div>
-          <div><small>GCNĐKDN / MST</small><strong>5900674378</strong><span>Ngày cấp: 06/01/2010</span></div>
-          <div><small>Điện thoại</small><a href="tel:0777393912">0777 393 912</a></div>
-          <div><small>Địa chỉ trụ sở</small><span>{address || '338–340–342–344 Hùng Vương, Phường Pleiku, Tỉnh Gia Lai, Việt Nam'}</span></div>
+          <div><span className="tt-footer-legal-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 21V7h8v14M10 10h.01M14 10h.01M10 13h.01M14 13h.01M10 16h.01M14 16h.01"/></svg></span><div><h2>{value('businessName', 'CÔNG TY TNHH MỘT THÀNH VIÊN TOÀN TRUNG')}</h2><p>{value('businessDescription', 'Thông tin pháp lý doanh nghiệp')}</p></div></div>
+          <div><span className="tt-footer-legal-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2h9l4 4v16H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v5h5M8 12h8M8 16h8M8 20h5"/></svg></span><div><small>{value('businessTaxLabel', 'GCNĐKDN / MST')}</small><strong>{value('businessTaxId', '5900674378')}</strong><span>{value('businessIssueDate', 'Ngày cấp: 06/01/2010')}</span></div></div>
+          <div><span className="tt-footer-legal-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16.4v3a2 2 0 0 1-2.2 2A18.8 18.8 0 0 1 2.6 5.2 2 2 0 0 1 4.6 3h3a2 2 0 0 1 2 1.7l.4 2.7a2 2 0 0 1-.6 1.8L7.8 10.8a15.6 15.6 0 0 0 5.4 5.4l1.6-1.6a2 2 0 0 1 1.8-.6l2.7.4A2 2 0 0 1 21 16.4Z"/></svg></span><div><small>{value('businessPhoneLabel', 'Điện thoại')}</small><a href={`tel:${value('businessPhone', '0777 393 912').replace(/\D/g, '')}`}>{value('businessPhone', '0777 393 912')}</a></div></div>
+          <div><span className="tt-footer-legal-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span><div><small>{value('businessAddressLabel', 'Địa chỉ trụ sở')}</small><span>{value('businessAddress', footerAddress)}</span></div></div>
         </section>
 
-        <div className="tt-footer-bottom"><span>© Auto Toàn Trung. All rights reserved.</span><nav aria-label="Chính sách"><Link href="/dieu-khoan-su-dung">Điều khoản sử dụng</Link><Link href="/chinh-sach-quyen-rieng-tu">Chính sách quyền riêng tư</Link></nav></div>
+        <div className="tt-footer-bottom"><span>{value('footerCopyright', '© Auto Toàn Trung. All rights reserved.')}</span><nav aria-label="Chính sách"><a href={safeHref(value('legalTermsHref', '/dieu-khoan-su-dung')) || '/dieu-khoan-su-dung'}>{value('legalTermsLabel', 'Điều khoản sử dụng')}</a><a href={safeHref(value('legalPrivacyHref', '/chinh-sach-quyen-rieng-tu')) || '/chinh-sach-quyen-rieng-tu'}>{value('legalPrivacyLabel', 'Chính sách quyền riêng tư')}</a></nav></div>
       </div>
     </footer>
     <a className="btn-zalo btn-frame text-decoration-none hidden_m2" target="_blank" rel="noreferrer" href="https://zalo.me/0777393913">

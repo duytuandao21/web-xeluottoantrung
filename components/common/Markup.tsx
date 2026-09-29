@@ -2,16 +2,25 @@
 import parse, { attributesToProps, domToReact, Element, type DOMNode, type HTMLReactParserOptions } from 'html-react-parser';
 import { createElement } from 'react';
 import Carousel from './Carousel';
+import BuySellBanner from './BuySellBanner';
 import CarCard from '@/components/car/CarCard';
 import CarGallery from '@/components/car/CarGallery';
 import type { Car } from '@/types/car';
+import { SalePlate } from '@/components/sale/SaleAccess';
+import SaleSearchResults from '@/components/sale/SaleSearchResults';
 
 export default function Markup({html,cars={}}:{html:string;cars?:Record<string,Car>}) {
   const options:HTMLReactParserOptions={replace(node){
     if(!(node instanceof Element)) return;
     const cls=node.attribs.class || '';
     if(node.name==='script') return <></>;
+    if(cls.split(' ').includes('home-buy-banner')) return <BuySellBanner />;
     if(node.name==='car-card') {const car=cars[node.attribs['data-key']];return car?<CarCard key={car.id} car={car}/>:<></>;}
+    if(node.name==='sale-plate') return <SalePlate slug={node.attribs['data-slug'] || ''} />;
+    if(cls.split(' ').includes('wap_item') && node.attribs['data-sale-search-query']) {
+      const query=JSON.parse(node.attribs['data-sale-search-query']) as Record<string,string|number|undefined>;
+      return <SaleSearchResults query={query}>{domToReact(node.children as DOMNode[],options)}</SaleSearchResults>;
+    }
     if(cls.split(' ').includes('left-pro-detail')) {
       const gallery=node.children.find(child=>child instanceof Element && child.attribs.class==='album_pro');
       if(gallery instanceof Element) {
@@ -31,6 +40,9 @@ export default function Markup({html,cars={}}:{html:string;cars?:Record<string,C
       return <select key={node.attribs.id==='vehicle-sort'?selected?.attribs.value:undefined} {...attributesToProps(node.attribs)} defaultValue={selected?.attribs.value}>{domToReact(node.children as DOMNode[],options)}</select>;
     }
     if(node.name==='option' && 'selected' in node.attribs) {const attrs={...node.attribs};delete attrs.selected;return <option {...attributesToProps(attrs)}>{domToReact(node.children as DOMNode[],options)}</option>;}
+    if(node.name==='input' && ['submit','reset','button'].includes(node.attribs.type || '')) {
+      return createElement('input',attributesToProps(node.attribs));
+    }
     if(node.name==='input' || node.name==='textarea') {const {value,checked,...props}=attributesToProps(node.attribs);return createElement(node.name,{...props,defaultValue:value,defaultChecked:checked},node.name==='textarea'?domToReact(node.children as DOMNode[],options):undefined);}
   }};
   return <>{parse(html,options)}</>;

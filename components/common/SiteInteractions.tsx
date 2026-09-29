@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import Markup from './Markup';
 import { getPublic, submitPublic } from '@/lib/public-client';
+import { calculateInstallment } from '@/lib/installment-calculator';
 
 type Dialog = {html?:string;className?:string;id?:string;images?:{src:string;alt:string}[];index?:number};
 
@@ -12,7 +13,7 @@ export default function SiteInteractions() {
   const router=useRouter();
   const [filterPending,startFilterTransition]=useTransition();
   useEffect(()=>{
-    const filters=document.querySelector('.quick-filters');
+    const filters=document.querySelector('.vehicle-filter-panel');
     filters?.setAttribute('aria-busy',String(filterPending));
   },[filterPending,pathname,query]);
   const [dialog,setDialog]=useState<Dialog|null>(null);
@@ -45,6 +46,58 @@ export default function SiteInteractions() {
     setDialog(null);document.body.classList.remove('ss');
     setComparison([]);setComparisonHost(document.querySelector<HTMLElement>('.wap_sosanhxe'));
     const cleanups:(()=>void)[]=[];
+    const installment=document.querySelector<HTMLElement>('.vehicle-installment .tragop[data-price]');
+    if(installment){
+      const price=Number(installment.dataset.price);
+      const loan=installment.querySelector<HTMLSelectElement>('.sotienvay');
+      const term=installment.querySelector<HTMLSelectElement>('.thoigianvay');
+      const rate=installment.querySelector<HTMLInputElement>('.laisuat');
+      const downPayment=installment.querySelector<HTMLInputElement>('#tratruoc');
+      const estimate=installment.querySelector<HTMLElement>('.tragop_r .sotien');
+      const details=installment.querySelector<HTMLButtonElement>('.c_tragop');
+      if(loan&&term&&rate&&downPayment&&estimate&&details){
+        const money=(value:number)=>`${Math.round(value).toLocaleString('vi-VN')} VNĐ`;
+        let result:ReturnType<typeof calculateInstallment>=null;
+        const showSchedule=()=>{
+          if(!result)return;
+          setDialog({className:'installment-schedule-dialog',html:`<div class="installment-schedule"><h3 id="installment-schedule-title">Bảng trả góp dự kiến</h3>
+            <p>Khoản vay: <strong>${money(result.loanAmount)}</strong> · Tổng lãi: <strong>${money(result.totalInterest)}</strong></p>
+            <div class="installment-schedule__scroll" tabindex="0" aria-label="Bảng trả góp theo tháng, có thể cuộn ngang">
+              <table><thead><tr><th>Tháng</th><th>Tiền gốc</th><th>Tiền lãi</th><th>Tổng trả</th><th>Dư nợ còn lại</th></tr></thead>
+              <tbody>${result.rows.map(row=>`<tr><td>${row.month}</td><td>${money(row.principal)}</td><td>${money(row.interest)}</td><td>${money(row.payment)}</td><td>${money(row.balance)}</td></tr>`).join('')}</tbody></table>
+            </div><small>Khoản trả kỳ cuối có thể chênh lệch do làm tròn đến đồng.</small></div>`});
+        };
+        const update=()=>{
+          const loanAmount=Number(loan.value);
+          downPayment.value=Number.isFinite(price-loanAmount)&&loanAmount>=0&&loanAmount<=price?money(price-loanAmount):'—';
+          const rateText=rate.value.trim().replace(',','.');
+          const validRate=/^\d+(?:\.\d{1,2})?$/.test(rateText);
+          result=validRate?calculateInstallment(price,loanAmount,Number(term.value),Number(rateText)):null;
+          estimate.textContent=result?`${money(result.monthlyPayment)} / tháng`:
+            rateText?'Vui lòng nhập lãi suất từ 0 đến 100%/năm':'Nhập lãi suất để xem mức trả góp ước tính';
+        };
+        const openSchedule=()=>{
+          if(!result){rate.focus();return;}
+          showSchedule();
+        };
+        loan.addEventListener('change',update);term.addEventListener('change',update);
+        rate.addEventListener('input',update);details.addEventListener('click',openSchedule);
+        cleanups.push(()=>{loan.removeEventListener('change',update);term.removeEventListener('change',update);
+          rate.removeEventListener('input',update);details.removeEventListener('click',openSchedule);});
+        update();
+      }
+    }
+    const showBrandFallback=(image:HTMLImageElement)=>{
+      if(!image.matches('[data-brand-logo]'))return;
+      image.hidden=true;
+      image.closest('.vehicle-brands__option')?.querySelector<HTMLElement>('.vehicle-brands__fallback')?.removeAttribute('hidden');
+    };
+    const imageError=(event:Event)=>{if(event.target instanceof HTMLImageElement)showBrandFallback(event.target);};
+    document.addEventListener('error',imageError,true);
+    document.querySelectorAll<HTMLImageElement>('[data-brand-logo]').forEach(image=>{
+      if(image.complete && image.naturalWidth===0)showBrandFallback(image);
+    });
+    cleanups.push(()=>document.removeEventListener('error',imageError,true));
     const selectTab=(selector:string)=>{
       document.querySelectorAll<HTMLElement>('.tab_bl').forEach(el=>{el.style.display=el.matches(selector)?'block':'none';});
       document.querySelectorAll<HTMLElement>('.boloc_l li').forEach(el=>el.classList.toggle('active',el.dataset.id===selector));
@@ -91,12 +144,100 @@ export default function SiteInteractions() {
         return {id:el.dataset.id!,html:image+(card.querySelector('.mota')?.outerHTML||'')};
       }));
     };
+    let activeFilterTrigger:HTMLButtonElement|null=null;
+    let filterPositionFrame=0;
+    let filterHoverCloseTimer=0;
+    const closeFilterPopovers=()=>{
+      window.clearTimeout(filterHoverCloseTimer);
+      activeFilterTrigger=null;
+      document.querySelectorAll<HTMLElement>('.vehicle-filter-popover').forEach(el=>{el.hidden=true;});
+      document.querySelectorAll<HTMLElement>('[data-filter-popover-trigger]').forEach(el=>el.setAttribute('aria-expanded','false'));
+    };
+    const positionFilterPopover=()=>{
+      filterPositionFrame=0;
+      const trigger=activeFilterTrigger;
+      const popover=trigger&&document.getElementById(trigger.getAttribute('aria-controls')||'');
+      if(!trigger?.isConnected||!popover||popover.hidden){closeFilterPopovers();return;}
+      const rect=trigger.getBoundingClientRect();
+      const trackRect=trigger.closest('.vehicle-filter-bar__track')?.getBoundingClientRect();
+      if(rect.right<=0||rect.left>=innerWidth||rect.bottom<=0||rect.top>=innerHeight||
+        (trackRect&&(rect.right<=trackRect.left||rect.left>=trackRect.right))){closeFilterPopovers();return;}
+      popover.style.left=`${Math.max(12,Math.min(rect.left,innerWidth-popover.offsetWidth-12))}px`;
+      popover.style.top=`${rect.bottom+8}px`;
+      popover.style.maxHeight=`${Math.max(40,Math.min(420,innerHeight*.7,innerHeight-rect.bottom-20))}px`;
+    };
+    const scheduleFilterPopoverPosition=()=>{
+      if(activeFilterTrigger&&!filterPositionFrame)filterPositionFrame=requestAnimationFrame(positionFilterPopover);
+    };
+    const openFilterPopover=(trigger:HTMLButtonElement)=>{
+      const popover=document.getElementById(trigger.getAttribute('aria-controls')||'');
+      if(!popover)return;
+      if(activeFilterTrigger===trigger&&!popover.hidden){window.clearTimeout(filterHoverCloseTimer);return;}
+      closeFilterPopovers();
+      popover.hidden=false;
+      trigger.setAttribute('aria-expanded','true');
+      activeFilterTrigger=trigger;
+      positionFilterPopover();
+    };
+    const hoverableFilters=window.matchMedia('(hover: hover) and (pointer: fine)');
+    const onFilterPointerOver=(event:PointerEvent)=>{
+      if(!hoverableFilters.matches||event.pointerType!=='mouse')return;
+      const target=event.target;
+      if(!(target instanceof Element))return;
+      if(target.closest('.vehicle-filter-popover')){window.clearTimeout(filterHoverCloseTimer);return;}
+      const trigger=target.closest<HTMLButtonElement>('[data-filter-popover-trigger]');
+      if(trigger)openFilterPopover(trigger);
+    };
+    const onFilterPointerOut=(event:PointerEvent)=>{
+      if(!hoverableFilters.matches||event.pointerType!=='mouse'||!activeFilterTrigger)return;
+      const chip=activeFilterTrigger.closest('.vehicle-filter-chip');
+      const popover=document.getElementById(activeFilterTrigger.getAttribute('aria-controls')||'');
+      const from=event.target,to=event.relatedTarget;
+      if(!(from instanceof Node)||!(chip?.contains(from)||popover?.contains(from)))return;
+      if(to instanceof Node&&(chip?.contains(to)||popover?.contains(to)))return;
+      window.clearTimeout(filterHoverCloseTimer);
+      filterHoverCloseTimer=window.setTimeout(closeFilterPopovers,160);
+    };
+    const submitKeyword=()=>{
+      const value=document.querySelector<HTMLInputElement>('#keyword')?.value.trim()||'';
+      const params=new URLSearchParams(query.toString());params.delete('page');
+      if(value)params.set('keyword',value);else params.delete('keyword');
+      startFilterTransition(()=>router.push(`/san-pham${params.size?`?${params}`:''}`,{scroll:false}));
+    };
+    const filterTrack=document.querySelector<HTMLElement>('.vehicle-filter-bar__track');
+    filterTrack?.addEventListener('scroll',scheduleFilterPopoverPosition,{passive:true});
+    window.addEventListener('scroll',scheduleFilterPopoverPosition,{passive:true});
+    window.addEventListener('resize',scheduleFilterPopoverPosition);
+    cleanups.push(()=>{
+      filterTrack?.removeEventListener('scroll',scheduleFilterPopoverPosition);
+      window.removeEventListener('scroll',scheduleFilterPopoverPosition);
+      window.removeEventListener('resize',scheduleFilterPopoverPosition);
+      cancelAnimationFrame(filterPositionFrame);
+      window.clearTimeout(filterHoverCloseTimer);
+    });
+    document.addEventListener('pointerover',onFilterPointerOver);
+    document.addEventListener('pointerout',onFilterPointerOut);
+    cleanups.push(()=>{document.removeEventListener('pointerover',onFilterPointerOver);document.removeEventListener('pointerout',onFilterPointerOut);});
     const onClick=(event:MouseEvent)=>{
       const target=event.target as HTMLElement;
+      if(target.closest('[data-vehicle-search-submit]')){submitKeyword();return;}
       const scroll=target.closest<HTMLElement>('[data-filter-scroll]');
-      if(scroll){const track=scroll.closest('.quick-filters__row')?.querySelector('.quick-filters__track');track?.scrollBy({left:Number(scroll.dataset.filterScroll)*track.clientWidth*.75,behavior:'smooth'});return;}
-      const quick=target.closest<HTMLAnchorElement>('a[data-quick-filter]');
-      if(quick&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey){event.preventDefault();startFilterTransition(()=>router.push(quick.getAttribute('href')!,{scroll:false}));return;}
+      if(scroll){const track=scroll.closest('.vehicle-brands')?.querySelector('.vehicle-brands__track');track?.scrollBy({left:Number(scroll.dataset.filterScroll)*track.clientWidth*.75,behavior:'smooth'});return;}
+      const popoverTrigger=target.closest<HTMLButtonElement>('[data-filter-popover-trigger]');
+      if(popoverTrigger){
+        const popover=document.getElementById(popoverTrigger.getAttribute('aria-controls')||'');
+        const wasOpen=popover && !popover.hidden;
+        if(wasOpen&&(event.detail===0||!hoverableFilters.matches))closeFilterPopovers();
+        else openFilterPopover(popoverTrigger);
+        return;
+      }
+      const filterLink=target.closest<HTMLAnchorElement>('a[data-filter-link]');
+      if(filterLink&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey){
+        event.preventDefault();
+        startFilterTransition(()=>router.push(filterLink.href,{scroll:false}));
+        return;
+      }
+      if(!target.closest('.vehicle-filter-chip'))closeFilterPopovers();
       if(target.closest('.fancybox-container'))return;
       const trigger=target.closest<HTMLElement>('[data-src^="#"]');
       if(trigger){const modal=document.querySelector<HTMLElement>(trigger.dataset.src!);if(modal){event.preventDefault();const id=modal.id;sourceRef.current=modal;modal.id=`${id}-source`;modal.style.display='none';setDialog({html:modal.innerHTML,className:modal.className,id});return;}}
@@ -141,11 +282,12 @@ export default function SiteInteractions() {
       if(target.closest('.wap_sosanhxe .td')){document.querySelector('.wap_sosanhxe')?.classList.toggle('wap_sosanhxe_active');return;}
       const remove=target.closest<HTMLElement>('.xoa_ss');if(remove){document.querySelectorAll<HTMLElement>('.id_ss_active').forEach(el=>{if(el.dataset.id===remove.dataset.id)el.classList.remove('id_ss_active');});updateComparison();return;}
       const compare=target.closest<HTMLElement>('.id_ss');if(compare){const selected=document.querySelectorAll('.id_ss_active');if(!compare.classList.contains('id_ss_active')&&selected.length>=2){notify('Chỉ so sánh 2 xe. Vui lòng tắt bớt xe.');return;}compare.classList.toggle('id_ss_active');document.querySelector('.wap_sosanhxe')?.classList.add('wap_sosanhxe_active');updateComparison();return;}
-      const service=target.closest<HTMLElement>('.cap1 li');if(service){
+      const service=target.closest<HTMLElement>('.wap_dichvu .cap1 li,.wap_dichvu2 .cap1 li');if(service){
         const id=service.dataset.id||'';
-        const panels=[...document.querySelectorAll<HTMLElement>('.wap_dichvu > .dichvu[data-service]')];
-        if(panels.length && id!=='buoc-len-doi'){
-          document.querySelectorAll<HTMLElement>('.wap_dichvu .cap1 li').forEach(tab=>{const active=tab===service;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;});
+        const section=service.closest<HTMLElement>('.wap_dichvu,.wap_dichvu2');
+        const panels=[...section?.querySelectorAll<HTMLElement>(':scope > .dichvu[data-service]')||[]];
+        if(panels.some(panel=>panel.dataset.service===id)){
+          section?.querySelectorAll<HTMLElement>('.cap1 li').forEach(tab=>{const active=tab===service;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;});
           panels.forEach(panel=>{panel.hidden=panel.dataset.service!==id;});
           window.dispatchEvent(new Event('resize'));
           return;
@@ -154,12 +296,26 @@ export default function SiteInteractions() {
         return;
       }
       if(target.closest('.load_them')){event.preventDefault();notify('Vui lòng xem các xe hiện có trong mục Mua xe.');return;}
-      if(target.closest('.c_tragop')){notify('Vui lòng liên hệ 0777393913 để được tư vấn trả góp.');return;}
     };
     const submit=(event:SubmitEvent)=>{
       const form=event.target as HTMLFormElement;
-      if(form.matches('.tt-footer-news-form'))return;
+      if(form.matches('.tt-footer-news-form,[data-skip-legacy-submit]'))return;
       event.preventDefault();
+      if(form.matches('[data-filter-range]')){
+        const key=form.dataset.rangeKey;
+        if(!key)return;
+        const values=new FormData(form);
+        const min=String(values.get('min')||'').trim(),max=String(values.get('max')||'').trim();
+        const lower=min?Number(min):undefined,upper=max?Number(max):undefined;
+        const year=key==='nam-san-xuat';
+        if((lower===undefined&&upper===undefined)||[lower,upper].some(value=>value!==undefined&&(!Number.isFinite(value)||value<0||!Number.isInteger(value)))||
+          (lower!==undefined&&upper!==undefined&&lower>upper)||(year&&[lower,upper].some(value=>value!==undefined&&(value<1886||value>2100)))){
+          notify('Vui lòng nhập khoảng lọc hợp lệ.');return;
+        }
+        const params=new URL(document.querySelector<HTMLElement>('.vehicle-filter-panel')?.dataset.filterBase||location.href,location.origin).searchParams;
+        params.delete('page');params.set(key,`${min}-${max}`);
+        startFilterTransition(()=>router.push(`/san-pham?${params}`,{scroll:false}));return;
+      }
       form.classList.add('was-validated');if(!form.checkValidity()){form.reportValidity();return;}
       if(form.matches('.validation-laithu,.validation-contact')) {
         const values=new FormData(form);
@@ -189,7 +345,8 @@ export default function SiteInteractions() {
       const select=event.target;
       if(!(select instanceof HTMLSelectElement))return;
       if(select.id==='vehicle-sort'){
-        const params=new URLSearchParams(query.toString());params.delete('page');
+        const params=new URL(document.querySelector<HTMLElement>('.vehicle-filter-panel')?.dataset.filterBase||location.href,location.origin).searchParams;
+        params.delete('page');
         if(select.value==='newest')params.delete('gia');else params.set('gia',select.value);
         startFilterTransition(()=>router.push(`${pathname}${params.size?`?${params}`:''}`,{scroll:false}));return;
       }
@@ -222,10 +379,14 @@ export default function SiteInteractions() {
       }
     };
     const keys=(e:KeyboardEvent)=>{
-      if(e.key===' '&&(e.target as HTMLElement).matches('a[data-quick-filter]')){e.preventDefault();(e.target as HTMLElement).click();return;}
-      if(['Enter',' '].includes(e.key) && (e.target as HTMLElement).matches('.wap_dichvu .cap1 [role="tab"]')){e.preventDefault();(e.target as HTMLElement).click();return;}
-      if(e.key==='Escape'){document.querySelector('.wap_boloc')?.classList.remove('wap_boloc_active');}
-      if(e.key==='Enter' && (e.target as HTMLElement).id==='keyword'){e.preventDefault();const value=(e.target as HTMLInputElement).value.trim();if(value)window.location.href=`/san-pham?keyword=${encodeURIComponent(value)}`;else notify('Chưa nhập từ khóa tìm kiếm');}
+      if(['Enter',' '].includes(e.key) && (e.target as HTMLElement).matches('.wap_dichvu .cap1 [role="tab"],.wap_dichvu2 .cap1 [role="tab"]')){e.preventDefault();(e.target as HTMLElement).click();return;}
+      if(e.key==='Escape'){
+        document.querySelector('.wap_boloc')?.classList.remove('wap_boloc_active');
+        closeFilterPopovers();
+      }
+      if(e.key==='Enter' && (e.target as HTMLElement).id==='keyword'){
+        e.preventDefault();submitKeyword();
+      }
     };
     const scroll=()=>setShowTop(scrollY>100);scroll();
     document.addEventListener('click',onClick);document.addEventListener('submit',submit);document.addEventListener('change',change);document.addEventListener('keydown',keys);window.addEventListener('scroll',scroll,{passive:true});
@@ -235,7 +396,7 @@ export default function SiteInteractions() {
   return <>
     {comparisonHost && createPortal(<div className="sosanhxe2">{comparison.map(car=><div className="item_ss" key={car.id}><button className="xoa_ss" data-id={car.id} aria-label="Bỏ xe khỏi so sánh"/><Markup html={car.html}/></div>)}</div>,comparisonHost)}
     {showTop && <div className="scrollToTop" role="button" tabIndex={0} onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} style={{display:'block'}}><img src="/assets/images/top.png" alt="Go Top"/></div>}
-    {dialog && createPortal(<div className="fancybox-container fancybox-is-open migrated-dialog" role="dialog" aria-modal="true" aria-label={image?'Ảnh xe':'Thông tin'} tabIndex={-1} ref={dialogRef}>
+    {dialog && createPortal(<div className="fancybox-container fancybox-is-open migrated-dialog" role="dialog" aria-modal="true" aria-label={image?'Ảnh xe':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin'} tabIndex={-1} ref={dialogRef}>
       <div className="fancybox-bg"/><div className="fancybox-inner"><div className="fancybox-stage"><div className="fancybox-slide fancybox-slide--html fancybox-slide--current fancybox-slide--complete" onClick={e=>{if(e.target===e.currentTarget)setDialog(null);}}>
         <div className={`fancybox-content ${image?'dialog-gallery':dialog.className||''}`} id={dialog.id}>
           {image?<img className="dialog-image" src={image.src} alt={image.alt}/>:<Markup html={dialog.html||''}/>}

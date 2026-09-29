@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import shared from '@/data/shared.json';
+import { SaleLoginButton } from '@/components/sale/SaleAccess';
 
 interface MenuItem { label:string;href?:string;target?:string;className?:string;children:MenuItem[]; }
 function MenuList({items,mobile=false,close}:{items:MenuItem[];mobile?:boolean;close:()=>void}) {
@@ -26,9 +27,10 @@ function MenuList({items,mobile=false,close}:{items:MenuItem[];mobile?:boolean;c
     </li>;
   })}</ul>;
 }
-function HeaderActions({ phone }: { phone?: string }) {
+function HeaderActions({ phone, onSaleAction }: { phone?: string; onSaleAction?: () => void }) {
   return <div className="header-actions">
     <p className="hotline">{phone || '0777393913'}</p>
+    <SaleLoginButton onAction={onSaleAction} />
   </div>;
 }
 export default function Header({ phone }: { phone?: string }) {
@@ -46,7 +48,7 @@ export default function Header({ phone }: { phone?: string }) {
     </div></div>
     <div className={`menu_mobi_add hidden_d${open?' menu_mobi_active':''}`} aria-hidden={!open}>
       <div className="logo_m logo">{logo}<span className="close_menu" role="button" tabIndex={0} aria-label="Đóng menu" onClick={()=>setOpen(false)}/></div>
-      <MenuList items={shared.menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} />
+      <MenuList items={shared.menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} onSaleAction={()=>setOpen(false)} />
     </div>
     <div className="menu_mobi hidden_d">
       <p className="menu_baophu" style={{display:open?'block':'none'}} onClick={()=>setOpen(false)}/>

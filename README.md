@@ -10,7 +10,7 @@ cp .env.example .env.local
 npm run dev -- -p 3001
 ```
 
-Open `http://localhost:3001`. Start the API on port 4000 first. Set `API_URL` to the API origin reachable by the Next.js server and `NEXT_PUBLIC_API_URL` to the API origin reachable by visitors' browsers. Include the web origin in the API's `CORS_ORIGINS`.
+Open `http://localhost:3001`. Start the API on port 4000 first. Set `API_URL` to the API origin reachable by the Next.js server. Browser requests to `/api/v1` are proxied by Next.js, so visitors can use the site's LAN IP or domain without connecting to port 4000 directly. Configure the Supabase public URL/key for sale login; the browser needs network access to Supabase.
 
 Production validation:
 

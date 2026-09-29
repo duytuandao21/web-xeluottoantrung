@@ -12,8 +12,8 @@ export async function publicApi<T>(path: string, params?: Record<string, string 
   // Inventory changes in admin must be visible on the next public request.
   // Next's revalidation can serve one stale response even after its TTL expires.
   const response = await fetch(`${baseUrl}/api/v1${path}${query.size ? `?${query}` : ''}`,
-    path === '/cars' || path.startsWith('/cars/') || path === '/brands' || path.startsWith('/brands/') ||
-      path.startsWith('/lookups/') || (path === '/content' && params?.group === 'thiet-lap-goi-y-nam-san-xuat')
+    path === '/cars' || path.startsWith('/cars/') || path === '/brands' || path.startsWith('/brands/') || path === '/slides' || path === '/testimonials' ||
+      path.startsWith('/lookups/') || path === '/site-settings/thiet-lap-footer' || (path === '/content' && (params?.group === 'thiet-lap-goi-y-nam-san-xuat' || params?.group === 'thiet-lap-quy-trinh-ban-xe' || String(params?.group || '').startsWith('thiet-lap-cac-buoc-')))
       ? { cache: 'no-store' } : { next: { revalidate: 30 } });
   if (!response.ok) throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`);
   return response.json() as Promise<T>;
@@ -23,11 +23,12 @@ export type PageResult<T> = { data: T[]; meta: { page: number; limit: number; to
 export type PublicCar = {
   slug: string; name: string; year: number; price: number; originalPrice?: number | null; mileage?: number | null;
   status: string; featured?: boolean; fuel?: string | null; cover?: string | null; transmission?: string | null;
+  color?: string | null; colorSlug?: string | null;
   seatCount?: number | null; branch?: string | null;
   brand: { name: string; slug: string }; model: { name: string; slug: string }; bodyType?: string | null;
 };
 export type CarDetail = Omit<PublicCar, 'cover' | 'transmission' | 'branch'> & {
-  description?: string | null; condition?: string | null; seatCount?: number | null; licensePlate?: string | null;
+  description?: string | null; condition?: string | null; seatCount?: number | null;
   version?: string | null; transmission?: string | null; color?: string | null;
   branch?: { name: string; slug: string; address?: string; phone?: string; mapUrl?: string | null } | null;
   media: { url: string; altText?: string | null; isCover: boolean; sortOrder: number }[];
@@ -46,7 +47,7 @@ export type SeoRecord = { metaTitle?: string | null; metaDescription?: string | 
   robotsIndex?: boolean; robotsFollow?: boolean };
 export type Article = { slug: string; title: string; excerpt?: string | null; content?: string | null;
   imageUrl?: string | null; status: string; publishedAt?: string | null };
-export type Testimonial = { id: string; name: string; content: string; rating: number; avatarUrl?: string | null; carBought?: string | null };
+export type Testimonial = { id: string; name: string; content: string; rating: number; avatarUrl?: string | null; carBought?: string | null; purchaseDate?: string | null; featured?: boolean };
 export type Faq = { id: string; question: string; answer: string };
 export type Slide = { id: string; title: string; imageUrl: string; link?: string | null };
 export type Service = { id: string; title: string; description: string; imageUrl?: string | null; icon?: string | null };

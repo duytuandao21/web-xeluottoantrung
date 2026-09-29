@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LegacyPage from "@/components/common/LegacyPage";
-import { getLegacyPage } from "@/lib/pages";
+import { publicApi } from "@/lib/public-api";
+import { safeHtml } from "@/lib/safe-html";
 import { getPublicPage } from "@/lib/public-pages";
 import { pageMetadata } from "@/lib/page-metadata";
 import { load } from "cheerio";
@@ -11,31 +12,47 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata(await getPublicPage('/'), '/');
 }
 
-export default async function HomePage() {
-  const [page, sellPage] = await Promise.all([getPublicPage("/"), getLegacyPage("/ban-xe")]);
-  if (!page) return null;
+type ServiceStep = { title: string; body?: string | null; imageUrl?: string | null };
+const services = [
+  { key: 'mua-xe', label: 'Mua xe', href: '/san-pham' },
+  { key: 'ban-xe', label: 'Bán xe', href: '/ban-xe' },
+  { key: 'len-doi', label: 'Lên đời', href: '/len-doi' },
+];
 
+export default async function HomePage() {
+  const [page, steps] = await Promise.all([
+    getPublicPage('/'),
+    Promise.all(services.map(service => publicApi<ServiceStep[]>('/content', { group: `thiet-lap-cac-buoc-${service.key}` }))),
+  ]);
+  if (!page) return null;
   const $ = load(page.content, {}, false);
   $('.wap_sanpham .load_them').removeClass('load_them').find('a').attr('href', '/san-pham');
-
-  if (sellPage) {
-    const sell = load(sellPage.content, {}, false);
-    const sellSteps = sell('.wap_dichvu2 .dichvu .main_fix.slick4321').first();
-    const buyPanel = $('.wap_dichvu > .dichvu').first();
-    if (sellSteps.find('.item_buoc').length === 4 && buyPanel.length) {
-      buyPanel.attr({ 'data-service': 'buoc-mua-xe', role: 'tabpanel', 'aria-label': 'Các bước mua xe' });
-      const sellPanel = $('<div class="dichvu" data-service="buoc-ban-xe" role="tabpanel" aria-label="Các bước bán xe" hidden></div>');
-      sellPanel.append(sellSteps.clone());
-      sellPanel.append('<p class="xemtatca"><a href="/ban-xe">Bán xe ngay</a></p>');
-      buyPanel.after(sellPanel);
-      $('.wap_dichvu .cap1').attr('role', 'tablist').attr('aria-label', 'Dịch vụ của Toàn Trung');
-      $('.wap_dichvu .cap1 li').each((_, element) => {
-        const tab = $(element);
-        const active = tab.attr('data-id') === 'buoc-mua-xe';
-        tab.attr({ role: 'tab', tabindex: active ? '0' : '-1', 'aria-selected': String(active) });
-      });
-    }
-  }
-
-  return <LegacyPage page={{...page, content: $.html()}} />;
+  const section = $('.wap_dichvu');
+  section.children('.dichvu').remove();
+  services.forEach((service, index) => {
+    const panel = $('<div class="dichvu" role="tabpanel"></div>').attr({
+      'data-service': `buoc-${service.key}`, id: `service-${service.key}`, 'aria-labelledby': `tab-${service.key}`,
+    });
+    if (index) panel.attr('hidden', 'hidden');
+    const cards = $('<div class="main_fix slick4321 control_slick"></div>');
+    steps[index].forEach((step, stepIndex) => {
+      const card = $('<div class="item_buoc"></div>').append($('<span class="so"></span>').text(String(stepIndex + 1)));
+      if (step.imageUrl) card.append($('<p class="img_post"></p>').append($('<img>').attr({ src: step.imageUrl, alt: step.title, loading: 'lazy' })));
+      card.append($('<div class="mota"></div>')
+        .append($('<h4 class="name_post"></h4>').text(step.title))
+        .append($('<div class="desc_post catchuoi4"></div>').html(safeHtml(step.body || ''))));
+      cards.append($('<div></div>').append(card));
+    });
+    if (steps[index].length) panel.append(cards);
+    else panel.append('<p class="main_fix">Nội dung đang được cập nhật.</p>');
+    panel.append($('<p class="xemtatca"></p>').append($('<a></a>').attr('href', service.href).text(`${service.label} ngay`)));
+    section.append(panel);
+    section.find(`.cap1 li[data-id="buoc-${service.key}"]`).attr({
+      role: 'tab', id: `tab-${service.key}`, 'aria-controls': `service-${service.key}`,
+      tabindex: index ? '-1' : '0', 'aria-selected': String(index === 0),
+    }).toggleClass('active', index === 0);
+  });
+  section.find('.cap1').attr({ role: 'tablist', 'aria-label': 'Dịch vụ của Toàn Trung' });
+  return <LegacyPage page={{ ...page, content: $.html() }} />;
 }
+

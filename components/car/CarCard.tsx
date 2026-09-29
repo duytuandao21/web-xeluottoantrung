@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import parse from 'html-react-parser';
 import { getPublic } from '@/lib/public-client';
 import type { Car } from '@/types/car';
+import { SalePlate } from '@/components/sale/SaleAccess';
 
 type Motion = { direction: -1 | 1; target: number; phase: 'ready' | 'go' };
 
@@ -63,6 +64,8 @@ function CarCardState({car}:{car:Car}) {
   const loadingRef=useRef(false);
   const movingRef=useRef(false);
   const requestRef=useRef<AbortController|null>(null);
+  const swipeStartRef=useRef<{x:number;y:number}|null>(null);
+  const suppressClickUntilRef=useRef(0);
   const [loading,setLoading]=useState(false);
   useEffect(()=>()=>requestRef.current?.abort(),[]);
 
@@ -113,19 +116,33 @@ function CarCardState({car}:{car:Car}) {
   const previous=images[(activeIndex-1+images.length)%images.length]||current;
   const next=images[(activeIndex+1)%images.length]||current;
   const offset=motion?.phase==='go'?(motion.direction===1?-200:0):-100;
+  const onTouchStart=(event:React.TouchEvent<HTMLDivElement>)=>{
+    if(event.touches.length!==1){swipeStartRef.current=null;return;}
+    swipeStartRef.current={x:event.touches[0].clientX,y:event.touches[0].clientY};
+  };
+  const onTouchEnd=(event:React.TouchEvent<HTMLDivElement>)=>{
+    const start=swipeStartRef.current;
+    swipeStartRef.current=null;
+    if(!start||event.changedTouches.length!==1)return;
+    const dx=event.changedTouches[0].clientX-start.x;
+    const dy=event.changedTouches[0].clientY-start.y;
+    if(Math.abs(dx)<45||Math.abs(dx)<Math.abs(dy)*1.3)return;
+    suppressClickUntilRef.current=Date.now()+700;
+    void moveImage(dx<0?1:-1);
+  };
 
   return <div className={car.className} data-car-id={car.id}>
     {car.compare && <p className="id_ss" data-id={car.id} role="button" tabIndex={0}><span />So sánh</p>}
     <div className={car.imageClass}>
       <div className="slick_hinhthem car-card-gallery" aria-busy={loading}>
-        <div className="car-card-gallery__viewport">
+        <div className="car-card-gallery__viewport" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchCancel={()=>{swipeStartRef.current=null;}}>
           <div className={`car-card-gallery__track${motion?.phase==='go'?' is-moving':''}`} style={{transform:`translateX(${offset}%)`}} onTransitionEnd={event=>{
             if(event.target!==event.currentTarget||event.propertyName!=='transform'||!motion)return;
             setActiveIndex(motion.target);
             setMotion(null);
             movingRef.current=false;
           }}>
-            {[previous,current,next].map((image,index)=><p className="slick-slide" key={index} data-current={index===1} onClick={()=>{window.location.href=car.href;}}><CardImage key={image.src} src={image.src} alt={image.alt}/></p>)}
+            {[previous,current,next].map((image,index)=><p className="slick-slide" key={index} data-current={index===1} onClick={event=>{if(Date.now()<suppressClickUntilRef.current){event.preventDefault();return;}window.location.href=car.href;}}><CardImage key={image.src} src={image.src} alt={image.alt}/></p>)}
           </div>
         </div>
         <button type="button" className="slick-arrow slick-prev" disabled={loading||motion!==null} aria-label={`Ảnh trước của ${car.name}`} onClick={()=>void moveImage(-1)}>Previous</button>
@@ -137,6 +154,7 @@ function CarCardState({car}:{car:Car}) {
     <div className="mota"><div className="gia_sp">{parse(car.priceHtml || '')}</div>
       <h3 className={car.nameClass}><a href={car.href} title={car.title}>{car.name}</a></h3>
       <ul>{car.specs.map((spec,index)=><li key={index}>{spec.icon && <img src={spec.icon} alt={spec.alt || ''} />}{spec.text}</li>)}</ul>
+      <SalePlate slug={car.id} />
     </div>
   </div>;
 }
