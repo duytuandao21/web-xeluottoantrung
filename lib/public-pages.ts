@@ -5,7 +5,10 @@ import type { Car } from '@/types/car';
 import type { LegacyPageData, SearchParams } from '@/types/legacy';
 import { carToCard, formatCarPrice } from './car-view';
 import { getLegacyPage } from './pages';
+import { replaceHomeBottom } from './home-bottom';
 import { safeHtml } from './safe-html';
+import { getSiteInfo } from './site-info';
+import { zaloHref } from './contact-links';
 import { optionRange, parseRangeQuery, type RangeGroup, type RangeOption } from './filter-options';
 import { allPublicLookups, optionalPublicApi, publicApi, type Article, type CarDetail, type CmsPage, type Faq, type PageResult,
   type PublicBrand, type PublicCar, type PublicLookup, type Recruitment, type Service, type Slide, type Testimonial } from './public-api';
@@ -387,7 +390,7 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
 async function articleListPage(page: LegacyPageData): Promise<LegacyPageData> {
   const result = await publicApi<PageResult<Article>>('/articles', { page: 1, limit: 20 });
   const $ = load(page.content, {}, false);
-  const target = $('.wap_news').first();
+  const target = $('.wap_news').first().addClass('tt-news-list');
   const template = target.find('.item_news').first().clone();
   target.empty();
   for (const article of result.data) {
@@ -403,8 +406,30 @@ async function articleListPage(page: LegacyPageData): Promise<LegacyPageData> {
 
 async function articleDetailPage(article: Article, page: LegacyPageData): Promise<LegacyPageData> {
   const $ = load(page.content, {}, false);
-  $('.title-main span').first().text(article.title);
-  $('.content-main').first().html(safeHtml(article.content || ''));
+  const currentBreadcrumb = $('.breadCrumbs .breadcrumb-item').last();
+  const breadcrumbLink = currentBreadcrumb.find('a').first();
+  if (breadcrumbLink.length) breadcrumbLink.attr('href', `/${article.slug}`).text(article.title);
+  else currentBreadcrumb.text(article.title);
+  const main = $('.main_content').first().addClass('tt-article').attr({ role: 'article', 'aria-labelledby': 'tt-article-title' });
+  const heading = main.find('.title-main').first();
+  heading.empty().append($('<h1 id="tt-article-title"></h1>').text(article.title));
+  const publishedAt = article.publishedAt ? new Date(article.publishedAt) : null;
+  const meta = $('<div class="tt-article__meta"></div>').append($('<a href="/tin-tuc"></a>').text('Tin tức'));
+  if (publishedAt && !Number.isNaN(publishedAt.getTime())) {
+    meta.append($('<span aria-hidden="true"></span>').text('·'))
+      .append($('<time></time>').attr('datetime', publishedAt.toISOString()).text(new Intl.DateTimeFormat('vi-VN', {
+        day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh',
+      }).format(publishedAt)));
+  }
+  heading.before(meta);
+  const body = main.find('.content-main').first().addClass('tt-article__body').html(safeHtml(article.content || ''));
+  body.find('p').filter((_, element) => $(element).text().trim().length > 30).first().addClass('tt-article__lead');
+  body.find('img').attr({ loading: 'lazy', decoding: 'async' });
+  if (article.imageUrl && /^(https?:\/\/|\/(?!\/))/i.test(article.imageUrl) &&
+    !body.find('img[src]').toArray().some(element => $(element).attr('src') === article.imageUrl)) {
+    body.before($('<figure class="tt-article__hero"></figure>')
+      .append($('<img loading="eager" decoding="async">').attr({ src: article.imageUrl, alt: article.title })));
+  }
   $('.share a[href]').first().attr('href', `/${article.slug}`);
   return { ...page, route: `/${article.slug}`, title: article.title, description: article.excerpt || '',
     canonical: `/${article.slug}`, openGraphImage: article.imageUrl || '', content: $.html() };
@@ -495,11 +520,12 @@ function prepareServiceTabs($: ReturnType<typeof load>, section: ReturnType<Retu
 }
 
 async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len-doi'): Promise<LegacyPageData> {
-  const [base, sellingSteps, tradeInSteps, testimonials] = await Promise.all([
+  const [base, sellingSteps, tradeInSteps, testimonials, articles] = await Promise.all([
     settingsPage(page, route === '/ban-xe' ? 'thiet-lap-text-ban-xe' : 'thiet-lap-text-len-doi'),
     publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-ban-xe' }),
     publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-len-doi' }),
     allPublicLookups<Testimonial>('/testimonials'),
+    publicApi<PageResult<Article>>('/articles', { limit: 3 }),
   ]);
   const $ = load(base.content, {}, false);
   const section = $('.wap_dichvu2').first();
@@ -514,6 +540,7 @@ async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len
     renderServiceSteps($, panel, 'buoc-len-doi', tradeInSteps);
   }
   renderTestimonials($, '.wap_camnhan .camnhan', testimonials, true);
+  replaceHomeBottom($, articles.data);
   return { ...base, content: $.html() };
 }
 
@@ -719,6 +746,8 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
   $('.right-pro-detail a[href$="#spec"]').attr('href', `/${car.slug}#mo-ta-chi-tiet`).text('Xem mô tả chi tiết');
   if (car.branch?.phone) $('.right-pro-detail .lienhe_ct a[href^="tel:"]')
     .attr('href', `tel:${car.branch.phone}`).find('span').text(car.branch.phone);
+  const siteInfo = await getSiteInfo();
+  $('.right-pro-detail .lienhe_ct a[href^="https://zalo.me/"]').attr('href', zaloHref(siteInfo.zalo));
   $('.right-pro-detail .c_laithu').remove();
   if (car.branch?.mapUrl && /^https?:\/\//i.test(car.branch.mapUrl)) {
     $('.right-pro-detail .c_goilai').before($('<a class="c_chinhanh"></a>')

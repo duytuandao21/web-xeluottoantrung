@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import LegacyPage from "@/components/common/LegacyPage";
+import AccessoryCarousel from "@/components/accessories/AccessoryCarousel";
 import { publicApi } from "@/lib/public-api";
+import type { Accessory, Article, PageResult } from "@/lib/public-api";
+import { replaceHomeBottom } from "@/lib/home-bottom";
 import { safeHtml } from "@/lib/safe-html";
 import { getPublicPage } from "@/lib/public-pages";
 import { pageMetadata } from "@/lib/page-metadata";
@@ -20,9 +23,11 @@ const services = [
 ];
 
 export default async function HomePage() {
-  const [page, steps] = await Promise.all([
+  const [page, steps, articles, accessories] = await Promise.all([
     getPublicPage('/'),
     Promise.all(services.map(service => publicApi<ServiceStep[]>('/content', { group: `thiet-lap-cac-buoc-${service.key}` }))),
+    publicApi<PageResult<Article>>('/articles', { limit: 3 }),
+    publicApi<PageResult<Accessory>>('/accessories', { limit: 100 }).catch(() => null),
   ]);
   if (!page) return null;
   const $ = load(page.content, {}, false);
@@ -53,6 +58,9 @@ export default async function HomePage() {
     }).toggleClass('active', index === 0);
   });
   section.find('.cap1').attr({ role: 'tablist', 'aria-label': 'Dịch vụ của Toàn Trung' });
-  return <LegacyPage page={{ ...page, content: $.html() }} />;
+  replaceHomeBottom($, articles.data);
+  $('.wap_sanpham').first().addClass('tt-home-cars').after('<div id="tt-accessories-root"></div>');
+  return <><LegacyPage page={{ ...page, content: $.html() }} />
+    <AccessoryCarousel items={accessories?.data ?? []} /></>;
 }
 

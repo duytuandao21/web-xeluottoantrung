@@ -4,14 +4,15 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import shared from '@/data/shared.json';
 import { SaleLoginButton } from '@/components/sale/SaleAccess';
+import type { Service } from '@/lib/public-api';
 
 interface MenuItem { label:string;href?:string;target?:string;className?:string;children:MenuItem[]; }
 function MenuList({items,mobile=false,close}:{items:MenuItem[];mobile?:boolean;close:()=>void}) {
   const [expanded,setExpanded]=useState<string|null>(null);
   const pathname=usePathname();
-  const active=(shared.activeMenus as Record<string,string>)[pathname];
+  const active=pathname === '/dich-vu' || pathname.startsWith('/dich-vu/') ? 'Dịch vụ' : (shared.activeMenus as Record<string,string>)[pathname];
   return <ul>{items.map(item=>{
-    const hasSubmenu=item.children.length>1;
+    const hasSubmenu=item.label === 'Dịch vụ' ? item.children.length > 0 : item.children.length > 1;
     const destination=item.children.length===1?item.children[0]:item;
     const isExpanded=mobile&&expanded===item.label;
     return <li className={[item.className,hasSubmenu?'has-submenu':''].filter(Boolean).join(' ')} key={item.label}>
@@ -33,22 +34,27 @@ function HeaderActions({ phone, onSaleAction }: { phone?: string; onSaleAction?:
     <SaleLoginButton onAction={onSaleAction} />
   </div>;
 }
-export default function Header({ phone }: { phone?: string }) {
+export default function Header({ phone, services = [] }: { phone?: string; services?: Service[] }) {
   const [open,setOpen]=useState(false);const pathname=usePathname();
   useEffect(()=>setOpen(false),[pathname]);
   useEffect(()=>{if(!open)return;const close=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false);};document.addEventListener('keydown',close);return()=>document.removeEventListener('keydown',close);},[open]);
   const logo=<img src="/upload/photo/logo-tt-gold-6981.png" alt="Logo"/>;
+  const menu:MenuItem[] = shared.menu.map(item => item.label === 'Dịch vụ' ? {
+    ...item,
+    href: '/dich-vu',
+    children: services.map(service => ({ label: service.title, href: `/dich-vu/${service.slug}`, children: [] })),
+  } : item);
   return <>
     <div className="wap_header clear hidden_m"><div className="wap_header2 main_fix">
       <div className="header"><Link className="logo" href="/">{logo}</Link></div>
       <div className="wap_menu clear"><div className="menu" role="navigation" aria-label="Điều hướng chính">
-        <MenuList items={shared.menu} close={()=>setOpen(false)}/>
+        <MenuList items={menu} close={()=>setOpen(false)}/>
         <HeaderActions phone={phone} />
       </div></div>
     </div></div>
     <div className={`menu_mobi_add hidden_d${open?' menu_mobi_active':''}`} aria-hidden={!open}>
       <div className="logo_m logo">{logo}<span className="close_menu" role="button" tabIndex={0} aria-label="Đóng menu" onClick={()=>setOpen(false)}/></div>
-      <MenuList items={shared.menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} onSaleAction={()=>setOpen(false)} />
+      <MenuList items={menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} onSaleAction={()=>setOpen(false)} />
     </div>
     <div className="menu_mobi hidden_d">
       <p className="menu_baophu" style={{display:open?'block':'none'}} onClick={()=>setOpen(false)}/>

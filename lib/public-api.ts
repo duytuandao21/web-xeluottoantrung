@@ -12,8 +12,8 @@ export async function publicApi<T>(path: string, params?: Record<string, string 
   // Inventory changes in admin must be visible on the next public request.
   // Next's revalidation can serve one stale response even after its TTL expires.
   const response = await fetch(`${baseUrl}/api/v1${path}${query.size ? `?${query}` : ''}`,
-    path === '/cars' || path.startsWith('/cars/') || path === '/brands' || path.startsWith('/brands/') || path === '/slides' || path === '/testimonials' ||
-      path.startsWith('/lookups/') || path === '/site-settings/thiet-lap-footer' || (path === '/content' && (params?.group === 'thiet-lap-goi-y-nam-san-xuat' || params?.group === 'thiet-lap-quy-trinh-ban-xe' || String(params?.group || '').startsWith('thiet-lap-cac-buoc-')))
+    path === '/cars' || path.startsWith('/cars/') || path === '/brands' || path.startsWith('/brands/') || path === '/slides' || path === '/testimonials' || path === '/accessories' || path.startsWith('/accessories/') ||
+    path === '/accessory-brands' || path === '/accessory-categories' || path === '/services' || path.startsWith('/services/') || path.startsWith('/lookups/') || path === '/site-settings/thiet-lap-thong-tin' || path === '/site-settings/thiet-lap-footer' || path === '/site-settings/phu-kien-o-to-cua-hang-lap-dat' || (path === '/content' && (params?.group === 'quan-ly-gioi-thieu' || params?.group === 'thiet-lap-goi-y-nam-san-xuat' || params?.group === 'thiet-lap-quy-trinh-ban-xe' || String(params?.group || '').startsWith('thiet-lap-cac-buoc-')))
       ? { cache: 'no-store' } : { next: { revalidate: 30 } });
   if (!response.ok) throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`);
   return response.json() as Promise<T>;
@@ -50,7 +50,9 @@ export type Article = { slug: string; title: string; excerpt?: string | null; co
 export type Testimonial = { id: string; name: string; content: string; rating: number; avatarUrl?: string | null; carBought?: string | null; purchaseDate?: string | null; featured?: boolean };
 export type Faq = { id: string; question: string; answer: string };
 export type Slide = { id: string; title: string; imageUrl: string; link?: string | null };
-export type Service = { id: string; title: string; description: string; imageUrl?: string | null; icon?: string | null };
+export type Service = { id: string; slug: string; title: string; description: string; imageUrl?: string | null; icon?: string | null };
+export type Accessory = { id: string; name: string; brand: string; brandId?: string | null; categoryId?: string | null; price: number; imageUrl: string; imageUrls: string[]; description?: string | null };
+export type AccessoryLookup = { id: string; name: string; imageUrl?: string | null };
 export type Recruitment = { id: string; title: string; description: string; requirements: string; salary?: string | null;
   location: string; imageUrl?: string | null; deadline?: string | null };
 export type CmsPage = { path: string; title: string; body?: string | null };

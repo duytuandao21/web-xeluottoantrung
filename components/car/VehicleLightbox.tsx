@@ -9,8 +9,8 @@ type Point = { x: number; y: number; startX: number; startY: number };
 type Pinch = { distance: number; scale: number; x: number; y: number; centerX: number; centerY: number };
 const initialTransform: Transform = { scale: 1, x: 0, y: 0 };
 
-export default function VehicleLightbox({ images, initialIndex, onClose }: {
-  images: GalleryImage[]; initialIndex: number; onClose: () => void;
+export default function VehicleLightbox({ images, initialIndex, subject = 'xe', onClose }: {
+  images: GalleryImage[]; initialIndex: number; subject?: string; onClose: () => void;
 }) {
   const [index, setIndex] = useState(initialIndex);
   const [playing, setPlaying] = useState(false);
@@ -222,7 +222,7 @@ export default function VehicleLightbox({ images, initialIndex, onClose }: {
 
   const image = images[index];
   return createPortal(
-    <div className="vehicle-lightbox" ref={rootRef} role="dialog" aria-modal="true" aria-label="Thư viện ảnh xe">
+    <div className="vehicle-lightbox" ref={rootRef} role="dialog" aria-modal="true" aria-label={`Thư viện ảnh ${subject}`}>
       <div className="vehicle-lightbox__toolbar">
         <span className="vehicle-lightbox__count">{index + 1} / {images.length}</span>
         <div className="vehicle-lightbox__actions">
@@ -247,7 +247,7 @@ export default function VehicleLightbox({ images, initialIndex, onClose }: {
       </div>
       <div className="vehicle-lightbox__footer">
         <span className="vehicle-lightbox__hint"><span className="vehicle-lightbox__hint-desktop">Cuộn để phóng to · Kéo ảnh để di chuyển</span><span className="vehicle-lightbox__hint-mobile">Chụm hai ngón hoặc chạm hai lần để phóng to · Kéo ảnh để di chuyển</span></span>
-        <div className="vehicle-lightbox__thumbnails" aria-label="Danh sách ảnh xe">
+        <div className="vehicle-lightbox__thumbnails" aria-label={`Danh sách ảnh ${subject}`}>
           {images.map((item, position) => <button key={`${item.href}-${position}`} type="button"
             ref={position === index ? selectedThumbRef : undefined} className={position === index ? 'is-active' : ''}
             aria-label={`Xem ảnh ${position + 1}`} aria-current={position === index ? 'true' : undefined}

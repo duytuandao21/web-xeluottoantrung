@@ -5,15 +5,19 @@ import Header from "@/components/layout/Header";
 import "./globals.css";
 import { Suspense } from 'react';
 import SiteInteractions from '@/components/common/SiteInteractions';
-import { allPublicLookups, publicApi } from '@/lib/public-api';
+import { allPublicLookups, publicApi, type Service } from '@/lib/public-api';
 import { groupShowrooms, type Branch, type Region } from '@/lib/showrooms';
 import { SaleAccessProvider } from '@/components/sale/SaleAccess';
+import { getSiteInfo, getSiteName } from '@/lib/site-info';
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://xeluottoantrung.com"),
-  title: "TOÀN TRUNG",
-  icons: { icon: "/upload/photo/favicon-3815.png" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const siteName = await getSiteName();
+  return {
+    metadataBase: new URL('https://xeluottoantrung.com'),
+    title: { default: siteName, template: `%s | ${siteName}` },
+    icons: { icon: '/upload/photo/favicon-3815.png' },
+  };
+}
 
 const legacyStyles = [
   "/assets/bootstrap/bootstrap.css", "/assets/css/all.css", "/assets/fancybox3/jquery.fancybox.css",
@@ -23,21 +27,22 @@ const legacyStyles = [
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const results = await Promise.allSettled([
-    publicApi<{ key: string; value: string }[]>('/site-settings/thiet-lap-thong-tin'),
+    getSiteInfo(),
     allPublicLookups<Branch>('/lookups/branches'),
     allPublicLookups<Region>('/lookups/branch-regions'),
     publicApi<{ key: string; value: string }[]>('/site-settings/thiet-lap-footer'),
+    allPublicLookups<Service>('/services'),
   ]);
-  const settings = results[0].status === 'fulfilled' ? results[0].value : [];
+  const info = results[0].status === 'fulfilled' ? results[0].value : {};
   const branches = results[1].status === 'fulfilled' ? results[1].value : [];
   const regions = results[2].status === 'fulfilled' ? results[2].value : [];
   const footerRows = results[3].status === 'fulfilled' ? results[3].value : [];
-  const info = Object.fromEntries(settings.map(row => [row.key, row.value]));
+  const services = results[4].status === 'fulfilled' ? results[4].value : [];
   const footerSettings = Object.fromEntries(footerRows.map(row => [row.key, row.value]));
   const showrooms = groupShowrooms(branches, regions);
   return (
     <html lang="vi"><head>{legacyStyles.map((href) => <link key={href} rel="stylesheet" href={href} />)}</head>
-      <body><SaleAccessProvider><div className="wapper"><Header phone={info.phone || info.hotline} />{children}<Footer showrooms={showrooms} phone={info.phone || info.hotline} address={info.address} settings={footerSettings} /></div><Suspense fallback={null}><SiteInteractions/></Suspense></SaleAccessProvider></body>
+      <body><SaleAccessProvider><div className="wapper"><Header phone={info.phone} services={services} />{children}<Footer showrooms={showrooms} phone={info.phone} zalo={info.zalo} settings={footerSettings} /></div><Suspense fallback={null}><SiteInteractions/></Suspense></SaleAccessProvider></body>
     </html>
   );
 }

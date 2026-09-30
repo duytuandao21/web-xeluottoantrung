@@ -108,29 +108,8 @@
     },
     {
       "label": "Dịch vụ",
-      "children": [
-        {
-          "label": "Bảo hiểm",
-          "href": "https://baohiemtasco.com/san-pham/bao-hiem-o-to-xe-may/",
-          "target": "_blank",
-          "children": []
-        },
-        {
-          "label": "Dịch vụ Vận Chuyển nhanh",
-          "href": "/dich-vu-van-chuyen",
-          "children": []
-        },
-        {
-          "label": "Cam kết",
-          "href": "/cam-ket",
-          "children": []
-        },
-        {
-          "label": "Dịch vụ khác",
-          "href": "/dich-vu-khac",
-          "children": []
-        }
-      ]
+      "href": "/dich-vu",
+      "children": []
     },
     {
       "label": "Tin tức",
@@ -141,20 +120,24 @@
       "label": "Tiện ích",
       "children": [
         {
-          "label": "Định giá xe",
-          "children": []
+        "label": "Định giá xe",
+        "href": "/tien-ich/dinh-gia-xe",
+        "children": []
         },
         {
-          "label": "Tra cứu phạt nguội",
-          "children": []
+        "label": "Tra cứu phạt nguội",
+        "href": "/tien-ich/tra-cuu-phat-nguoi",
+        "children": []
         },
         {
-          "label": "Xem ngày mua xe",
-          "children": []
+        "label": "Xem ngày mua xe",
+        "href": "/tien-ich/xem-ngay-mua-xe",
+        "children": []
         },
         {
-          "label": "Xem giá xăng dầu",
-          "children": []
+        "label": "Xem giá xăng dầu",
+        "href": "/tien-ich/xem-gia-xang-dau",
+        "children": []
         }
       ]
     },

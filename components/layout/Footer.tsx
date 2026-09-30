@@ -5,6 +5,7 @@ import Link from 'next/link';
 import shared from '@/data/shared.json';
 import Markup from '@/components/common/Markup';
 import { submitPublic } from '@/lib/public-client';
+import { zaloHref } from '@/lib/contact-links';
 
 const serviceLinks = [
   { label: 'Mua xe', href: '/san-pham' },
@@ -50,7 +51,7 @@ function RegisteredBadge() {
   </svg>;
 }
 
-export default function Footer({ showrooms, phone, address, settings }: { showrooms: { region: string; locations: { name: string; address: string; mapUrl?: string | null }[] }[]; phone?: string; address?: string; settings: Record<string, string> }) {
+export default function Footer({ showrooms, phone, address, zalo, settings }: { showrooms: { region: string; locations: { name: string; address: string; mapUrl?: string | null }[] }[]; phone?: string; address?: string; zalo?: string; settings: Record<string, string> }) {
   const [newsletterNotice, setNewsletterNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const value = (key: string, fallback: string) => settings[key] === undefined || (settings[key] === '' && fallbackForLegacyEmpty.has(key)) ? fallback : settings[key];
@@ -90,7 +91,6 @@ export default function Footer({ showrooms, phone, address, settings }: { showro
             <h2 className="tt-footer-heading">{value('contactTitle', 'Liên hệ nhanh')}</h2>
             <div className="tt-footer-contact-row"><span className="tt-footer-contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16.4v3a2 2 0 0 1-2.2 2A18.8 18.8 0 0 1 2.6 5.2 2 2 0 0 1 4.6 3h3a2 2 0 0 1 2 1.7l.4 2.7a2 2 0 0 1-.6 1.8L7.8 10.8a15.6 15.6 0 0 0 5.4 5.4l1.6-1.6a2 2 0 0 1 1.8-.6l2.7.4A2 2 0 0 1 21 16.4Z" /></svg></span><div><small>{value('quickPhoneLabel', 'Tổng đài hỗ trợ')}</small><a href={`tel:${footerPhone.replace(/\D/g, '')}`}>{footerPhone}</a></div></div>
             <div className="tt-footer-contact-row"><span className="tt-footer-contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg></span><div><small>{value('quickAddressLabel', 'Trụ sở')}</small><span>{footerAddress}</span></div></div>
-            <div className="tt-footer-contact-row"><span className="tt-footer-contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9Z" /></svg></span><div><small>{value('quickWebsiteLabel', 'Website')}</small>{safeHref(value('quickWebsiteUrl', '/')) ? <a href={safeHref(value('quickWebsiteUrl', '/'))}>{value('quickWebsiteText', 'xeluottoantrung.com')}</a> : <span>{value('quickWebsiteText', 'xeluottoantrung.com')}</span>}</div></div>
           </div>
         </div>
 
@@ -128,7 +128,7 @@ export default function Footer({ showrooms, phone, address, settings }: { showro
         <div className="tt-footer-bottom"><span>{value('footerCopyright', '© Auto Toàn Trung. All rights reserved.')}</span><nav aria-label="Chính sách"><a href={safeHref(value('legalTermsHref', '/dieu-khoan-su-dung')) || '/dieu-khoan-su-dung'}>{value('legalTermsLabel', 'Điều khoản sử dụng')}</a><a href={safeHref(value('legalPrivacyHref', '/chinh-sach-quyen-rieng-tu')) || '/chinh-sach-quyen-rieng-tu'}>{value('legalPrivacyLabel', 'Chính sách quyền riêng tư')}</a></nav></div>
       </div>
     </footer>
-    <a className="btn-zalo btn-frame text-decoration-none hidden_m2" target="_blank" rel="noreferrer" href="https://zalo.me/0777393913">
+    <a className="btn-zalo btn-frame text-decoration-none hidden_m2" target="_blank" rel="noreferrer" href={zaloHref(zalo)}>
       <div className="animated infinite zoomIn kenit-alo-circle"/><div className="animated infinite pulse kenit-alo-circle-fill"/><i><img src="/assets/images/zl.png" alt="Zalo" className="no_lazy"/></i>
     </a>
     <a className="btn-phone btn-frame text-decoration-none hidden_m2" href="#" data-fancybox data-src="#nutgoi">
