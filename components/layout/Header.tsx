@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import shared from '@/data/shared.json';
 import { SaleLoginButton } from '@/components/sale/SaleAccess';
@@ -38,6 +39,13 @@ function HeaderActions({ phone, onSaleAction }: { phone?: string; onSaleAction?:
 }
 export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }: { phone?: string; services?: Service[]; logoUrl: string; mobileLogoUrl: string }) {
   const [open,setOpen]=useState(false);const pathname=usePathname();
+  const pendingHomeTop = useRef(false);
+  useEffect(() => {
+    if (pathname !== '/' || !pendingHomeTop.current) return;
+    pendingHomeTop.current = false;
+    const frame = requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
   useEffect(()=>setOpen(false),[pathname]);
   useEffect(()=>{if(!open)return;const close=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false);};document.addEventListener('keydown',close);return()=>document.removeEventListener('keydown',close);},[open]);
   const logo=<img src={logoUrl} alt="Logo Toàn Trung" data-header-logo />;
@@ -48,6 +56,8 @@ export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }:
     if (pathname === '/') {
       event.preventDefault();
       window.scrollTo({ top: 0, behavior: 'instant' });
+    } else {
+      pendingHomeTop.current = true;
     }
   };
   const menu:MenuItem[] = shared.menu.map(item => item.label === 'Dịch vụ' ? {
@@ -57,20 +67,20 @@ export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }:
   } : item.label === 'Tin tức' ? { ...item, label: 'Bài viết', href: '/bai-viet', children: [] } : item.label === 'Tuyển dụng' ? { ...item, href: '/tuyen-dung', children: [] } : item);
   return <>
     <div className="wap_header clear hidden_m"><div className="wap_header2 main_fix">
-      <div className="header"><a className="logo" href="/#top" aria-label="Về đầu trang chủ" onClick={goHomeTop}>{logo}</a></div>
+      <div className="header"><Link className="logo" href="/" scroll={false} aria-label="Về đầu trang chủ" onClick={goHomeTop}>{logo}</Link></div>
       <div className="wap_menu clear"><div className="menu" role="navigation" aria-label="Điều hướng chính">
         <MenuList items={menu} close={()=>setOpen(false)}/>
         <HeaderActions phone={phone} />
       </div></div>
     </div></div>
     <div className={`menu_mobi_add hidden_d${open?' menu_mobi_active':''}`} aria-hidden={!open}>
-      <div className="logo_m logo"><a href="/#top" aria-label="Về đầu trang chủ" onClick={goHomeTop}>{mobileLogo}</a><span className="close_menu" role="button" tabIndex={0} aria-label="Đóng menu" onClick={()=>setOpen(false)}/></div>
+      <div className="logo_m logo"><Link href="/" scroll={false} aria-label="Về đầu trang chủ" onClick={goHomeTop}>{mobileLogo}</Link><span className="close_menu" role="button" tabIndex={0} aria-label="Đóng menu" onClick={()=>setOpen(false)}/></div>
       <MenuList items={menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} onSaleAction={()=>setOpen(false)} />
     </div>
     <div className="menu_mobi hidden_d">
       <p className="menu_baophu" style={{display:open?'block':'none'}} onClick={()=>setOpen(false)}/>
       <p className="icon_menu_mobi" role="button" tabIndex={0} aria-label="Mở menu" aria-expanded={open} onClick={()=>setOpen(true)}><i className="fas fa-bars"/></p>
-      <a className="logo" href="/#top" aria-label="Về đầu trang chủ" onClick={goHomeTop}>{mobileLogo}</a><SaleLoginButton onAction={()=>setOpen(false)} />
+      <Link className="logo" href="/" scroll={false} aria-label="Về đầu trang chủ" onClick={goHomeTop}>{mobileLogo}</Link><SaleLoginButton onAction={()=>setOpen(false)} />
     </div>
   </>;
 }

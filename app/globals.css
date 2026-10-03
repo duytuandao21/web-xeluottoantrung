@@ -1,4 +1,137 @@
 /* React integration only; layout and breakpoints come from the mirror CSS. */
+.tt-date-page { padding:20px 20px 64px; color:#14213a; }
+.tt-date-page h1,.tt-date-page h2,.tt-date-page h3,.tt-date-page h4 { color:inherit; font-weight:700; }
+.tt-date-hero { display:flex; justify-content:space-between; align-items:center; gap:24px; margin-bottom:24px; }
+.tt-date-hero > div:first-child { min-width:0; }
+.tt-date-hero h1 { margin:0 0 10px; font-size:clamp(28px,3vw,38px); line-height:1.25; }
+.tt-date-hero p { margin:0; font-size:17px; line-height:1.6; }
+.tt-date-hero__icon { flex:none; width:116px; height:116px; position:relative; overflow:visible; }
+.tt-date-hero__icon img { position:absolute; width:136%; max-width:none; left:-20%; top:-20%; height:auto; }
+.tt-date-panel { min-width:0; border:1px solid #e1e6ee; border-radius:18px; padding:24px; background:#fff; box-shadow:0 8px 28px rgba(20,33,58,.04); }
+.tt-date-panel h2 { margin:0 0 18px; font-size:23px; }
+.tt-date-panel p { line-height:1.6; }
+.tt-date-intro { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); align-items:start; gap:28px; }
+.tt-date-form fieldset { border:0; padding:0; margin:0; min-width:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.tt-date-form label { min-width:0; display:flex; flex-direction:column; justify-content:flex-end; gap:8px; margin:0; font-size:16px; font-weight:600; }
+.tt-date-form fieldset > label { align-self:end; }
+.tt-date-form label small { color:#667085; font-size:13px; font-weight:400; }
+.tt-date-form input,.tt-date-form select { width:100%; min-width:0; min-height:48px; padding:10px 12px; border:1px solid #d7dfe9; border-radius:10px; background:#fff; color:#14213a; font:400 16px/1.4 Arial,sans-serif; }
+.tt-date-form__full { grid-column:1/-1; }
+.tt-date-field { min-width:0; display:flex; flex-direction:column; gap:8px; }
+.tt-date-form .tt-date-field > label { display:block; }
+.tt-date-input { position:relative; }
+.tt-date-form .tt-date-input > input { padding-right:44px; }
+.tt-date-input__calendar { position:absolute; top:0; right:0; bottom:0; width:40px; display:flex; align-items:center; justify-content:center; border-radius:0 10px 10px 0; }
+.tt-date-input__calendar svg { width:20px; height:20px; pointer-events:none; }
+.tt-date-form .tt-date-input__calendar input { position:absolute; inset:0; width:100%; height:100%; min-height:0; padding:0; opacity:0; cursor:pointer; }
+.tt-date-input__calendar:focus-within { outline:3px solid #c91010; outline-offset:2px; }
+.tt-date-muted { color:#667085; font-size:14px; }
+.tt-date-form p { margin:0; }
+.tt-date-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:46px; padding:11px 22px; border:1px solid var(--color-red,#e00000); border-radius:10px; background:var(--color-red,#e00000); color:#fff; font-size:16px; line-height:1.4; font-weight:700; text-decoration:none; cursor:pointer; transition:background-color .2s,box-shadow .2s; }
+.tt-date-button:hover { color:#fff; background:var(--color-red-hover,#c90000); box-shadow:0 5px 15px rgba(190,0,0,.12); }
+.tt-date-button--secondary { background:#fff; border-color:#d7dfe9; color:#14213a; }
+.tt-date-button--secondary:hover { background:#f5f6f8; color:#14213a; box-shadow:none; border-color:#b8c2d1; }
+.tt-date-confirmation { box-sizing:border-box; width:calc(100% - 32px); max-width:540px; max-height:calc(100dvh - 32px); margin:auto; padding:28px; overflow:auto; border:1px solid #e1e6ee; border-radius:18px; background:#fff; color:#14213a; box-shadow:0 24px 80px rgba(20,33,58,.2); }
+.tt-date-confirmation::backdrop { background:rgba(14,23,40,.55); }
+.tt-date-confirmation h2 { margin:0 0 16px; font-size:23px; font-weight:700; line-height:1.3; }
+.tt-date-confirmation p { margin:0; color:#4b596e; font-size:16px; line-height:1.75; }
+.tt-date-confirmation__actions { display:flex; justify-content:flex-end; gap:12px; margin-top:24px; }
+.tt-date-confirmation__actions button { min-width:108px; }
+.tt-date-confirmation button:focus-visible { outline:3px solid #c91010; outline-offset:3px; }
+.tt-date-page button:disabled { cursor:default; opacity:.55; }
+.tt-date-page :is(button,a,input,select):focus-visible { outline:3px solid #c91010; outline-offset:3px; }
+.tt-date-help { padding:18px 0; }
+.tt-date-help h2 { font-size:23px; margin:0 0 16px; }
+.tt-date-help ol { padding-left:22px; margin-bottom:24px; }
+.tt-date-help li { margin:0 0 14px; line-height:1.65; }
+.tt-date-help p { border-left:3px solid var(--color-red,#e00000); padding-left:16px; color:#667085; line-height:1.7; font-size:15px; }
+.tt-date-results { margin-top:36px; scroll-margin-top:112px; }
+.tt-date-results > header { margin-bottom:22px; }
+.tt-date-results h2 { font-size:26px; margin:0 0 8px; }
+.tt-date-results > header p { margin:4px 0; }
+.tt-date-results > .tt-date-calendar { width:100%; max-width:980px; margin-inline:auto; }
+.tt-date-calendar { padding:20px; }
+.tt-date-calendar__header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.tt-date-calendar__header h3 { margin:0; font-size:20px; }
+.tt-date-calendar__header button { width:38px; height:38px; border:1px solid #e1e6ee; border-radius:50%; background:#fff; color:#14213a; font-size:26px; }
+.tt-date-calendar__grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+.tt-date-calendar__week { display:contents; }
+.tt-date-calendar__week span { text-align:center; font-size:13px; color:#667085; padding:4px 0 9px; }
+.tt-date-calendar__day { border:1px solid transparent; border-radius:8px; min-width:0; min-height:66px; padding:8px 2px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; font-family:inherit; cursor:pointer; transition:box-shadow .2s,border-color .2s; }
+.tt-date-calendar__day strong { font-size:17px; }
+.tt-date-calendar__day span { font-size:10px; line-height:1.25; }
+.tt-date-page .tt-date-calendar__day[aria-pressed="true"] { border-color:var(--color-red,#e00000); box-shadow:inset 0 0 0 1px var(--color-red,#e00000); }
+.tt-date-calendar__day:hover:not(:disabled) { box-shadow:inset 0 0 0 1px currentColor; }
+.tt-date-page .is-VERY_GOOD { color:#14532d; background:#bce5c9; border-color:#8acba1; }
+.tt-date-page .is-NORMAL { color:#684d0c; background:#f8e39b; border-color:#e5c76c; }
+.tt-date-page .is-AVOID { color:#8f2020; background:#f5bdbd; border-color:#e69a9a; }
+.tt-date-calendar__day.is-outside { color:#9da6b4; background:#f5f6f8; opacity:.65; }
+.tt-date-legend { display:flex; flex-wrap:wrap; align-items:center; gap:10px 20px; list-style:none; margin:20px 0 0; padding:0; font-size:16px; font-weight:500; line-height:1.5; }
+.tt-date-legend li { display:flex; align-items:center; gap:8px; white-space:nowrap; }
+.tt-date-legend i { flex:none; width:16px; height:16px; border-radius:3px; border:1px solid currentColor; }
+.tt-date-status { display:inline-flex; border-radius:7px; padding:5px 9px; font-size:12px; line-height:1.4; font-weight:600; white-space:nowrap; }
+.tt-date-text-button { color:var(--color-red,#e00000); font-size:14px; font-weight:700; border:0; background:transparent; padding:8px 0; cursor:pointer; }
+.tt-date-text-button:hover { text-decoration:underline; }
+.tt-date-disclaimer { border-left:3px solid #e1e6ee; color:#667085; font-size:14px; line-height:1.7; padding-left:14px; margin:22px 0; }
+.tt-date-detail { margin:24px 0; scroll-margin-top:112px; }
+.tt-date-detail__header { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:18px; }
+.tt-date-detail__header h2 { margin:0; }
+.tt-date-detail__facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin:0; }
+.tt-date-detail dt { color:#667085; font-weight:400; font-size:14px; }
+.tt-date-detail dd { margin:4px 0 0; font-weight:600; }
+.tt-date-detail__group { margin-top:24px; }
+.tt-date-detail__group h3 { font-size:20px; margin:0 0 12px; }
+.tt-date-detail__group ul { list-style:none; padding:0; margin:0; display:grid; gap:12px; }
+.tt-date-detail__group p { color:#667085; font-size:15px; margin:5px 0 0; white-space:pre-line; }
+.tt-date-hours { display:flex; flex-wrap:wrap; gap:8px; }
+.tt-date-hours > span { border:1px solid #e1e6ee; border-radius:8px; padding:8px 12px; font-size:14px; }
+.tt-date-maintenance { text-align:center; padding:36px 20px; }
+.tt-date-skeleton { min-height:200px; display:flex; align-items:center; justify-content:center; background:#f8f9fb; }
+@media(min-width:901px) {
+  .tt-date-calendar { padding:24px; }
+  .tt-date-calendar__header h3 { font-size:23px; }
+  .tt-date-calendar__grid { gap:8px; }
+  .tt-date-calendar__day { min-height:84px; gap:6px; }
+  .tt-date-calendar__day strong { font-size:22px; }
+  .tt-date-calendar__day span { font-size:12px; }
+  .tt-date-calendar__week span { font-size:14px; }
+}
+@media(max-width:900px) { .tt-date-intro { grid-template-columns:minmax(0,1fr) minmax(0,.75fr); gap:20px; } }
+@media(max-width:600px) {
+  .tt-date-page { padding:14px 14px 44px; }
+  .tt-date-hero { gap:12px; margin-bottom:20px; }
+  .tt-date-hero h1 { font-size:27px; margin:0 0 8px; }
+  .tt-date-hero p { font-size:15px; }
+  .tt-date-hero__icon { width:64px; height:64px; }
+  .tt-date-intro { grid-template-columns:1fr; gap:16px; }
+  .tt-date-panel { border-radius:14px; padding:18px 14px; }
+  .tt-date-form fieldset { gap:14px 10px; }
+  .tt-date-form label { font-size:14px; }
+  .tt-date-form label small { font-size:12px; white-space:nowrap; }
+  .tt-date-form input,.tt-date-form select { padding:10px 7px; }
+  .tt-date-help { padding:0 2px; }
+  .tt-date-help h2 { font-size:20px; }
+  .tt-date-help ol { font-size:14px; margin-bottom:16px; }
+  .tt-date-help li { margin-bottom:8px; }
+  .tt-date-results { margin-top:26px; scroll-margin-top:88px; }
+  .tt-date-results h2 { font-size:23px; }
+  .tt-date-calendar { padding:16px 10px; }
+  .tt-date-calendar__grid { gap:5px; }
+  .tt-date-calendar__day { min-height:54px; padding:6px 1px; gap:3px; }
+  .tt-date-calendar__day span { display:none; }
+  .tt-date-calendar__day::after { font-size:12px; line-height:1; font-weight:700; }
+  .tt-date-calendar__day.is-VERY_GOOD::after { content:'✓'; }
+  .tt-date-calendar__day.is-NORMAL::after { content:'•'; }
+  .tt-date-calendar__day.is-AVOID::after { content:'×'; }
+  .tt-date-legend { gap:10px 12px; font-size:14px; }
+  .tt-date-legend li { gap:6px; }
+  .tt-date-legend i { width:14px; height:14px; }
+  .tt-date-confirmation { padding:22px 20px; border-radius:14px; }
+  .tt-date-confirmation h2 { font-size:21px; }
+  .tt-date-confirmation__actions button { flex:1; min-width:0; }
+  .tt-date-detail { scroll-margin-top:88px; }
+  .tt-date-detail__facts { gap:14px 12px; font-size:15px; }
+}
 .tt-article-hub { padding-bottom:50px; }
 .tt-article-hub__section { margin-top:32px; scroll-margin-top:110px; }
 .tt-article-hub__section + .tt-article-hub__section { margin-top:48px; padding-top:32px; border-top:1px solid #e1e6ee; }

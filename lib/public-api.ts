@@ -12,7 +12,7 @@ export async function publicApi<T>(path: string, params?: Record<string, string 
   // Inventory and contact changes in admin must be visible on the next public request.
   // Next's revalidation can serve one stale response even after its TTL expires.
   const response = await fetch(`${baseUrl}/api/v1${path}${query.size ? `?${query}` : ''}`,
-    path === '/seo' || path === '/driving-experiences' || path.startsWith('/driving-experiences/') || path === '/cars' || path.startsWith('/cars/') || path === '/brands' || path.startsWith('/brands/') || path === '/slides' || path === '/testimonials' || path === '/accessories' || path.startsWith('/accessories/') ||
+    path === '/seo' || path.startsWith('/auspicious-dates/') || path === '/driving-experiences' || path.startsWith('/driving-experiences/') || path === '/cars' || path.startsWith('/cars/') || path === '/brands' || path.startsWith('/brands/') || path === '/slides' || path === '/testimonials' || path === '/accessories' || path.startsWith('/accessories/') ||
     path === '/accessory-brands' || path === '/accessory-categories' || path === '/faqs' || path.startsWith('/faqs/') || path === '/services' || path.startsWith('/services/') || path === '/recruitments' || path.startsWith('/recruitments/') || path.startsWith('/lookups/') || path.startsWith('/site-settings/') || path === '/content'
       ? { cache: 'no-store' } : { next: { revalidate: 30 } });
   if (!response.ok) throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`);

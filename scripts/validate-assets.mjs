@@ -4,6 +4,19 @@ import {load} from 'cheerio';
 
 const manifest=JSON.parse(await readFile('data/route-manifest.json','utf8'));
 const routes=new Set(Object.keys(manifest).map(key=>key.split('?')[0]));
+// Native App Router pages now coexist with the recovered snapshot manifest.
+const nativePatterns=[];
+async function nativeRoutes(directory,segments=[]) {
+  for(const entry of await readdir(directory,{withFileTypes:true})) {
+    if(entry.isDirectory()) await nativeRoutes(path.join(directory,entry.name),[...segments,entry.name]);
+    else if(/^page\.(tsx|jsx|ts|js)$/.test(entry.name)) {
+      if(segments.some(segment=>segment.includes('...')))continue; // Legacy catch-all is checked by its manifest.
+      const pieces=segments.filter(segment=>!segment.startsWith('(')).map(segment=>segment.startsWith('[')?'[^/]+':segment.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+      nativePatterns.push(new RegExp(`^/${pieces.join('/')}$`));
+    }
+  }
+}
+await nativeRoutes('app');
 const assets=new Set(),links=new Set(),missing=[],known=[];
 function inspect(html) {
   const $=load(html);
@@ -29,7 +42,7 @@ for(const asset of assets){try{await access(path.join('public',asset));}catch{
   // Unused jQuery UI theme sprites are also absent from the reference mirror.
   if(/\/images\/ui-bg_|\/images\/ui-icons_/.test(asset))known.push(asset);else missing.push(asset);
 }}
-for(const link of links)if(!routes.has(link)){if(link==='/cuu-ho')known.push(link);else missing.push(link);}
+for(const link of links)if(!routes.has(link)&&!nativePatterns.some(pattern=>pattern.test(link))){if(link==='/cuu-ho')known.push(link);else missing.push(link);}
 await mkdir('artifacts',{recursive:true});
 const report={snapshots:Object.keys(manifest).length,routes:routes.size,assets:assets.size,missing,sourceGaps:known};
 await writeFile('artifacts/asset-report.json',JSON.stringify(report,null,2));
