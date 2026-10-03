@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { routeMetadata } from '@/lib/page-metadata';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import CarGallery from '@/components/car/CarGallery';
@@ -18,12 +19,12 @@ const getAccessory = cache(async (id: string) => validId(id) ? optionalPublicApi
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const item = await getAccessory((await params).id);
-  if (!item) return { title: 'Không tìm thấy phụ kiện' };
-  return {
+  if (!item) return { title: 'Không tìm thấy phụ kiện', robots: { index: false } };
+  return routeMetadata(`/phu-kien-o-to/${item.id}`, {
     title: `${item.name} | Phụ kiện ô tô`,
     description: `${item.name} - ${Number(item.price).toLocaleString('vi-VN')} đ. Xem ảnh và thông tin phụ kiện tại Toàn Trung.`,
     openGraph: { images: [item.imageUrl] },
-  };
+  });
 }
 
 export default async function AccessoryDetailPage({ params }: PageProps) {

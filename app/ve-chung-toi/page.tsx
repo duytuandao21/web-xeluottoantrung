@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { routeMetadata } from '@/lib/page-metadata';
 import { cache } from 'react';
 import { load } from 'cheerio';
 import SiteBreadcrumb from '@/components/common/SiteBreadcrumb';
@@ -30,11 +31,11 @@ function articleBody(content: string) {
 export async function generateMetadata(): Promise<Metadata> {
   const [first] = await introductions();
   const summary = first?.body ? load(safeHtml(first.body), {}, false).text().replace(/\s+/g, ' ').trim().slice(0, 160) : '';
-  return {
+  return routeMetadata('/ve-chung-toi', {
     title: first?.title || 'Về chúng tôi',
     description: summary || 'Tìm hiểu về Auto Toàn Trung.',
     openGraph: first?.imageUrl ? { images: [first.imageUrl] } : undefined,
-  };
+  });
 }
 
 export default async function AboutPage() {

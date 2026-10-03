@@ -24,8 +24,19 @@ export function useResponsiveSettings(settings:Settings):Settings {
 export default function Carousel({className,children,settings}: {className:string;children:ReactNode;settings?:Settings}) {
   const ref=useRef<Slider>(null);
   const [ready,setReady]=useState(false);
+  const [mobileLookups,setMobileLookups]=useState(false);
+  const isLookupRow=className.split(' ').includes('thuonghieu');
   const resolved=useResponsiveSettings({...settingsFor(className),...settings});
   useEffect(()=>setReady(true),[]);
+  useEffect(()=>{
+    if(!isLookupRow){setMobileLookups(false);return;}
+    const media=window.matchMedia('(max-width:960px)');
+    const update=()=>setMobileLookups(media.matches);
+    update();
+    media.addEventListener('change',update);
+    return ()=>media.removeEventListener('change',update);
+  },[isLookupRow]);
+  if(mobileLookups) return <div className={`${className} lookup-carousel-mobile`} role="group" aria-label="Danh sách lựa chọn xe" tabIndex={0}>{children}</div>;
   // Apply responsive settings before revealing slides; avoids desktop columns
   // flashing during hydration on phones. Slick owns and cleans up its timers.
   return <Slider ref={ref} className={`${className}${ready?'':' carousel-hydrating'}`} {...resolved}>{children}</Slider>;

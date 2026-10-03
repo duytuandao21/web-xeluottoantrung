@@ -132,7 +132,7 @@ function CarCardState({car}:{car:Car}) {
   };
 
   return <div className={car.className} data-car-id={car.id}>
-    {car.compare && <p className="id_ss" data-id={car.id} role="button" tabIndex={0}><span />So sánh</p>}
+    {car.compare && <p className="id_ss" data-id={car.id} role="button" tabIndex={0}><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4.5 4.5L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg></span>So sánh</p>}
     <div className={car.imageClass}>
       <div className="slick_hinhthem car-card-gallery" aria-busy={loading}>
         <div className="car-card-gallery__viewport" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchCancel={()=>{swipeStartRef.current=null;}}>
@@ -153,7 +153,7 @@ function CarCardState({car}:{car:Car}) {
     </div>
     <div className="mota"><div className="gia_sp">{parse(car.priceHtml || '')}</div>
       <h3 className={car.nameClass}><a href={car.href} title={car.title}>{car.name}</a></h3>
-      <ul>{car.specs.map((spec,index)=><li key={index}>{spec.icon && <img src={spec.icon} alt={spec.alt || ''} />}{spec.text}</li>)}</ul>
+      <ul>{car.specs.map((spec,index)=><li key={index} data-spec={spec.alt}>{spec.icon && <img src={spec.icon} alt={spec.alt || ''} />}<span className="car-card-spec__value" title={spec.text}>{spec.alt==='Km'&&spec.text.endsWith(' km')?<>{spec.text.slice(0,-3)}<span className="car-card-spec__unit"> km</span></>:spec.text}</span></li>)}</ul>
       <SalePlate slug={car.id} />
     </div>
   </div>;

@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
+import { routeMetadata } from '@/lib/page-metadata';
 import SiteBreadcrumb from '@/components/common/SiteBreadcrumb';
 import FuelPriceViewer from '@/components/utilities/FuelPriceViewer';
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> { return routeMetadata('/tien-ich/xem-gia-xang-dau', {
   title: 'Xem giá xăng dầu',
   description: 'Xem giá xăng dầu Petrolimex theo Vùng 1 và Vùng 2.',
-};
+}); }
 
 export default function FuelPricesPage() {
   return <>

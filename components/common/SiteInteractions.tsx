@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import Markup from './Markup';
 import { getPublic, submitPublic } from '@/lib/public-client';
 import { calculateInstallment } from '@/lib/installment-calculator';
+import CarComparison from '@/components/car/CarComparison';
 
 type Dialog = {html?:string;className?:string;id?:string;images?:{src:string;alt:string}[];index?:number};
 
@@ -18,8 +19,6 @@ export default function SiteInteractions() {
   },[filterPending,pathname,query]);
   const [dialog,setDialog]=useState<Dialog|null>(null);
   const [showTop,setShowTop]=useState(false);
-  const [comparison,setComparison]=useState<{id:string;html:string}[]>([]);
-  const [comparisonHost,setComparisonHost]=useState<HTMLElement|null>(null);
   const dialogRef=useRef<HTMLDivElement>(null);
   const sourceRef=useRef<HTMLElement|null>(null);
   useEffect(()=>{
@@ -43,8 +42,7 @@ export default function SiteInteractions() {
   },[dialog]);
 
   useEffect(()=>{
-    setDialog(null);document.body.classList.remove('ss');
-    setComparison([]);setComparisonHost(document.querySelector<HTMLElement>('.wap_sosanhxe'));
+    setDialog(null);
     const cleanups:(()=>void)[]=[];
     const installment=document.querySelector<HTMLElement>('.vehicle-installment .tragop[data-price]');
     if(installment){
@@ -98,6 +96,12 @@ export default function SiteInteractions() {
       if(image.complete && image.naturalWidth===0)showBrandFallback(image);
     });
     cleanups.push(()=>document.removeEventListener('error',imageError,true));
+    document.querySelectorAll<HTMLElement>('.vehicle-brands__track,.vehicle-filter-options').forEach(track=>{
+      const selected=track.querySelector<HTMLElement>('.is-selected');
+      if(!selected)return;
+      const row=track.getBoundingClientRect(),choice=selected.getBoundingClientRect();
+      if(choice.left<row.left||choice.right>row.right)track.scrollTo({left:track.scrollLeft+choice.left-row.left-8,behavior:'instant'});
+    });
     const selectTab=(selector:string)=>{
       document.querySelectorAll<HTMLElement>('.tab_bl').forEach(el=>{el.style.display=el.matches(selector)?'block':'none';});
       document.querySelectorAll<HTMLElement>('.boloc_l li').forEach(el=>el.classList.toggle('active',el.dataset.id===selector));
@@ -137,13 +141,6 @@ export default function SiteInteractions() {
       update();cleanups.push(()=>fill.remove());
     }
     const notify=(text:string)=>setDialog({html:`<p>${text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}</p>`});
-    const updateComparison=()=>{
-      setComparison([...document.querySelectorAll<HTMLElement>('.id_ss_active')].map(el=>{
-        const card=el.closest('.item')!;
-        const image=card.querySelector('.slick-slide[data-current="true"] img')?.outerHTML||card.querySelector('.slick-slide:not(.slick-cloned) img')?.outerHTML||'';
-        return {id:el.dataset.id!,html:image+(card.querySelector('.mota')?.outerHTML||'')};
-      }));
-    };
     let activeFilterTrigger:HTMLButtonElement|null=null;
     let filterPositionFrame=0;
     let filterHoverCloseTimer=0;
@@ -200,7 +197,7 @@ export default function SiteInteractions() {
     };
     const submitKeyword=()=>{
       const value=document.querySelector<HTMLInputElement>('#keyword')?.value.trim()||'';
-      const params=new URLSearchParams(query.toString());params.delete('page');
+      const params=new URL(document.querySelector<HTMLElement>('.vehicle-filter-panel')?.dataset.filterBase||location.href,location.origin).searchParams;params.delete('page');
       if(value)params.set('keyword',value);else params.delete('keyword');
       startFilterTransition(()=>router.push(`/san-pham${params.size?`?${params}`:''}`,{scroll:false}));
     };
@@ -249,7 +246,7 @@ export default function SiteInteractions() {
       const filter=target.closest<HTMLElement>('.vehicle-filter-panel__open,.chonloc li,.boloc_l li');if(filter){selectTab(filter.dataset.id||'.hangxe_tk');document.querySelector('.wap_boloc')?.classList.add('wap_boloc_active');return;}
       if(target.closest('.dong_boloc,.close_boloc')){document.querySelector('.wap_boloc')?.classList.remove('wap_boloc_active');document.querySelector('.wap_sosanhxe')?.classList.remove('wap_sosanhxe_active');return;}
       const choice=target.closest<HTMLElement>('.goiy_hangxe p,.goiy_kieudang p,.goiy_hopso p,.goiy_mausac p,.goiy_mucgia p,.goiy_chinhanh p');
-      if(choice){const active=choice.classList.contains('active_tk');if(choice.closest('.goiy_mucgia,.goiy_chinhanh'))choice.parentElement?.querySelectorAll('p').forEach(el=>el.classList.remove('active_tk'));choice.classList.toggle('active_tk',!active);return;}
+      if(choice){const active=choice.classList.contains('active_tk');if(choice.closest('.goiy_hangxe,.goiy_mucgia,.goiy_chinhanh'))choice.parentElement?.querySelectorAll('p').forEach(el=>el.classList.remove('active_tk'));choice.classList.toggle('active_tk',!active);return;}
       const preset=target.closest<HTMLElement>('[data-gia1]');if(preset){const group=preset.parentElement!;group.querySelectorAll('p').forEach(el=>el.classList.remove('active_tk'));const kind=['ngansach','nam','sokm'].find(k=>group.classList.contains(`goiy_${k}`));if(kind){[1,2].forEach(n=>{const input=document.querySelector<HTMLInputElement>(`.gt_${kind}${n}`);if(input){input.value=preset.dataset[`gia${n}`]||'';input.dispatchEvent(new Event('input'));}});const track=document.getElementById(`${kind}-range`);if(track){track.dataset.openMin=preset.dataset.openMin;track.dataset.openMax=preset.dataset.openMax;}}preset.classList.add('active_tk');return;}
       if(target.closest('.lammoi')){
         document.querySelectorAll('.boloc_r .active_tk').forEach(el=>el.classList.remove('active_tk'));
@@ -261,7 +258,7 @@ export default function SiteInteractions() {
       }
       if(target.closest('.apdung')){
         const params=new URLSearchParams();
-        for(const [name,key] of [['hangxe','hang-xe'],['kieudang','kieu-dang'],['hopso','hop-so'],['mausac','mau-sac'],['mucgia','gia'],['chinhanh','chi-nhanh']]) {const values=[...document.querySelectorAll<HTMLElement>(`.goiy_${name} .active_tk`)].map(el=>el.dataset.id);if(values.length)params.set(key,values.join(','));}
+        for(const [name,key] of [['hangxe','hang-xe'],['kieudang','kieu-dang'],['hopso','hop-so'],['mausac','mau-sac'],['mucgia','gia'],['chinhanh','chi-nhanh']]) {const values=[...document.querySelectorAll<HTMLElement>(`.goiy_${name} .active_tk`)].map(el=>el.dataset.id);if(values.length)params.set(key,name==='hangxe'?values[0]!:values.join(','));}
         for(const [name,key] of [['ngansach','ngan-sach'],['nam','nam-san-xuat'],['sokm','so-km']]) {
           const track=document.getElementById(`${name}-range`);
           const a=document.querySelector<HTMLInputElement>(`.gt_${name}1`),b=document.querySelector<HTMLInputElement>(`.gt_${name}2`);
@@ -278,10 +275,6 @@ export default function SiteInteractions() {
         if(query.get('dong-xe'))params.set('dong-xe',query.get('dong-xe')!);
         window.location.href=`/tim-kiem-nang-cao?${params}`;return;
       }
-      if(target.closest('.c_sosanh')){document.body.classList.toggle('ss');return;}
-      if(target.closest('.wap_sosanhxe .td')){document.querySelector('.wap_sosanhxe')?.classList.toggle('wap_sosanhxe_active');return;}
-      const remove=target.closest<HTMLElement>('.xoa_ss');if(remove){document.querySelectorAll<HTMLElement>('.id_ss_active').forEach(el=>{if(el.dataset.id===remove.dataset.id)el.classList.remove('id_ss_active');});updateComparison();return;}
-      const compare=target.closest<HTMLElement>('.id_ss');if(compare){const selected=document.querySelectorAll('.id_ss_active');if(!compare.classList.contains('id_ss_active')&&selected.length>=2){notify('Chỉ so sánh 2 xe. Vui lòng tắt bớt xe.');return;}compare.classList.toggle('id_ss_active');document.querySelector('.wap_sosanhxe')?.classList.add('wap_sosanhxe_active');updateComparison();return;}
       const service=target.closest<HTMLElement>('.wap_dichvu .cap1 li,.wap_dichvu2 .cap1 li');if(service){
         const id=service.dataset.id||'';
         const section=service.closest<HTMLElement>('.wap_dichvu,.wap_dichvu2');
@@ -394,9 +387,9 @@ export default function SiteInteractions() {
   },[pathname,query,router]);
   const image=dialog?.images?.[dialog.index||0];
   return <>
-    {comparisonHost && createPortal(<div className="sosanhxe2">{comparison.map(car=><div className="item_ss" key={car.id}><button className="xoa_ss" data-id={car.id} aria-label="Bỏ xe khỏi so sánh"/><Markup html={car.html}/></div>)}</div>,comparisonHost)}
+    <CarComparison />
     {showTop && <div className="scrollToTop" role="button" tabIndex={0} onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} style={{display:'block'}}><img src="/assets/images/top.png" alt="Go Top"/></div>}
-    {dialog && createPortal(<div className="fancybox-container fancybox-is-open migrated-dialog" role="dialog" aria-modal="true" aria-label={image?'Ảnh xe':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin'} tabIndex={-1} ref={dialogRef}>
+    {dialog && createPortal(<div className="fancybox-container fancybox-is-open migrated-dialog" role="dialog" aria-modal="true" aria-label={image?'Ảnh xe':dialog.id==='nutgoi'?'Liên hệ Toàn Trung':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin'} tabIndex={-1} ref={dialogRef}>
       <div className="fancybox-bg"/><div className="fancybox-inner"><div className="fancybox-stage"><div className="fancybox-slide fancybox-slide--html fancybox-slide--current fancybox-slide--complete" onClick={e=>{if(e.target===e.currentTarget)setDialog(null);}}>
         <div className={`fancybox-content ${image?'dialog-gallery':dialog.className||''}`} id={dialog.id}>
           {image?<img className="dialog-image" src={image.src} alt={image.alt}/>:<Markup html={dialog.html||''}/>}

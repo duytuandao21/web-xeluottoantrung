@@ -8,6 +8,7 @@ import { safeHtml } from "@/lib/safe-html";
 import { getPublicPage } from "@/lib/public-pages";
 import { pageMetadata } from "@/lib/page-metadata";
 import { load } from "cheerio";
+import HomeScrollReveal from '@/components/common/HomeScrollReveal';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +61,7 @@ export default async function HomePage() {
   section.find('.cap1').attr({ role: 'tablist', 'aria-label': 'Dịch vụ của Toàn Trung' });
   replaceHomeBottom($, articles.data);
   $('.wap_sanpham').first().addClass('tt-home-cars').after('<div id="tt-accessories-root"></div>');
-  return <><LegacyPage page={{ ...page, content: $.html() }} />
-    <AccessoryCarousel items={accessories?.data ?? []} /></>;
+  return <HomeScrollReveal><LegacyPage page={{ ...page, content: $.html() }} />
+    <AccessoryCarousel items={accessories?.data ?? []} /></HomeScrollReveal>;
 }
 

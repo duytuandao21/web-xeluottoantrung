@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { routeMetadata } from '@/lib/page-metadata';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import SiteBreadcrumb from '@/components/common/SiteBreadcrumb';
@@ -12,7 +13,8 @@ function utilityFor(slug: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const item = utilityFor((await params).slug);
-  return { title: item?.label || 'Tiện ích' };
+  if (!item) return { title: 'Không tìm thấy tiện ích', robots: { index: false } };
+  return routeMetadata(item.href, { title: item.label });
 }
 
 export default async function UtilityPage({ params }: Props) {

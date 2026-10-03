@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { routeMetadata } from '@/lib/page-metadata';
 import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import { cache } from 'react';
@@ -32,12 +33,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const service = await getService((await params).slug);
   if (!service) return { title: 'Không tìm thấy dịch vụ', robots: { index: false } };
   const summary = load(safeHtml(service.description), {}, false).text().replace(/\s+/g, ' ').trim().slice(0, 160);
-  return {
+  return routeMetadata(`/dich-vu/${service.slug}`, {
     title: service.title,
     description: summary,
     alternates: { canonical: `/dich-vu/${service.slug}` },
     openGraph: service.imageUrl ? { images: [service.imageUrl] } : undefined,
-  };
+  });
 }
 
 export default async function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {

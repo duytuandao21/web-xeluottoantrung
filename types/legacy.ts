@@ -2,6 +2,7 @@ export interface LegacyPageData {
   route: string;
   title: string;
   description: string;
+  keywords?: string;
   canonical: string;
   openGraphImage: string;
   content: string;

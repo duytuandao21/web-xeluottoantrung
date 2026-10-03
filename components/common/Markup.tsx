@@ -2,24 +2,28 @@
 import parse, { attributesToProps, domToReact, Element, type DOMNode, type HTMLReactParserOptions } from 'html-react-parser';
 import { createElement } from 'react';
 import Carousel from './Carousel';
-import BuySellBanner from './BuySellBanner';
+import BuySellBanner, { type BannerSlide } from './BuySellBanner';
 import CarCard from '@/components/car/CarCard';
 import CarGallery from '@/components/car/CarGallery';
 import type { Car } from '@/types/car';
 import { SalePlate } from '@/components/sale/SaleAccess';
-import SaleSearchResults from '@/components/sale/SaleSearchResults';
+import CarListing from '@/components/car/CarListing';
+import type { PageResult, PublicCar } from '@/lib/public-api';
+import InstallationStoreCard, { type InstallationStore } from '@/components/accessories/InstallationStoreCard';
 
 export default function Markup({html,cars={}}:{html:string;cars?:Record<string,Car>}) {
   const options:HTMLReactParserOptions={replace(node){
     if(!(node instanceof Element)) return;
     const cls=node.attribs.class || '';
     if(node.name==='script') return <></>;
-    if(cls.split(' ').includes('home-buy-banner')) return <BuySellBanner />;
+    if(cls.split(' ').includes('home-buy-banner')) return <BuySellBanner slides={JSON.parse(node.attribs['data-slides'] || '[]') as BannerSlide[]} />;
     if(node.name==='car-card') {const car=cars[node.attribs['data-key']];return car?<CarCard key={car.id} car={car}/>:<></>;}
     if(node.name==='sale-plate') return <SalePlate slug={node.attribs['data-slug'] || ''} />;
-    if(cls.split(' ').includes('wap_item') && node.attribs['data-sale-search-query']) {
-      const query=JSON.parse(node.attribs['data-sale-search-query']) as Record<string,string|number|undefined>;
-      return <SaleSearchResults query={query}>{domToReact(node.children as DOMNode[],options)}</SaleSearchResults>;
+    if(node.name==='vehicle-branch-card') return <InstallationStoreCard kind="branch" store={JSON.parse(node.attribs['data-store']) as InstallationStore} />;
+    if(cls.split(' ').includes('wap_item') && node.attribs['data-car-list-query']) {
+      const query=JSON.parse(node.attribs['data-car-list-query']) as Record<string,string|number|undefined>;
+      const initialResult=JSON.parse(node.attribs['data-car-list-result']) as PageResult<PublicCar>;
+      return <CarListing key={JSON.stringify(query)} query={query} initialResult={initialResult} />;
     }
     if(cls.split(' ').includes('left-pro-detail')) {
       const gallery=node.children.find(child=>child instanceof Element && child.attribs.class==='album_pro');

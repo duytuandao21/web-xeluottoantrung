@@ -1,4 +1,4 @@
-export async function getPublic<T>(path: string, options?: { signal?: AbortSignal }): Promise<T> {
+export async function getPublic<T>(path: string, options?: { signal?: AbortSignal; cache?: RequestCache }): Promise<T> {
   const response = await fetch(`/api/v1${path}`, options);
   if (!response.ok) throw new Error('Không thể tải danh mục xe. Vui lòng thử lại.');
   return response.json() as Promise<T>;

@@ -7,14 +7,15 @@ import { carToCard, formatCarPrice } from './car-view';
 import { getLegacyPage } from './pages';
 import { replaceHomeBottom } from './home-bottom';
 import { safeHtml } from './safe-html';
+import { assetUrl, getSiteBranding } from './site-branding';
 import { getSiteInfo } from './site-info';
 import { zaloHref } from './contact-links';
+import { getPolicies, renderPolicyLinks, renderWhyChoose } from './website-content';
 import { optionRange, parseRangeQuery, type RangeGroup, type RangeOption } from './filter-options';
-import { allPublicLookups, optionalPublicApi, publicApi, type Article, type CarDetail, type CmsPage, type Faq, type PageResult,
-  type PublicBrand, type PublicCar, type PublicLookup, type Recruitment, type Service, type Slide, type Testimonial } from './public-api';
+import { allPublicLookups, optionalPublicApi, publicApi, type Article, type CarDetail, type CmsPage, type PageResult,
+  type PublicBrand, type PublicCar, type PublicLookup, type Service, type Slide, type Testimonial, type ContentEntry } from './public-api';
 
 const single = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
-const positive = (value: string | undefined) => value && /^\d+$/.test(value) ? Math.max(1, Number(value)) : 1;
 const escape = (value: string) => value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 const publicHref = (value?: string | null) => value && /^(https?:\/\/|\/(?!\/))/i.test(value) ? value : '/san-pham';
 
@@ -87,6 +88,19 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
       : filters.branches.some(item => item.slug === slug) ? 'chi-nhanh' : 'dong-xe';
     effectiveSearch[key] ??= slug;
   }
+  effectiveSearch['hang-xe'] = single(effectiveSearch['hang-xe'])?.split(',').map(value => value.trim())
+    .find(slug => filters.brands.some(brand => brand.slug === slug));
+  const requestedModel = single(effectiveSearch['dong-xe'])?.split(',')[0]?.trim();
+  if (!effectiveSearch['hang-xe'] && requestedModel) {
+    const modelCars = await publicApi<PageResult<PublicCar>>('/cars', { model: requestedModel, limit: 1 });
+    effectiveSearch['hang-xe'] = modelCars.data[0]?.brand.slug;
+  }
+  const models = effectiveSearch['hang-xe']
+    ? await optionalPublicApi<PublicLookup[]>(`/brands/${encodeURIComponent(String(effectiveSearch['hang-xe']))}/models`) || [] : [];
+  const selectedModel = models.find(model => model.slug === requestedModel);
+  effectiveSearch['dong-xe'] = selectedModel?.slug || (!effectiveSearch['hang-xe'] ? requestedModel : undefined);
+  const versions = selectedModel ? await allPublicLookups('/lookups/car-versions', { modelId: selectedModel.id }) : [];
+  effectiveSearch['phien-ban'] = versions.find(version => version.slug === single(effectiveSearch['phien-ban']))?.slug;
   $('.boloc_l ul').append('<li data-id=".chinhanh_tk">Chi nhánh</li>');
   $('.boloc_r').append('<div class="tab_bl chinhanh_tk"><div class="dang_text goiy_chinhanh"></div></div>');
   const groupMap: Array<[string, PublicLookup[]]> = [
@@ -143,9 +157,9 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
     $(`.gt_${kind}2`).attr({ value: String(selection?.max ?? max), 'data-reset': String(max) });
   }
   const params: Record<string, string | number | undefined> = {
-    page: positive(single(searchParams.page)), limit: 12, search: single(searchParams.keyword),
+    page: 1, limit: 6, search: single(searchParams.keyword),
     brand: selected('hang-xe'), body_type: selected('kieu-dang'), transmission: selected('hop-so'), color: selected('mau-sac'),
-    branch: selected('chi-nhanh'), model: selected('dong-xe'),
+    branch: selected('chi-nhanh'), model: selected('dong-xe'), version: selected('phien-ban'),
     price_min: price?.min !== undefined ? Math.round(price.min * 1_000_000) : undefined,
     price_max: price?.max !== undefined ? Math.round(price.max * 1_000_000) : undefined,
     year_from: year?.min, year_to: year?.max, mileage_min: mileage?.min, mileage_max: mileage?.max,
@@ -167,50 +181,31 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
   const facetParams = (without: string[]) => Object.fromEntries(Object.entries(params)
     .filter(([key, value]) => !['page', 'limit', 'sort', ...without].includes(key) && value !== undefined)) as Record<string, string | number>;
   const brandValues = selectedValues('hang-xe');
-  const modelSlug = selected('dong-xe');
-  const colorValues = selectedValues('mau-sac');
-  const transmissionValues = selectedValues('hop-so');
-  const completeCurrentPage = result.meta.page === 1 && result.meta.total === result.data.length;
-  const modelCars = brandValues.length === 1 && !modelSlug
-    ? completeCurrentPage ? result.data : await allPublicLookups<PublicCar>('/cars', facetParams(['model'])) : [];
-  const modelCounts = new Map<string, { name: string; count: number }>();
-  for (const car of modelCars) {
-    const previous = modelCounts.get(car.model.slug);
-    modelCounts.set(car.model.slug, { name: car.model.name, count: (previous?.count || 0) + 1 });
-  }
-  const colorCars = brandValues.length === 1 && modelSlug && !colorValues.length
-    ? completeCurrentPage ? result.data : await allPublicLookups<PublicCar>('/cars', facetParams(['color'])) : [];
-  const colorCounts = new Map<string, number>();
-  for (const car of colorCars) {
-    if (car.colorSlug) colorCounts.set(car.colorSlug, (colorCounts.get(car.colorSlug) || 0) + 1);
-  }
-  const availableColors = filters.colors.map(color => ({ color, count: colorCounts.get(color.slug) || 0 }))
-    .filter(item => item.count > 0);
-  const transmissionCars = brandValues.length === 1 && modelSlug && colorValues.length && !transmissionValues.length
-    ? completeCurrentPage ? result.data : await allPublicLookups<PublicCar>('/cars', facetParams(['transmission'])) : [];
-  const transmissionCounts = new Map<string, number>();
-  for (const car of transmissionCars) {
-    const lookup = filters.transmissions.find(item => item.name === car.transmission);
-    if (lookup) transmissionCounts.set(lookup.slug, (transmissionCounts.get(lookup.slug) || 0) + 1);
-  }
-  let selectedModelName = result.data.find(car => car.model.slug === modelSlug)?.model.name || modelSlug;
-  if (brandValues.length === 1 && modelSlug && selectedModelName === modelSlug) {
-    const modelResult = await publicApi<PageResult<PublicCar>>('/cars', { brand: selected('hang-xe'), model: modelSlug, limit: 1 });
-    selectedModelName = modelResult.data[0]?.model.name || modelSlug;
-  }
+  const versionSlug = selected('phien-ban');
+  const selectedYear = year?.min !== undefined && year.min === year.max ? year.min : undefined;
+  const clearYear: Record<string, null> = selectedYear === undefined ? {} : { 'nam-san-xuat': null };
+  const yearCars = selectedModel ? !year && result.meta.total === result.data.length ? result.data
+    : await allPublicLookups<PublicCar>('/cars', facetParams(['year_from', 'year_to'])) : [];
+  const years = [...new Set(yearCars.map(car => car.year))].sort((a, b) => b - a);
   const filterPanel = $('<section class="vehicle-filter-panel" aria-label="Tìm kiếm và lọc xe"></section>');
   filterPanel.attr('data-filter-base', urlFor({}));
   searchBar.before(filterPanel);
   $('#keyword').attr('placeholder', 'Tìm kiếm theo hãng xe, dòng xe hoặc từ khóa...');
   filterPanel.append($('<div class="vehicle-search-row"></div>').append(searchBar, resetSearch));
+  const addRow = (key: string, title: string, content: ReturnType<typeof $>) => {
+    const row = $('<section class="vehicle-filter-row"></section>').attr({ 'data-vehicle-row': key, 'aria-labelledby': `vehicle-row-${key}-title` });
+    row.append($('<h2 class="vehicle-filter-row__title"></h2>').attr('id', `vehicle-row-${key}-title`).text(title), content);
+    filterPanel.append(row);
+    return row;
+  };
   const brandRow = $('<div class="vehicle-brands" aria-label="Chọn hãng xe"></div>');
   brandRow.append('<button type="button" class="vehicle-brands__arrow" data-filter-scroll="-1" aria-label="Cuộn hãng xe sang trái">‹</button>');
   const brandTrack = $('<div class="vehicle-brands__track"></div>');
   for (const brand of filters.brands) {
     const active = brandValues.includes(brand.slug);
-    const next = active ? brandValues.filter(value => value !== brand.slug) : [...brandValues, brand.slug];
+    const next = active ? null : brand.slug;
     const link = $('<a class="vehicle-brands__option" data-filter-link="true"></a>')
-      .attr({ href: urlFor({ 'hang-xe': next.join(',') || null, 'dong-xe': null, 'mau-sac': null, 'hop-so': null }),
+      .attr({ href: urlFor({ 'hang-xe': next, 'dong-xe': null, 'phien-ban': null, ...clearYear, 'mau-sac': null, 'hop-so': null }),
         'aria-label': `${active ? 'Bỏ chọn' : 'Chọn'} hãng ${brand.name}`, 'aria-current': active ? 'true' : 'false' });
     if (active) link.addClass('is-selected');
     if (brand.imageUrl) link.append($('<img loading="lazy">').attr({ src: brand.imageUrl, alt: '', 'data-brand-logo': 'true' }));
@@ -220,10 +215,8 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
     brandTrack.append(link);
   }
   brandRow.append(brandTrack, '<button type="button" class="vehicle-brands__arrow" data-filter-scroll="1" aria-label="Cuộn hãng xe sang phải">›</button>');
-  filterPanel.append(brandRow);
   const filterBar = $('<div class="vehicle-filter-bar" aria-label="Bộ lọc nhanh"></div>');
   const filterTrack = $('<div class="vehicle-filter-bar__track"></div>');
-  filterTrack.append('<button type="button" class="vehicle-filter-panel__open" data-id=".hangxe_tk">Bộ lọc</button>');
   type FilterChoice = { name: string; value: string };
   const rangeChoices = (group: RangeGroup, items: RangeOption[]): FilterChoice[] => items
     .map(item => ({ item, bounds: optionRange(item, group) })).filter(entry => entry.bounds)
@@ -292,50 +285,29 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
     filterTrack.append(chip);
   }
   filterBar.append(filterTrack);
-  filterPanel.append(filterBar);
+  addRow('filters', 'Bộ lọc', filterBar).find('h2').empty().append(
+    '<button type="button" class="vehicle-filter-panel__open" data-id=".hangxe_tk" title="Xem tất cả bộ lọc">Bộ lọc</button>');
+  addRow('brands', 'Hãng xe', brandRow);
+  const choiceRow = (key: string, title: string, choices: Array<{ name: string; value: string }>, active: string | undefined,
+    href: (value: string | null) => string) => {
+    const track = $('<div class="vehicle-filter-options"></div>');
+    for (const choice of [{ name: 'Tất cả', value: '' }, ...choices]) {
+      const isActive = choice.value === (active || '');
+      const link = $('<a data-filter-link="true"></a>').attr({ href: href(choice.value || null), 'aria-current': isActive ? 'true' : 'false' }).text(choice.name);
+      if (isActive) link.addClass('is-selected');
+      track.append(link);
+    }
+    addRow(key, title, track);
+  };
   if (brandValues.length === 1) {
-    const smart = $('<div class="vehicle-smart" aria-live="polite"></div>');
-    const selectedFilters = $('<div class="vehicle-smart__selected"></div>');
-    if (modelSlug) {
-      selectedFilters.append($('<a class="vehicle-smart__model" data-filter-link="true"></a>')
-        .attr({ href: urlFor({ 'dong-xe': null, 'mau-sac': null, 'hop-so': null }), 'aria-label': `Bỏ dòng xe ${selectedModelName}` })
-        .text(`Dòng xe: ${selectedModelName} ×`));
+    choiceRow('models', 'Dòng xe', models.map(model => ({ name: model.name, value: model.slug })), selectedModel?.slug,
+      value => urlFor(value === (selectedModel?.slug || null) ? {} : { 'dong-xe': value, 'phien-ban': null, ...clearYear }));
+    if (selectedModel) {
+      choiceRow('versions', 'Phiên bản', versions.map(version => ({ name: version.name, value: version.slug })), versionSlug,
+        value => urlFor(value === (versionSlug || null) ? {} : { 'phien-ban': value, ...clearYear }));
+      choiceRow('years', 'Đời xe', years.map(value => ({ name: String(value), value: String(value) })), selectedYear?.toString(),
+        value => urlFor({ 'nam-san-xuat': value ? `${value}-${value}` : null }));
     }
-    for (const slug of colorValues) {
-      const name = filters.colors.find(item => item.slug === slug)?.name || slug;
-      selectedFilters.append($('<a class="vehicle-smart__model" data-filter-link="true"></a>')
-        .attr({ href: urlFor({ 'mau-sac': colorValues.filter(value => value !== slug).join(',') || null }), 'aria-label': `Bỏ màu sắc ${name}` })
-        .text(`Màu sắc: ${name} ×`));
-    }
-    for (const slug of transmissionValues) {
-      const name = filters.transmissions.find(item => item.slug === slug)?.name || slug;
-      selectedFilters.append($('<a class="vehicle-smart__model" data-filter-link="true"></a>')
-        .attr({ href: urlFor({ 'hop-so': transmissionValues.filter(value => value !== slug).join(',') || null }), 'aria-label': `Bỏ hộp số ${name}` })
-        .text(`Hộp số: ${name} ×`));
-    }
-    if (selectedFilters.children().length) smart.append(selectedFilters);
-    const prompt = $('<div class="vehicle-smart__prompt"></div>');
-    const suggestions = $('<div class="vehicle-smart__suggestions"></div>');
-    const addSuggestion = (name: string, changes: Record<string, string | null>) =>
-      suggestions.append($('<a data-filter-link="true"></a>').attr('href', urlFor(changes))
-        .text(name));
-    if (!modelSlug) {
-      prompt.append('<strong>Dòng xe:</strong>');
-      for (const [slug, item] of modelCounts) addSuggestion(item.name, { 'dong-xe': slug });
-    } else if (!colorValues.length) {
-      prompt.append('<strong>Màu sắc:</strong>');
-      for (const { color } of availableColors) addSuggestion(color.name, { 'mau-sac': color.slug });
-    } else if (!transmissionValues.length) {
-      prompt.append('<strong>Hộp số:</strong>');
-      for (const item of filters.transmissions) {
-        const count = transmissionCounts.get(item.slug) || 0;
-        if (count) addSuggestion(item.name, { 'hop-so': item.slug });
-      }
-    } else prompt.append($('<span class="vehicle-smart__complete"></span>').text(`Đã tìm thấy ${result.meta.total} xe phù hợp`));
-    if (!suggestions.children().length && !transmissionValues.length) prompt.append('<span class="vehicle-smart__empty">Không có gợi ý phù hợp với bộ lọc hiện tại.</span>');
-    prompt.append(suggestions);
-    smart.append(prompt);
-    filterPanel.append(smart);
   }
   const commitments = $('<ul class="vehicle-commitments" aria-label="Toàn Trung cam kết"></ul>');
   for (const text of ['Pháp lý rõ ràng', 'Không đâm đụng – ngập nước', 'Chất xe đúng mô tả']) {
@@ -348,7 +320,7 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
     $('<aside class="vehicle-assurance" aria-label="Toàn Trung cam kết"></aside>')
       .append('<div class="vehicle-assurance__label"><strong><span>Toàn Trung</span> cam kết</strong></div>', commitments)));
   const cards = cardMarkup(result.data);
-  $('.wap_item').first().attr('data-sale-search-query', JSON.stringify(params)).html(cards.html);
+  $('.wap_item').first().attr({ 'data-car-list-query': JSON.stringify(params), 'data-car-list-result': JSON.stringify(result) }).html(cards.html);
   if (!result.data.length) $('.wap_item').first().html('<div class="alert alert-warning" role="status">Chưa có xe phù hợp</div>');
   $('.td_dem span').text(String(result.meta.total));
   $('#keyword').attr('value', single(searchParams.keyword) || '');
@@ -357,55 +329,13 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
   }
   $('.goiy_mucgia p').removeClass('active_tk');
   if (single(searchParams.gia)) $(`.goiy_mucgia p[data-id="${single(searchParams.gia)}"]`).addClass('active_tk');
-  const pagination = $('.pagination-home');
-  pagination.remove();
-  if (result.meta.totalPages > 1) {
-    const links = $('<nav class="pagination-home car-pagination" aria-label="Phân trang danh sách xe"></nav>');
-    const pageLink = (number: number, label: string) => {
-      const query = new URLSearchParams();
-      for (const [key, value] of Object.entries(searchParams)) {
-        if (key === 'page' || value === undefined) continue;
-        for (const item of Array.isArray(value) ? value : [value]) query.append(key, item);
-      }
-      query.set('page', String(number));
-      return $('<a></a>').attr('href', `${pathname}?${query}`).text(label);
-    };
-    links.append(result.meta.page > 1 ? pageLink(result.meta.page - 1, '‹ Trước').attr('rel', 'prev')
-      : $('<span aria-disabled="true"></span>').text('‹ Trước'));
-    const pages = [...new Set([1, result.meta.totalPages, ...Array.from({ length: 5 }, (_, i) => result.meta.page - 2 + i)])]
-      .filter(number => number >= 1 && number <= result.meta.totalPages).sort((a, b) => a - b);
-    for (const [index, number] of pages.entries()) {
-      if (index > 0 && number - pages[index - 1] > 1) links.append('<span class="car-pagination__ellipsis">…</span>');
-      const link = pageLink(number, String(number)).attr('aria-label', `Trang ${number}`);
-      if (number === result.meta.page) link.attr({ class: 'active', 'aria-current': 'page' });
-      links.append(link);
-    }
-    links.append(result.meta.page < result.meta.totalPages ? pageLink(result.meta.page + 1, 'Sau ›').attr('rel', 'next')
-      : $('<span aria-disabled="true"></span>').text('Sau ›'));
-    $('.wap_item').first().after(links);
-  }
+  $('.pagination-home').remove();
   return { ...page, content: $.html(), cars: cards.mapped };
-}
-
-async function articleListPage(page: LegacyPageData): Promise<LegacyPageData> {
-  const result = await publicApi<PageResult<Article>>('/articles', { page: 1, limit: 20 });
-  const $ = load(page.content, {}, false);
-  const target = $('.wap_news').first().addClass('tt-news-list');
-  const template = target.find('.item_news').first().clone();
-  target.empty();
-  for (const article of result.data) {
-    const item = template.clone();
-    item.find('a[href]').attr('href', `/${article.slug}`);
-    item.find('img').attr({ src: article.imageUrl || '/thumbs/90x90x2/assets/images/noimage.png', alt: article.title });
-    item.find('.name_post').text(article.title);
-    item.find('.desc_post').text(article.excerpt || '');
-    target.append(item);
-  }
-  return { ...page, content: $.html() };
 }
 
 async function articleDetailPage(article: Article, page: LegacyPageData): Promise<LegacyPageData> {
   const $ = load(page.content, {}, false);
+  $('.breadCrumbs a[href="/tin-tuc"]').attr('href', '/bai-viet').text('Bài viết');
   const currentBreadcrumb = $('.breadCrumbs .breadcrumb-item').last();
   const breadcrumbLink = currentBreadcrumb.find('a').first();
   if (breadcrumbLink.length) breadcrumbLink.attr('href', `/${article.slug}`).text(article.title);
@@ -414,7 +344,7 @@ async function articleDetailPage(article: Article, page: LegacyPageData): Promis
   const heading = main.find('.title-main').first();
   heading.empty().append($('<h1 id="tt-article-title"></h1>').text(article.title));
   const publishedAt = article.publishedAt ? new Date(article.publishedAt) : null;
-  const meta = $('<div class="tt-article__meta"></div>').append($('<a href="/tin-tuc"></a>').text('Tin tức'));
+  const meta = $('<div class="tt-article__meta"></div>').append($('<a href="/bai-viet#muc-tin-tuc"></a>').text('Tin tức'));
   if (publishedAt && !Number.isNaN(publishedAt.getTime())) {
     meta.append($('<span aria-hidden="true"></span>').text('·'))
       .append($('<time></time>').attr('datetime', publishedAt.toISOString()).text(new Intl.DateTimeFormat('vi-VN', {
@@ -433,17 +363,6 @@ async function articleDetailPage(article: Article, page: LegacyPageData): Promis
   $('.share a[href]').first().attr('href', `/${article.slug}`);
   return { ...page, route: `/${article.slug}`, title: article.title, description: article.excerpt || '',
     canonical: `/${article.slug}`, openGraphImage: article.imageUrl || '', content: $.html() };
-}
-
-async function faqPage(page: LegacyPageData): Promise<LegacyPageData> {
-  const result = await publicApi<PageResult<Faq>>('/faqs', { limit: 100 });
-  const $ = load(page.content, {}, false);
-  const alert = $('.alert.alert-warning').first();
-  const items = $('<div class="wap_cauhoi"></div>');
-  for (const faq of result.data) items.append($('<div class="item_cauhoi"></div>')
-    .append($('<h3></h3>').text(faq.question)).append($('<div class="mota"></div>').html(safeHtml(faq.answer))));
-  if (result.data.length) alert.replaceWith(items);
-  return { ...page, content: $.html() };
 }
 
 async function testimonialPage(page: LegacyPageData): Promise<LegacyPageData> {
@@ -520,12 +439,14 @@ function prepareServiceTabs($: ReturnType<typeof load>, section: ReturnType<Retu
 }
 
 async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len-doi'): Promise<LegacyPageData> {
-  const [base, sellingSteps, tradeInSteps, testimonials, articles] = await Promise.all([
+  const [base, sellingSteps, tradeInSteps, testimonials, articles, whyChoose, whyChooseImages] = await Promise.all([
     settingsPage(page, route === '/ban-xe' ? 'thiet-lap-text-ban-xe' : 'thiet-lap-text-len-doi'),
     publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-ban-xe' }),
     publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-len-doi' }),
     allPublicLookups<Testimonial>('/testimonials'),
     publicApi<PageResult<Article>>('/articles', { limit: 3 }),
+    publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-tai-sao-chon' }),
+    publicApi<{ key: string; value: string }[]>('/site-settings/thiet-lap-anh-vi-sao-chon'),
   ]);
   const $ = load(base.content, {}, false);
   const section = $('.wap_dichvu2').first();
@@ -541,6 +462,7 @@ async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len
   }
   renderTestimonials($, '.wap_camnhan .camnhan', testimonials, true);
   replaceHomeBottom($, articles.data);
+  renderWhyChoose($, whyChoose, whyChooseImages.find(row => row.key === 'image')?.value);
   return { ...base, content: $.html() };
 }
 
@@ -549,11 +471,23 @@ async function settingsPage(page: LegacyPageData, group: string): Promise<Legacy
   const settings = Object.fromEntries(rows.map(row => [row.key, row.value]));
   const $ = load(page.content, {}, false);
   await populateCarFormBrands($);
-  if (settings.title) $('.lendoi_l .ten').first().text(settings.title);
-  if (settings.subtitle) $('.lendoi_r .title-main span').first().text(settings.subtitle);
-  if (settings.image) $('.lendoi_l .img img').first().attr('src', settings.image);
-  if (settings.content) $('.lendoi_l .mota').first().html(safeHtml(settings.content));
+  if (settings.title !== undefined) $('.lendoi_l .ten').first().text(settings.title);
+  if (settings.subtitle !== undefined) $('.lendoi_r .title-main span').first().text(settings.subtitle);
+  if (settings.image !== undefined) {
+    const image = assetUrl(settings.image);
+    if (image) $('.lendoi_l .img img').first().attr({ src: image, alt: settings.title || '' });
+    else $('.lendoi_l .img').remove();
+  }
+  if (settings.content !== undefined) {
+    // Contact buttons are part of the layout; the editor manages only the introduction.
+    let description = $('.lendoi_l .mota').first();
+    if (!description.length) { $('.lendoi_l .ten').after('<div class="mota"></div>'); description = $('.lendoi_l .mota').first(); }
+    const contacts = description.find('.lienhe_ct').clone();
+    description.empty().append($('<div class="service-landing-copy"></div>').html(safeHtml(settings.content))).append(contacts);
+  }
+  if (settings.visible === '0') $('.lendoi').remove();
   return { ...page, title: settings.seoTitle || page.title, description: settings.seoDescription || page.description,
+    keywords: settings.seoKeywords,
     content: $.html() };
 }
 
@@ -566,23 +500,6 @@ async function servicesPage(page: LegacyPageData): Promise<LegacyPageData> {
     if (service.imageUrl) section.append($('<img>').attr({ src: service.imageUrl, alt: service.title }));
     section.append($('<h2></h2>').text(service.title));
     section.append($('<div></div>').html(safeHtml(service.description)));
-    target.append(section);
-  }
-  return { ...page, content: $.html() };
-}
-
-async function recruitmentsPage(page: LegacyPageData): Promise<LegacyPageData> {
-  const result = await publicApi<PageResult<Recruitment>>('/recruitments', { limit: 100 });
-  const $ = load(page.content, {}, false);
-  const target = $('.content-main').first().empty();
-  for (const job of result.data) {
-    const section = $('<section class="item_news"></section>');
-    section.append($('<h2></h2>').text(job.title));
-    if (job.imageUrl) section.append($('<img>').attr({ src: job.imageUrl, alt: job.title }));
-    section.append($('<p></p>').text(job.location));
-    if (job.salary) section.append($('<p></p>').text(job.salary));
-    section.append($('<div></div>').html(safeHtml(job.description)));
-    section.append($('<div></div>').html(safeHtml(job.requirements)));
     target.append(section);
   }
   return { ...page, content: $.html() };
@@ -647,7 +564,7 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
     { label: 'Màu ngoại thất', value: car.color, icon: icons.color },
   ];
   overview.empty().addClass('vehicle-detail-overview').attr('id', 'tong-quan-ve-xe');
-  overview.append('<h2 class="vehicle-detail-heading">Tổng quan về xe</h2>');
+  overview.append('<div class="vehicle-detail-overview__header"><h2 class="vehicle-detail-heading">Tổng quan về xe</h2><button type="button" class="vehicle-detail-overview__more" data-src="#tskt" aria-haspopup="dialog" aria-controls="tskt" aria-label="Xem thêm thông số kỹ thuật">Xem thêm <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div>');
   const overviewGrid = $('<div class="vehicle-detail-overview__grid"></div>');
   for (const item of overviewItems) {
     overviewGrid.append($('<div class="vehicle-detail-overview__item"></div>')
@@ -656,7 +573,7 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
         .append($('<span class="vehicle-detail-overview__label"></span>').text(item.label))
         .append($('<strong class="vehicle-detail-overview__value"></strong>').text(String(item.value ?? '').trim() || 'Chưa cập nhật'))));
   }
-  overview.append(overviewGrid, '<button type="button" class="vehicle-detail-overview__more" data-src="#tskt">Xem thêm</button>');
+  overview.append(overviewGrid);
   const descriptionSection = $('.grid-pro-detail').parent().children('.thongso').first();
   descriptionSection.empty().removeClass('tongquan thongso').addClass('vehicle-detail-description').attr('id', 'mo-ta-chi-tiet');
   descriptionSection.append('<h2 class="vehicle-detail-heading">Mô tả chi tiết</h2>');
@@ -733,6 +650,13 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
   installment.find('.laisuat').attr({ inputmode: 'decimal', placeholder: 'Ví dụ: 12' });
   installment.find('.tragop_r .sotien').attr('aria-live', 'polite').text('Nhập lãi suất để xem mức trả góp ước tính');
   installment.find('.c_tragop').replaceWith('<button type="button" class="c_tragop" aria-haspopup="dialog">Xem chi tiết khoản trả góp hàng tháng</button>');
+  const installmentRows = await publicApi<{ key: string; value: string }[]>('/site-settings/thiet-lap-text-tra-gop');
+  const installmentSettings = Object.fromEntries(installmentRows.map(row => [row.key, row.value]));
+  if (installmentSettings.content !== undefined) {
+    installment.find('.tragop_r').children('p:not(.sotien)').remove();
+    installment.find('.tragop_r .sotien').after($('<div class="installment-copy"></div>').html(safeHtml(installmentSettings.content)));
+  }
+  if (installmentSettings.visible === '0') installment.parent().remove();
   $('#goilai #tieude').attr('value', title);
   const callbackDialog = $('#goilai');
   callbackDialog.find('.title-main span').text('Nhân viên kinh doanh sẽ liên hệ tư vấn');
@@ -746,7 +670,7 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
   $('.right-pro-detail a[href$="#spec"]').attr('href', `/${car.slug}#mo-ta-chi-tiet`).text('Xem mô tả chi tiết');
   if (car.branch?.phone) $('.right-pro-detail .lienhe_ct a[href^="tel:"]')
     .attr('href', `tel:${car.branch.phone}`).find('span').text(car.branch.phone);
-  const siteInfo = await getSiteInfo();
+  const [siteInfo, branding] = await Promise.all([getSiteInfo(), getSiteBranding()]);
   $('.right-pro-detail .lienhe_ct a[href^="https://zalo.me/"]').attr('href', zaloHref(siteInfo.zalo));
   $('.right-pro-detail .c_laithu').remove();
   if (car.branch?.mapUrl && /^https?:\/\//i.test(car.branch.mapUrl)) {
@@ -774,19 +698,52 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
   const relatedCards = cardMarkup(related.data.filter(item => item.slug !== car.slug).slice(0, 6));
   $('.grid-pro-detail').parent().children('.quantam').find('.wap_item').first().html(relatedCards.html);
   $('.share a[href]').first().attr('href', `/${car.slug}`);
+  const detailGrid = $('.grid-pro-detail').first().addClass('vehicle-detail-layout');
+  const content = $('<div class="vehicle-detail-content"></div>')
+    .append(detailGrid.children('.left-pro-detail').remove(), overview.remove(), descriptionSection.remove());
+  const sidebar = $('<aside class="vehicle-detail-sidebar" aria-label="Thông tin xe và chi nhánh"></aside>')
+    .append(detailGrid.children('.right-pro-detail').remove());
+  if (car.branch) {
+    const mapUrl = assetUrl(car.branch.mapUrl)?.startsWith('https://') ? car.branch.mapUrl :
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(car.branch.address || car.branch.name)}`;
+    sidebar.append($('<vehicle-branch-card></vehicle-branch-card>').attr('data-store', JSON.stringify({
+      name: car.branch.name, location: car.branch.address || 'Địa chỉ đang được cập nhật', phone: car.branch.phone || '',
+      mapUrl, coverImageUrl: assetUrl(car.branch.imageUrl), logoImageUrl: branding.logo,
+    })));
+  } else {
+    sidebar.append('<section class="vehicle-detail-branch-empty" aria-label="Chi nhánh đang có xe">Thông tin chi nhánh đang được cập nhật.</section>');
+  }
+  detailGrid.empty().append(content, sidebar);
   return { ...page, route: `/${car.slug}`, title, description: `${title} • ${formatCarPrice(car.price)} • ${car.year}`,
     canonical: `/${car.slug}`, openGraphImage: images[0]?.url || '', content: $.html(), cars: relatedCards.mapped };
 }
 
 export async function getPublicPage(pathname: string, searchParams: SearchParams = {}): Promise<LegacyPageData | null> {
+  const policies = await getPolicies();
+  const policy = policies.find(entry => `/${entry.key}` === pathname);
+  if (policy) {
+    const template = await getLegacyPage('/dieu-khoan-su-dung');
+    if (!template) return null;
+    const article = await articleDetailPage({ slug: policy.key, title: policy.title, content: policy.body || '', imageUrl: policy.imageUrl, status: 'published' }, template);
+    const $ = load(article.content, {}, false);
+    $('.tt-article__meta a').text('Chính sách và điều kiện').attr('href', '#tt-footer');
+    return { ...article, content: $.html(), description: load(safeHtml(policy.body || ''), {}, false).text().replace(/\s+/g, ' ').trim().slice(0, 160) };
+  }
+  // Disabled policies must not fall back to their static snapshots.
+  if (['/chinh-sach-quyen-rieng-tu', '/dieu-khoan-su-dung', '/dieu-khoan-dieu-kien-niem-yet'].includes(pathname)) return null;
   let page = await getLegacyPage(pathname, searchParams);
+  if (page?.content.includes('chinhsach')) {
+    const $ = load(page.content, {}, false);
+    renderPolicyLinks($, policies);
+    page = { ...page, content: $.html() };
+  }
   if (pathname === '/') {
     if (!page) return null;
     const result = await publicApi<PageResult<PublicCar>>('/cars', { limit: 6, sort: 'newest' });
     const $ = load(page.content, {}, false);
     const cards = cardMarkup(result.data);
     $('.wap_sanpham .loadthem_sp1').html(cards.html);
-    const [slides, brands, styles, budgets, testimonials, sellingProcess, buyingSteps, sellingSteps, tradeInSteps] = await Promise.all([
+    const [slides, brands, styles, budgets, testimonials, sellingProcess, buyingSteps, sellingSteps, tradeInSteps, banners] = await Promise.all([
       allPublicLookups<Slide>('/slides'), publicApi<PublicBrand[]>('/brands'),
       publicApi<PageResult<PublicLookup>>('/lookups/body-styles', { limit: 100 }),
       allPublicLookups<PublicLookup & RangeOption>('/lookups/filter-options', { group: 'budget' }),
@@ -795,6 +752,7 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
       publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-mua-xe' }),
       publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-ban-xe' }),
       publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-len-doi' }),
+      publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-banner-dong-xe' }),
     ]);
     const slider = $('.slider_slick').first().empty();
     for (const slide of slides) slider.append($('<a></a>').attr({ href: publicHref(slide.link), title: slide.title })
@@ -828,7 +786,8 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
       }
     });
     $('.muaxe .qcdongxe').filter((_, element) => !$(element).children().length && !$(element).text().trim()).remove();
-    $('.muaxe').append('<a class="home-buy-banner" href="/san-pham" aria-label="Khám phá tất cả xe tại Toàn Trung"><img src="/images/mua-xe-banner.png" alt="Sẵn sàng tìm chiếc xe ưng ý? Khám phá kho xe chất lượng với giá tốt mỗi ngày. Mua xe ngay." width="2244" height="701" decoding="async"></a>');
+    const bannerSlides = banners.filter(banner => assetUrl(banner.imageUrl)).map(banner => ({ key: banner.id, src: banner.imageUrl!, href: publicHref(banner.link), alt: banner.title }));
+    if (bannerSlides.length) $('.muaxe').append($('<div class="home-buy-banner"></div>').attr('data-slides', JSON.stringify(bannerSlides)));
     const processBox = $('.wap_muaxe .quytrinh').first();
     processBox.find('.td').first().text(sellingProcess.length ? `Quy trình ${sellingProcess.length} bước` : 'Quy trình bán xe');
     const processGrid = processBox.find('.quytrinh2').first().empty();
@@ -858,11 +817,8 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
     await populateCarFormBrands($);
     return { ...page, content: $.html(), cars: cards.mapped };
   }
-  if (pathname === '/tin-tuc' && page) return articleListPage(page);
-  if (pathname === '/cau-hoi' && page) return faqPage(page);
   if (pathname === '/cam-nhan' && page) return testimonialPage(page);
   if (pathname === '/dich-vu-khac' && page) return servicesPage(page);
-  if (pathname === '/he-thong-oto-toan-trung-tuyen-dung' && page) return recruitmentsPage(page);
   if (pathname === '/ban-xe' && page) return serviceLandingPage(page, '/ban-xe');
   if (pathname === '/len-doi' && page) return serviceLandingPage(page, '/len-doi');
   if (pathname === '/hoi-nghi-khach-hang-cong-ty-honda-viet-nam' || !page) {

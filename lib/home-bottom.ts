@@ -4,12 +4,24 @@ import { load } from 'cheerio';
 import shared from '@/data/shared.json';
 import type { Article } from './public-api';
 
-const utilityIcons: Record<string, string> = {
-  '/tien-ich/dinh-gia-xe': '/images/utilities/dinh-gia-xe.svg',
-  '/tien-ich/tra-cuu-phat-nguoi': '/images/utilities/tra-cuu-phat-nguoi.svg',
-  '/tien-ich/xem-ngay-mua-xe': '/images/utilities/xem-ngay-mua-xe.svg',
-  '/tien-ich/xem-gia-xang-dau': '/images/utilities/xem-gia-xang-dau.svg',
+type UtilityIcon = { file: string; artwork: [number, number, number, number] };
+const utilityIcons: Record<string, UtilityIcon> = {
+  '/tien-ich/mua-xe-theo-nhu-cau': { file: 'mua-xe-theo-nhu-cau.png', artwork: [220, 360, 864, 638] },
+  '/tien-ich/dinh-gia-xe': { file: 'dinh-gia-xe-cu.png', artwork: [213, 357, 887, 658] },
+  '/tien-ich/tra-cuu-phat-nguoi': { file: 'tra-cuu-phat-nguoi.png', artwork: [233, 418, 896, 627] },
+  '/tien-ich/xem-ngay-mua-xe': { file: 'xem-ngay-mua-xe.png', artwork: [231, 277, 850, 768] },
+  '/tien-ich/xem-gia-xang-dau': { file: 'xem-gia-xang-dau.png', artwork: [296, 298, 777, 689] },
 };
+
+// The original 1254px PNGs have transparent margins. Frame the artwork with CSS,
+// retaining each source file and its proportions.
+function utilityIconStyle({ artwork }: UtilityIcon) {
+  const [left, top, width, height] = artwork;
+  const scale = Math.min(96 / width, 76 / height);
+  return `--utility-icon-width:${(1254 * scale / 104 * 100).toFixed(3)}%;` +
+    `--utility-icon-left:${(((104 - width * scale) / 2 - left * scale) / 104 * 100).toFixed(3)}%;` +
+    `--utility-icon-top:${(((84 - height * scale) / 2 - top * scale) / 84 * 100).toFixed(3)}%;`;
+}
 const safeImage = (value?: string | null) => value && /^(https?:\/\/|\/(?!\/))/i.test(value) ? value : null;
 
 function articleDate(value?: string | null) {
@@ -31,7 +43,9 @@ export function replaceHomeBottom($: ReturnType<typeof load>, articles: Article[
     if (!item.href) continue;
     const link = $('<a class="tt-home-utility"></a>').attr('href', item.href);
     const icon = utilityIcons[item.href];
-    if (icon) link.append($('<img class="tt-home-utility__icon" alt="" width="62" height="62" loading="lazy" decoding="async">').attr('src', icon));
+    if (icon) link.append($('<span class="tt-home-utility__visual" aria-hidden="true"></span>').attr('style', utilityIconStyle(icon))
+      .append($('<img class="tt-home-utility__icon" alt="" width="1254" height="1254" loading="lazy" decoding="async">')
+        .attr('src', `/images/utilities/test-icon-tien-ich/${icon.file}`)));
     link.append($('<span class="tt-home-utility__name"></span>').text(item.label));
     utilityGrid.append(link);
   }
@@ -65,7 +79,7 @@ export function replaceHomeBottom($: ReturnType<typeof load>, articles: Article[
   }
   if (!articles.length) newsGrid.append('<p class="tt-home-news-empty">Tin tức đang được cập nhật.</p>');
   newsInner.append(newsGrid);
-  newsInner.append('<p class="tt-home-news-more"><a class="tt-home-news-all" href="/tin-tuc">Xem tất cả tin tức</a></p>');
+  newsInner.append('<p class="tt-home-news-more"><a class="tt-home-news-all" href="/bai-viet">Xem tất cả tin tức</a></p>');
   news.append(newsInner);
   bottom.append(news);
 

@@ -132,9 +132,15 @@ export function SaleAccessProvider({ children }: { children: ReactNode }) {
 export function SaleLoginButton({ onAction }: { onAction?: () => void } = {}) {
   const sale = useSaleAccess();
   if (!sale) return null;
-  return sale.authorized
-    ? <button type="button" className="sale-header-button" onClick={() => { onAction?.(); void sale.signOut(); }} title="Đăng xuất nhân viên sale">Đăng xuất</button>
-    : <button type="button" className="sale-header-button" onClick={() => { onAction?.(); sale.openLogin(); }}>Đăng nhập</button>;
+  return <button type="button" className={`sale-header-button${sale.authorized ? ' is-authenticated' : ''}`}
+    aria-label={sale.authorized ? 'Đăng xuất' : 'Đăng nhập'} title={sale.authorized ? 'Đăng xuất nhân viên sale' : 'Đăng nhập'}
+    onClick={() => { onAction?.(); if (sale.authorized) void sale.signOut(); else sale.openLogin(); }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="8.4" r="3.7" />
+      <path d="M5.6 19.6c.6-3.7 2.9-5.8 6.4-5.8s5.8 2.1 6.4 5.8" />
+    </svg>
+  </button>;
 }
 
 function formatLicensePlate(value: string): string {

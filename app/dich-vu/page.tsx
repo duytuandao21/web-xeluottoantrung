@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { routeMetadata } from '@/lib/page-metadata';
 import Link from 'next/link';
 import { load } from 'cheerio';
 import SiteBreadcrumb from '@/components/common/SiteBreadcrumb';
@@ -6,10 +7,10 @@ import { allPublicLookups, type Service } from '@/lib/public-api';
 import { safeHtml } from '@/lib/safe-html';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> { return routeMetadata('/dich-vu', {
   title: 'Dịch vụ',
   description: 'Tìm hiểu các dịch vụ của Auto Toàn Trung.',
-};
+}); }
 
 function excerpt(html: string) {
   const text = load(safeHtml(html), {}, false).text().replace(/\s+/g, ' ').trim();

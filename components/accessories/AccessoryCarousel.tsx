@@ -14,9 +14,23 @@ export default function AccessoryCarousel({ items }: { items: Accessory[] }) {
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(4);
   const [paused, setPaused] = useState(false);
+  const [mobile, setMobile] = useState(false);
+  const swipePauseUntil = useRef(0);
   const maxIndex = Math.max(0, items.length - visible);
 
   useEffect(() => { setHost(document.getElementById('tt-accessories-root')); }, []);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width:767px)');
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+  useEffect(() => {
+    setIndex(0);
+    viewportRef.current?.scrollTo({ left: 0, behavior: 'instant' });
+    swipePauseUntil.current = 0;
+  }, [mobile, host]);
   useEffect(() => {
     const viewport = viewportRef.current;
     const track = trackRef.current;
@@ -37,15 +51,22 @@ export default function AccessoryCarousel({ items }: { items: Accessory[] }) {
   useEffect(() => { setIndex(current => Math.min(current, maxIndex)); }, [maxIndex]);
   useEffect(() => {
     if (!host || maxIndex === 0 || paused) return;
-    const interval = window.setInterval(() => setIndex(current => current >= maxIndex ? 0 : current + 1), 10_000);
+    const interval = window.setInterval(() => {
+      if (!mobile) { setIndex(current => current >= maxIndex ? 0 : current + 1); return; }
+      const viewport = viewportRef.current;
+      if (!viewport || !step || Date.now() < swipePauseUntil.current) return;
+      const current = Math.round(viewport.scrollLeft / step);
+      viewport.scrollTo({ left: current >= maxIndex ? 0 : (current + 1) * step,
+        behavior: window.matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth' });
+    }, 10_000);
     return () => window.clearInterval(interval);
-  }, [host, maxIndex, paused]);
+  }, [host, maxIndex, paused, mobile, step]);
 
   if (!host) return null;
   const move = (direction: number) => setIndex(current => current + direction < 0 ? maxIndex : current + direction > maxIndex ? 0 : current + direction);
   return createPortal(
     <section className="tt-accessories" aria-labelledby="tt-accessories-title"
-      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
+      onMouseEnter={() => { if (!mobile) setPaused(true); }} onMouseLeave={() => { if (!mobile) setPaused(false); }}
       onFocusCapture={() => setPaused(true)} onBlurCapture={event => {
         if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false);
       }}>
@@ -55,12 +76,15 @@ export default function AccessoryCarousel({ items }: { items: Accessory[] }) {
           <h2 id="tt-accessories-title">Phụ kiện ô tô</h2>
         </div>
         {items.length === 0 ? <p className="tt-accessories__empty">Phụ kiện đang được cập nhật.</p> : <div className="tt-accessories__carousel">
-          <div className="tt-accessories__viewport" ref={viewportRef}>
-            <div className="tt-accessories__track" ref={trackRef} style={{ transform: `translate3d(-${index * step}px,0,0)` }}>
+          <div className="tt-accessories__viewport" ref={viewportRef} tabIndex={mobile ? 0 : undefined} role="group" aria-label="Danh sách phụ kiện ô tô"
+            onPointerDown={() => { if (mobile) swipePauseUntil.current = Number.POSITIVE_INFINITY; }}
+            onPointerUp={() => { if (mobile) swipePauseUntil.current = Date.now() + 10_000; }}
+            onPointerCancel={() => { if (mobile) swipePauseUntil.current = Date.now() + 10_000; }}>
+            <div className="tt-accessories__track" ref={trackRef} style={{ transform: mobile ? undefined : `translate3d(-${index * step}px,0,0)` }}>
               {items.map(item => <AccessoryCard item={item} key={item.id} />)}
             </div>
           </div>
-          {maxIndex > 0 && <div className="tt-accessories__controls">
+          {maxIndex > 0 && !mobile && <div className="tt-accessories__controls">
             <button className="tt-accessories__arrow tt-accessories__arrow--prev" type="button" onClick={() => move(-1)} aria-label="Xem phụ kiện trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m14.5 5-7 7 7 7" /></svg></button>
             <button className="tt-accessories__arrow tt-accessories__arrow--next" type="button" onClick={() => move(1)} aria-label="Xem phụ kiện tiếp theo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9.5 5 7 7-7 7" /></svg></button>
           </div>}
