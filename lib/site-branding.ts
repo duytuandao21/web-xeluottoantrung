@@ -2,7 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { publicApi } from './public-api';
 
-export const DEFAULT_LOGO = '/upload/photo/logo-tt-gold-6981.png';
+export const DEFAULT_LOGO = '/upload/photo/logo-tt-gold-6981.webp';
 export const assetUrl = (value?: string | null) => value && /^(https?:\/\/[^\s]+|\/(?!\/)[^\s]*)$/i.test(value) ? value : undefined;
 export const getSiteBranding = cache(async () => {
   const [logos, favicons] = await Promise.all([

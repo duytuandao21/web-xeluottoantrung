@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { load } from 'cheerio';
+import { cache } from 'react';
 import type { Car } from '@/types/car';
 import type { LegacyPageData, SearchParams } from '@/types/legacy';
 import { carToCard, formatCarPrice } from './car-view';
@@ -739,11 +740,8 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
   }
   if (pathname === '/') {
     if (!page) return null;
-    const result = await publicApi<PageResult<PublicCar>>('/cars', { limit: 6, sort: 'newest' });
-    const $ = load(page.content, {}, false);
-    const cards = cardMarkup(result.data);
-    $('.wap_sanpham .loadthem_sp1').html(cards.html);
-    const [slides, brands, styles, budgets, testimonials, sellingProcess, buyingSteps, sellingSteps, tradeInSteps, banners] = await Promise.all([
+    const [result, slides, brands, styles, budgets, testimonials, sellingProcess, buyingSteps, sellingSteps, tradeInSteps, banners] = await Promise.all([
+      publicApi<PageResult<PublicCar>>('/cars', { limit: 6, sort: 'newest' }),
       allPublicLookups<Slide>('/slides'), publicApi<PublicBrand[]>('/brands'),
       publicApi<PageResult<PublicLookup>>('/lookups/body-styles', { limit: 100 }),
       allPublicLookups<PublicLookup & RangeOption>('/lookups/filter-options', { group: 'budget' }),
@@ -754,6 +752,9 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
       publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-len-doi' }),
       publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-banner-dong-xe' }),
     ]);
+    const $ = load(page.content, {}, false);
+    const cards = cardMarkup(result.data);
+    $('.wap_sanpham .loadthem_sp1').html(cards.html);
     const slider = $('.slider_slick').first().empty();
     for (const slide of slides) slider.append($('<a></a>').attr({ href: publicHref(slide.link), title: slide.title })
       .append($('<img class="no_lazy">').attr({ src: slide.imageUrl, alt: slide.title })));
@@ -872,4 +873,13 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
     return listingPage(page, pathname, searchParams);
   if (page.content.includes('content-main') && !pathname.startsWith('/account/')) return cmsPage(page, pathname);
   return page;
+}
+
+// Metadata and page rendering share the same parsed page within one request.
+const cachedPublicPage = cache((pathname: string, key: string) =>
+  getPublicPage(pathname, JSON.parse(key) as SearchParams));
+
+export function getRequestPublicPage(pathname: string, searchParams: SearchParams = {}) {
+  const ordered = Object.fromEntries(Object.entries(searchParams).sort(([a], [b]) => a.localeCompare(b)));
+  return cachedPublicPage(pathname, JSON.stringify(ordered));
 }

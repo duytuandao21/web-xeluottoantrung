@@ -9,12 +9,22 @@ export class PublicApiError extends Error {
 export async function publicApi<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params ?? {})) if (value !== undefined && value !== '') query.set(key, String(value));
-  // Inventory and contact changes in admin must be visible on the next public request.
-  // Next's revalidation can serve one stale response even after its TTL expires.
+  // Keep inventory, user-specific data and contact/settings fresh on every request.
+  // A revalidated response may remain stale for one request after its TTL expires.
+  const immediate = path === '/seo' || path.startsWith('/auspicious-dates/') ||
+    path === '/driving-experiences' || path.startsWith('/driving-experiences/') ||
+    path === '/cars' || path.startsWith('/cars/') ||
+    path === '/accessories' || path.startsWith('/accessories/') ||
+    path === '/services' || path.startsWith('/services/') ||
+    path === '/lookups/branches' || path === '/lookups/branch-regions' ||
+    path.startsWith('/site-settings/') || path === '/content';
+  const stable = path === '/brands' || path.startsWith('/brands/') ||
+    path.startsWith('/lookups/') || path === '/slides' || path === '/testimonials' ||
+    path === '/accessory-brands' || path === '/accessory-categories' ||
+    path === '/faqs' || path.startsWith('/faqs/') ||
+    path === '/recruitments' || path.startsWith('/recruitments/');
   const response = await fetch(`${baseUrl}/api/v1${path}${query.size ? `?${query}` : ''}`,
-    path === '/seo' || path.startsWith('/auspicious-dates/') || path === '/driving-experiences' || path.startsWith('/driving-experiences/') || path === '/cars' || path.startsWith('/cars/') || path === '/brands' || path.startsWith('/brands/') || path === '/slides' || path === '/testimonials' || path === '/accessories' || path.startsWith('/accessories/') ||
-    path === '/accessory-brands' || path === '/accessory-categories' || path === '/faqs' || path.startsWith('/faqs/') || path === '/services' || path.startsWith('/services/') || path === '/recruitments' || path.startsWith('/recruitments/') || path.startsWith('/lookups/') || path.startsWith('/site-settings/') || path === '/content'
-      ? { cache: 'no-store' } : { next: { revalidate: 30 } });
+    immediate ? { cache: 'no-store' } : { next: { revalidate: stable ? 60 : 30 } });
   if (!response.ok) throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`);
   return response.json() as Promise<T>;
 }

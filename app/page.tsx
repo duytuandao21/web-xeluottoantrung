@@ -5,7 +5,7 @@ import { publicApi } from "@/lib/public-api";
 import type { Accessory, Article, PageResult } from "@/lib/public-api";
 import { replaceHomeBottom } from "@/lib/home-bottom";
 import { safeHtml } from "@/lib/safe-html";
-import { getPublicPage } from "@/lib/public-pages";
+import { getRequestPublicPage } from "@/lib/public-pages";
 import { pageMetadata } from "@/lib/page-metadata";
 import { load } from "cheerio";
 import HomeScrollReveal from '@/components/common/HomeScrollReveal';
@@ -13,7 +13,7 @@ import HomeScrollReveal from '@/components/common/HomeScrollReveal';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return pageMetadata(await getPublicPage('/'), '/');
+  return pageMetadata(await getRequestPublicPage('/'), '/');
 }
 
 type ServiceStep = { title: string; body?: string | null; imageUrl?: string | null };
@@ -25,7 +25,7 @@ const services = [
 
 export default async function HomePage() {
   const [page, steps, articles, accessories] = await Promise.all([
-    getPublicPage('/'),
+    getRequestPublicPage('/'),
     Promise.all(services.map(service => publicApi<ServiceStep[]>('/content', { group: `thiet-lap-cac-buoc-${service.key}` }))),
     publicApi<PageResult<Article>>('/articles', { limit: 3 }),
     publicApi<PageResult<Accessory>>('/accessories', { limit: 100 }).catch(() => null),
