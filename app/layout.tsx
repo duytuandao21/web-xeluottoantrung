@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import "./globals.css";
+import '@/components/search/search.css';
 import { Suspense } from 'react';
 import SiteInteractions from '@/components/common/SiteInteractions';
 import { allPublicLookups, publicApi, type Service, type CallContact } from '@/lib/public-api';
@@ -14,6 +15,7 @@ import { siteIntroBootstrap } from '@/lib/site-intro';
 import { getPolicies } from '@/lib/website-content';
 import { getSiteBranding } from '@/lib/site-branding';
 import type { ContentEntry } from '@/lib/public-api';
+import SearchSuggestions from '@/components/search/SearchSuggestions';
 
 export async function generateMetadata(): Promise<Metadata> {
   const [siteName, branding] = await Promise.all([getSiteName(), getSiteBranding()]);
@@ -57,7 +59,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const showrooms = groupShowrooms(branches, regions);
   return (
     <html lang="vi" suppressHydrationWarning><head><script id="tt-site-intro-bootstrap" dangerouslySetInnerHTML={{ __html: siteIntroBootstrap }} />{legacyStyles.map((href) => <link key={href} rel="stylesheet" href={href} />)}</head>
-      <body><SiteIntro logoUrl={branding.logo} /><SaleAccessProvider><div className="wapper"><Header phone={info.phone} services={services} logoUrl={branding.logo} mobileLogoUrl={branding.logoMobile} />{children}<Footer showrooms={showrooms} phone={info.phone} zalo={info.zalo} settings={footerSettings} callContacts={callContacts} policies={policies} logoUrl={branding.logoDark} socialLinks={socialLinks} appLinks={appLinks} /></div><Suspense fallback={null}><SiteInteractions/></Suspense></SaleAccessProvider></body>
+      <body><SiteIntro logoUrl={branding.logo} /><SaleAccessProvider><div className="wapper"><Header phone={info.phone} services={services} logoUrl={branding.logo} mobileLogoUrl={branding.logoMobile} />{children}<Footer showrooms={showrooms} phone={info.phone} zalo={info.zalo} settings={footerSettings} callContacts={callContacts} policies={policies} logoUrl={branding.logoDark} socialLinks={socialLinks} appLinks={appLinks} /></div><Suspense fallback={null}><SiteInteractions/><SearchSuggestions/></Suspense></SaleAccessProvider></body>
     </html>
   );
 }

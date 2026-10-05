@@ -39,7 +39,7 @@ export default function AccessoryFilters({ brands, categories, brand, category, 
     <div className="tt-accessory-filters__search-row">
       <form className="tt-accessory-filters__search" role="search" data-skip-legacy-submit onSubmit={submit}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
-        <input aria-label="Tìm phụ kiện" value={keyword} onChange={event => setKeyword(event.target.value)} placeholder="Tìm kiếm theo tên hoặc thương hiệu phụ kiện..." maxLength={120} />
+        <input data-product-search aria-label="Tìm phụ kiện" value={keyword} onChange={event => setKeyword(event.target.value)} placeholder="Tìm kiếm theo tên hoặc thương hiệu phụ kiện..." maxLength={120} />
         <button type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><span>Tìm kiếm</span></button>
       </form>
       <Link href="/phu-kien-o-to" className="tt-accessory-filters__reset" onClick={() => { setKeyword(''); categoryTrack.current?.scrollTo({ left: 0, behavior: 'instant' }); }} aria-label="Làm mới: xóa tìm kiếm và bộ lọc">

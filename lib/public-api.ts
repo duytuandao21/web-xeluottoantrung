@@ -11,14 +11,14 @@ export async function publicApi<T>(path: string, params?: Record<string, string 
   for (const [key, value] of Object.entries(params ?? {})) if (value !== undefined && value !== '') query.set(key, String(value));
   // Keep inventory, user-specific data and contact/settings fresh on every request.
   // A revalidated response may remain stale for one request after its TTL expires.
-  const immediate = path === '/seo' || path.startsWith('/auspicious-dates/') ||
+  const immediate = path === '/search' || path.startsWith('/search/') || path === '/seo' || path.startsWith('/auspicious-dates/') ||
     path === '/driving-experiences' || path.startsWith('/driving-experiences/') ||
-    path === '/cars' || path.startsWith('/cars/') ||
+    path === '/cars' || path.startsWith('/cars/') || path === '/brands' ||
     path === '/accessories' || path.startsWith('/accessories/') ||
     path === '/services' || path.startsWith('/services/') ||
     path === '/lookups/branches' || path === '/lookups/branch-regions' ||
     path.startsWith('/site-settings/') || path === '/content';
-  const stable = path === '/brands' || path.startsWith('/brands/') ||
+  const stable = path.startsWith('/brands/') ||
     path.startsWith('/lookups/') || path === '/slides' || path === '/testimonials' ||
     path === '/accessory-brands' || path === '/accessory-categories' ||
     path === '/faqs' || path.startsWith('/faqs/') ||
@@ -51,7 +51,7 @@ export async function allPublicLookups<T = PublicLookup>(path: string, params: R
     publicApi<PageResult<T>>(path, { ...params, limit: 100, page: index + 2 })));
   return [...first.data, ...rest.flatMap(page => page.data)];
 }
-export type PublicBrand = PublicLookup;
+export type PublicBrand = PublicLookup & { stockCount: number };
 export type SeoRecord = { metaTitle?: string | null; metaDescription?: string | null; ogTitle?: string | null;
   keywords?: string | null; ogDescription?: string | null; ogImageUrl?: string | null; canonicalUrl?: string | null;
   robotsIndex?: boolean; robotsFollow?: boolean };

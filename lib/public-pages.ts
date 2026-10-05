@@ -26,8 +26,7 @@ function cardMarkup(cars: PublicCar[]): { html: string; mapped: Record<string, C
 }
 
 async function fetchFilterLookups() {
-  const [brands, styles, transmissions, colors, budgets, mileages, yearSuggestions, branches] = await Promise.all([
-    publicApi<PublicBrand[]>('/brands'),
+  const [styles, transmissions, colors, budgets, mileages, yearSuggestions, branches] = await Promise.all([
     allPublicLookups('/lookups/body-styles'),
     allPublicLookups('/lookups/transmissions'),
     allPublicLookups('/lookups/car-colors'),
@@ -36,7 +35,7 @@ async function fetchFilterLookups() {
     publicApi<{ title: string }[]>('/content', { group: 'thiet-lap-goi-y-nam-san-xuat' }),
     allPublicLookups('/lookups/branches'),
   ]);
-  return { brands, styles, transmissions, colors, branches, ranges: [...budgets, ...mileages], yearSuggestions };
+  return { styles, transmissions, colors, branches, ranges: [...budgets, ...mileages], yearSuggestions };
 }
 
 type FilterLookups = Awaited<ReturnType<typeof fetchFilterLookups>>;
@@ -63,7 +62,9 @@ async function populateCarFormBrands($: ReturnType<typeof load>) {
 
 async function listingPage(page: LegacyPageData, pathname: string, searchParams: SearchParams): Promise<LegacyPageData> {
   const $ = load(page.content, {}, false);
-  const filters = await filterLookups();
+  // Brand order follows live stock; the other lookup lists can keep their short cache.
+  const [brands, lookups] = await Promise.all([publicApi<PublicBrand[]>('/brands'), filterLookups()]);
+  const filters = { ...lookups, brands };
   const sortValue = ['gia asc', 'gia desc'].includes(single(searchParams.gia) || '') ? single(searchParams.gia)! : 'newest';
   const sortSelect = $('<select id="vehicle-sort" aria-label="Sắp xếp xe"></select>');
   for (const [value, label] of [['newest', 'Mới nhất'], ['gia asc', 'Giá từ thấp đến cao'], ['gia desc', 'Giá từ cao đến thấp']]) {

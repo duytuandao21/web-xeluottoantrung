@@ -903,7 +903,14 @@ body .wap_item { justify-content:flex-start; column-gap:2%; }
 .car-card-gallery .slick-slide { display:block; flex:0 0 100%; width:100%; margin:0; overflow:hidden; }
 .car-card-gallery .slick-slide img { display:block; width:100%; aspect-ratio:4 / 3; object-fit:cover; transition:transform .35s ease; }
 @media(prefers-reduced-motion:reduce) { .item[data-car-id],.car-card-gallery .slick-slide img { transition:none; } .item[data-car-id]:hover { transform:none; } .item[data-car-id]:hover .car-card-gallery .slick-slide[data-current="true"] img { transform:none; } }
-.item .car-card-gallery .slick-arrow { top:50%; margin-top:0; }
+.item[data-car-id] .car-card-gallery .slick-arrow { top:50%; margin-top:0; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .18s ease,visibility .18s ease; }
+.item[data-car-id]:has(:focus-visible) .car-card-gallery .slick-arrow { opacity:1; visibility:visible; pointer-events:auto; }
+@media(hover:hover) and (pointer:fine) {
+  .item[data-car-id]:hover .car-card-gallery .slick-arrow { opacity:1; visibility:visible; pointer-events:auto; }
+  .item[data-car-id]:hover .car-card-gallery .slick-arrow:disabled { opacity:.35; }
+}
+.item[data-car-id]:has(:focus-visible) .car-card-gallery .slick-arrow:disabled { opacity:.35; }
+@media(prefers-reduced-motion:reduce) { .item[data-car-id] .car-card-gallery .slick-arrow { transition:none; } }
 .item .car-card-gallery .slick-prev { left:2px; transform:translateY(-50%) rotate(180deg) scale(.9); }
 .item .car-card-gallery .slick-next { right:2px; transform:translateY(-50%) scale(.9); }
 @media(max-width:700px) {
