@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { PageResult, PublicCar } from '@/lib/public-api';
 
@@ -36,8 +36,15 @@ export function SaleAccessProvider({ children }: { children: ReactNode }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const usernameInput = useRef<HTMLInputElement>(null);
   const [requested, setRequested] = useState<string[]>([]);
   const [plates, setPlates] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (open && !window.matchMedia('(max-width: 767px), (pointer: coarse)').matches) {
+      usernameInput.current?.focus({ preventScroll: true });
+    }
+  }, [open]);
 
   useEffect(() => {
     let subscription: { unsubscribe: () => void } | undefined;
@@ -119,7 +126,7 @@ export function SaleAccessProvider({ children }: { children: ReactNode }) {
         <h2 id="sale-login-title">Đăng nhập</h2>
         <p>Nhân viên sale đăng nhập</p>
         <form data-skip-legacy-submit onSubmit={event => void submit(event)}>
-          <label>Tên đăng nhập<input autoFocus autoComplete="username" value={username} onChange={event => setUsername(event.target.value)} required /></label>
+          <label>Tên đăng nhập<input ref={usernameInput} autoComplete="username" value={username} onChange={event => setUsername(event.target.value)} required /></label>
           <label>Mật khẩu<input type="password" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} required /></label>
           {error && <div className="sale-login-error" role="alert">{error}</div>}
           <button type="submit" disabled={busy}>{busy ? 'Đang đăng nhập…' : 'Đăng nhập'}</button>

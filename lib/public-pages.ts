@@ -451,8 +451,26 @@ async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len
     publicApi<{ key: string; value: string }[]>('/site-settings/thiet-lap-anh-vi-sao-chon'),
   ]);
   const $ = load(base.content, {}, false);
+  $('.lendoi').addClass('vehicle-service-landing');
   const section = $('.wap_dichvu2').first();
   const panel = section.children('.dichvu').first();
+  let contacts = $('.lendoi_l .lienhe_ct').first();
+  if (route === '/len-doi') {
+    $('.lendoi').addClass('trade-in-landing');
+    if (!contacts.length && $('.lendoi_l').length) {
+      const description = $('.lendoi_l .mota').first();
+      if (description.length) description.append('<div class="lienhe_ct"></div>');
+      else $('.lendoi_l .ten').first().after('<div class="lienhe_ct"></div>');
+      contacts = $('.lendoi_l .lienhe_ct').first();
+    }
+    const sellingTemplate = await getLegacyPage('/ban-xe');
+    if (sellingTemplate) {
+      const selling = load(sellingTemplate.content, {}, false);
+      contacts.html(selling('.lendoi_l .lienhe_ct').first().html() || '');
+    }
+    contacts.before('<p class="trade-in-contact-label">Liên hệ lên đời xe nhanh</p>');
+  }
+  contacts.append('<a class="sell-car-valuation" href="/tien-ich/dinh-gia-xe">Định giá xe của tôi</a>');
   if (route === '/ban-xe') {
     renderServiceSteps($, panel, 'buoc-ban-xe', sellingSteps);
     const tradeInPanel = panel.clone();

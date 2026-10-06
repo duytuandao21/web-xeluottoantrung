@@ -2,6 +2,22 @@
 
 Next.js App Router website for Xe Lướt Toàn Trung. The original layout, assets, and information pages come from a recovered snapshot. Vehicle inventory, SEO, several content sections, showrooms, and public forms now use the NestJS API.
 
+## Automotive AI assistant
+
+`components/chatbot/` adds an independent floating assistant. It uses the supplied `/images/chatbot/chatbot-icon.png`, positions itself above existing contact buttons, and loads the panel/Markdown bundle only when opened. Existing page layouts and contact actions are preserved.
+
+The browser sends questions to `POST /api/v1/chat` through the existing Next.js rewrite. Configure `AI_PROVIDER` and the selected OpenRouter/Groq key and free model **only in the API repository**; no new frontend env variable is needed. The backend must be running with available free quota.
+
+Responses arrive as real SSE text chunks with safe Markdown/GFM tables. The configured providers have no search tool, so reference metadata is empty; no sources are invented. The existing UI stays unchanged. It keeps at most 20 messages in memory, resets on refresh, and supports retry, responsive keyboard positioning and bounded history requests.
+
+Browser checks (mocked AI, no provider requests):
+
+```bash
+node scripts/chatbot-check.mjs
+```
+
+Default URL: `http://localhost:3000`; set `TEST_BASE_URL` to your web server if different. Checks cover 320/375/390/430/768/1440px, composer, Markdown/table, source links, errors, retry, direct touch focus without native focus scrolling (empty input and existing draft), caret interaction while focused, simulated mobile keyboard resizing/panning (including delayed panning while typing), touch scroll boundaries and restoring the page position on close. Set `CHAT_TEST_BROWSER=webkit` to run against an installed Playwright WebKit browser; Chrome is the default. Headless tests simulate keyboard geometry; they do not open an actual iPhone software keyboard. See [AI_PROVIDER_MIGRATION.md](../technical%20documentation/AI_PROVIDER_MIGRATION.md) for setup and deployment details.
+
 ## Run locally
 
 ```bash

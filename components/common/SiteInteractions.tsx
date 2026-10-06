@@ -388,7 +388,7 @@ export default function SiteInteractions() {
   const image=dialog?.images?.[dialog.index||0];
   return <>
     <CarComparison />
-    {showTop && <div className="scrollToTop" role="button" tabIndex={0} onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} style={{display:'block'}}><img src="/assets/images/top.png" alt="Go Top"/></div>}
+    {showTop && <button type="button" className="scrollToTop" aria-label="Về đầu trang" onClick={()=>window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'})}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button>}
     {dialog && createPortal(<div className="fancybox-container fancybox-is-open migrated-dialog" role="dialog" aria-modal="true" aria-label={image?'Ảnh xe':dialog.id==='nutgoi'?'Liên hệ Toàn Trung':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin'} tabIndex={-1} ref={dialogRef}>
       <div className="fancybox-bg"/><div className="fancybox-inner"><div className="fancybox-stage"><div className="fancybox-slide fancybox-slide--html fancybox-slide--current fancybox-slide--complete" onClick={e=>{if(e.target===e.currentTarget)setDialog(null);}}>
         <div className={`fancybox-content ${image?'dialog-gallery':dialog.className||''}`} id={dialog.id}>

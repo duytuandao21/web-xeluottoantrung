@@ -1,33 +1,33 @@
 "use client";
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import shared from '@/data/shared.json';
 import { SaleLoginButton } from '@/components/sale/SaleAccess';
 import type { Service } from '@/lib/public-api';
 
-interface MenuItem { label:string;href?:string;target?:string;className?:string;children:MenuItem[]; }
-function MenuList({items,mobile=false,close}:{items:MenuItem[];mobile?:boolean;close:()=>void}) {
+interface MenuItem { label:string;title?:string;href?:string;target?:string;className?:string;children:MenuItem[]; }
+function MenuList({items,mobile=false,close,depth=0,className,style}:{items:MenuItem[];mobile?:boolean;close:()=>void;depth?:number;className?:string;style?:CSSProperties}) {
   const [expanded,setExpanded]=useState<string|null>(null);
   const pathname=usePathname();
   const legacyActive=(shared.activeMenus as Record<string,string>)[pathname];
-  const active=pathname === '/bai-viet' || pathname === '/tin-tuc' || pathname.startsWith('/cau-hoi') || pathname.startsWith('/kinh-nghiem-su-dung-xe/') || legacyActive === 'Tin tức' ? 'Bài viết' : pathname === '/dich-vu' || pathname.startsWith('/dich-vu/') ? 'Dịch vụ' : pathname === '/tuyen-dung' || pathname.startsWith('/tuyen-dung/') ? 'Tuyển dụng' : legacyActive;
-  return <ul>{items.map(item=>{
-    const hasSubmenu=item.label === 'Dịch vụ' ? item.children.length > 0 : item.children.length > 1;
+  const active=pathname === '/tien-ich/tra-cuu-phat-nguoi' ? 'Phạt nguội' : pathname.startsWith('/tien-ich/') || pathname === '/bai-viet' || pathname === '/tin-tuc' || pathname.startsWith('/cau-hoi') || pathname.startsWith('/kinh-nghiem-su-dung-xe/') || legacyActive === 'Tin tức' ? 'Khám phá' : pathname === '/dich-vu' || pathname.startsWith('/dich-vu/') || pathname.startsWith('/phu-kien-o-to') ? 'Dịch vụ' : pathname === '/tuyen-dung' || pathname.startsWith('/tuyen-dung/') ? 'Tuyển dụng' : legacyActive;
+  return <ul className={className} style={style}>{items.map(item=>{
+    const hasSubmenu=(depth > 0 || item.label === 'Dịch vụ') ? item.children.length > 0 : item.children.length > 1;
     const destination=item.children.length===1?item.children[0]:item;
-    const directHref=item.label==='Mua xe'?'/san-pham':item.label==='Bán xe'?'/ban-xe':undefined;
+    const directHref=depth===0?(item.label==='Mua xe'?'/san-pham':item.label==='Bán xe'?'/ban-xe':undefined):undefined;
     const isExpanded=mobile&&expanded===item.label;
     return <li className={[item.className,hasSubmenu?'has-submenu':'',directHref?'has-direct-link':''].filter(Boolean).join(' ')} key={item.label}>
-      <a href={directHref||(hasSubmenu?undefined:destination.href)} target={destination.target} rel={destination.target?'noreferrer':undefined} title={item.label}
+      <a href={directHref||(hasSubmenu?undefined:destination.href)} target={destination.target} rel={destination.target?'noreferrer':undefined} title={item.title||item.label}
         role={hasSubmenu&&!directHref?'button':undefined} tabIndex={hasSubmenu&&!directHref?0:undefined}
         aria-haspopup={hasSubmenu&&!directHref?'menu':undefined} aria-expanded={hasSubmenu&&mobile&&!directHref?isExpanded:undefined}
-        className={[isExpanded?'active2':'',active===item.label.trim()?'active':''].filter(Boolean).join(' ')}
+        className={[isExpanded?'active2':'',active===item.label.trim()||destination.href===pathname?'active':''].filter(Boolean).join(' ')}
         onClick={event=>{if(hasSubmenu&&!directHref){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}else close();}}
-        onKeyDown={event=>{if(hasSubmenu&&!directHref&&event.key===' '){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}}}>
+        onKeyDown={event=>{if(hasSubmenu&&!directHref&&(event.key===' '||event.key==='Enter')){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}}}>
         {item.label}{hasSubmenu&&mobile&&!directHref&&<span className="mobile-menu-chevron" aria-hidden="true"/>}
       </a>
       {hasSubmenu&&mobile&&directHref&&<button type="button" className={`mobile-submenu-toggle${isExpanded?' is-expanded':''}`} aria-label={`Danh sách ${item.label.toLowerCase()}`} aria-expanded={isExpanded} onClick={()=>setExpanded(isExpanded?null:item.label)}><span className="mobile-menu-chevron" aria-hidden="true"/></button>}
-      {hasSubmenu&&<ul style={mobile?{display:isExpanded?'block':'none'}:undefined}>{item.children.map(child=><li key={child.label}>{child.href?<a href={child.href} target={child.target} rel={child.target?'noreferrer':undefined} onClick={close}>{child.label}</a>:<span className="menu-coming-soon" title="Tính năng đang được xây dựng">{child.label}</span>}</li>)}</ul>}
+      {hasSubmenu&&<MenuList items={item.children} mobile={mobile} close={close} depth={depth+1} className={item.label==='Tiện ích'?'menu-utilities':undefined} style={mobile?{display:isExpanded?'block':'none'}:undefined}/>}
     </li>;
   })}</ul>;
 }
@@ -60,11 +60,30 @@ export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }:
       pendingHomeTop.current = true;
     }
   };
-  const menu:MenuItem[] = shared.menu.map(item => item.label === 'Dịch vụ' ? {
-    ...item,
-    href: '/dich-vu',
-    children: services.map(service => ({ label: service.title, href: `/dich-vu/${service.slug}`, children: [] })),
-  } : item.label === 'Tin tức' ? { ...item, label: 'Bài viết', href: '/bai-viet', children: [] } : item.label === 'Tuyển dụng' ? { ...item, href: '/tuyen-dung', children: [] } : item);
+  const existingMenu = (label:string) => shared.menu.find(item => item.label===label)!;
+  const repair = services.find(service => /sửa chữa/i.test(service.title)) || services.find(service => service.slug==='tram-dich-vu-toan-trung');
+  const transport = services.find(service => /vận chuyển/i.test(service.title) || service.slug==='dich-vu-van-chuyen');
+  const utilityMenu = existingMenu('Tiện ích');
+  const utility = (href:string,label:string):MenuItem => ({ ...utilityMenu.children.find(item=>item.href===href), label, href, children:[] });
+  const menu:MenuItem[] = [
+    existingMenu('Mua xe'), existingMenu('Bán xe'),
+    { label:'Dịch vụ', href:'/dich-vu', children:[
+      { label:'Sửa chữa ô tô', href:repair?`/dich-vu/${repair.slug}`:'/dich-vu', children:[] },
+      { label:'Nâng cấp - Lắp đặt phụ kiện', href:'/phu-kien-o-to', children:[] },
+      { label:'Vận chuyển', href:transport?`/dich-vu/${transport.slug}`:'/dich-vu', children:[] },
+    ] },
+    { ...utility('/tien-ich/tra-cuu-phat-nguoi','Phạt nguội'), title:'Tra cứu phạt nguội' },
+    existingMenu('Giới thiệu'), { label:'Tuyển dụng', href:'/tuyen-dung', children:[] },
+    { label:'Khám phá', className:'menu-discovery', children:[
+      { label:'Bài viết', href:'/bai-viet', children:[] },
+      { label:'Tiện ích', children:[
+        utility('/tien-ich/xem-ngay-mua-xe','Xem ngày mua xe'),
+        utility('/tien-ich/xem-gia-xang-dau','Xem giá xăng dầu'),
+        utility('/tien-ich/dinh-gia-xe','Định giá xe cũ'),
+        utility('/tien-ich/mua-xe-theo-nhu-cau','Mua xe theo nhu cầu'),
+      ] },
+    ] },
+  ];
   return <>
     <div className="wap_header clear hidden_m"><div className="wap_header2 main_fix">
       <div className="header"><Link className="logo" href="/" scroll={false} aria-label="Về đầu trang chủ" onClick={goHomeTop}>{logo}</Link></div>

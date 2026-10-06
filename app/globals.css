@@ -449,6 +449,61 @@ html[data-site-intro] .tt-site-intro { display:block; }
 .wap_camnhan .xemtatca2 a:hover { transform:translateY(-2px); background:#ffefc0; color:#a30b0b; text-decoration:none; box-shadow:0 11px 22px rgba(88,0,0,.2); }
 .wap_camnhan .xemtatca2 a:focus-visible { outline:3px solid #ffe47a; outline-offset:4px; }
 @media (prefers-reduced-motion:reduce) { .wap_camnhan .xemtatca2 a { transition:none; } .wap_camnhan .xemtatca2 a:hover { transform:none; } }
+.lendoi.trade-in-landing { align-items:flex-start; column-gap:32px; }
+.trade-in-landing .lendoi_l { display:block; }
+.trade-in-landing .lendoi_l .ten { white-space:nowrap; margin-bottom:20px; }
+.trade-in-landing .lendoi_l .lienhe_ct { width:100%; }
+.trade-in-landing .trade-in-contact-label { margin:0; font-size:18px; line-height:1.5; }
+.trade-in-landing .lendoi_l > .img { margin-top:32px; }
+@media(max-width:600px) { .trade-in-landing .lendoi_l > .img { margin-top:24px; } }
+@media(min-width:961px) {
+  .trade-in-landing .lendoi_l { min-width:510px; }
+  .trade-in-landing .lendoi_r { min-width:0; }
+}
+.lendoi_l .lienhe_ct .sell-car-valuation {
+  grid-column:1 / -1; display:flex; align-items:center; justify-content:center; min-height:48px;
+  padding:12px 18px; border:1px solid transparent; border-radius:10px;
+  background:var(--color-nen,#f3f4f7); color:var(--color-red,#e00000); text-decoration:none;
+  font:17px/1.4 'tieude',Arial,sans-serif;
+  transition:background-color .2s ease,color .2s ease,border-color .2s ease,transform .2s ease,box-shadow .2s ease;
+}
+.lendoi_l .lienhe_ct .sell-car-valuation:hover,
+.lendoi_l .lienhe_ct .sell-car-valuation:focus {
+  background:var(--color-red,#e00000); border-color:var(--color-red,#e00000); color:#fff;
+  transform:translateY(-2px); box-shadow:0 6px 16px rgba(130,0,0,.16);
+}
+.lendoi_l .lienhe_ct .sell-car-valuation:focus-visible { outline:2px solid #14213a; outline-offset:3px; }
+@media(max-width:600px) { .lendoi_l .lienhe_ct .sell-car-valuation { font-size:16px; padding:11px 14px; } }
+@media(prefers-reduced-motion:reduce) {
+  .lendoi_l .lienhe_ct .sell-car-valuation { transition:none; }
+  .lendoi_l .lienhe_ct .sell-car-valuation:hover,.lendoi_l .lienhe_ct .sell-car-valuation:focus { transform:none; }
+}
+/* Contact and submit buttons on the sell and trade-in landing pages. */
+.vehicle-service-landing .lienhe_ct > a:not(.sell-car-valuation),
+.vehicle-service-landing .lendoi_r [type="submit"] {
+  transition:background-color .2s ease,color .2s ease,border-color .2s ease,transform .2s ease,box-shadow .2s ease;
+}
+.vehicle-service-landing .lienhe_ct > a:not(.sell-car-valuation):hover,
+.vehicle-service-landing .lienhe_ct > a:not(.sell-car-valuation):focus,
+.vehicle-service-landing .lendoi_r [type="submit"]:not(:disabled):hover,
+.vehicle-service-landing .lendoi_r [type="submit"]:not(:disabled):focus {
+  background:var(--color-red,#e00000); border-color:var(--color-red,#e00000); color:#fff;
+  transform:translateY(-2px); box-shadow:0 6px 16px rgba(130,0,0,.16);
+}
+.vehicle-service-landing .lienhe_ct > a p { transition:color .2s ease; }
+.vehicle-service-landing .lienhe_ct > a:hover p,
+.vehicle-service-landing .lienhe_ct > a:focus p { color:#fff; }
+.vehicle-service-landing .lienhe_ct > a:focus-visible,
+.vehicle-service-landing .lendoi_r [type="submit"]:focus-visible { outline:2px solid #14213a; outline-offset:3px; }
+@media(prefers-reduced-motion:reduce) {
+  .vehicle-service-landing .lienhe_ct > a:not(.sell-car-valuation),
+  .vehicle-service-landing .lienhe_ct > a p,
+  .vehicle-service-landing .lendoi_r [type="submit"] { transition:none; }
+  .vehicle-service-landing .lienhe_ct > a:not(.sell-car-valuation):hover,
+  .vehicle-service-landing .lienhe_ct > a:not(.sell-car-valuation):focus,
+  .vehicle-service-landing .lendoi_r [type="submit"]:not(:disabled):hover,
+  .vehicle-service-landing .lendoi_r [type="submit"]:not(:disabled):focus { transform:none; }
+}
 /* Home page calls to action: keep their existing shapes and add a consistent hover response. */
 .banxe .banxe_gtt,.wap_sanpham .xemtatca a,.wap_dichvu .xemtatca a,.wap_nentang .thaotac a {
   transition:transform .2s ease,background-color .2s ease,box-shadow .2s ease;
@@ -481,8 +536,26 @@ html[data-site-intro] .tt-site-intro { display:block; }
 @media(max-width:603px) { .site-breadcrumb { font-size:14px; } .site-breadcrumb li + li::before { margin:0 12px 0 9px; width:6px; height:6px; } .site-breadcrumb__home { width:17px; height:17px; } }
 .menu > ul > li:hover > ul,
 .menu > ul > li:focus-within > ul { display:block; visibility:visible; animation:menu-reveal .3s ease; }
+.wap_header .menu > ul { display:flex; flex-wrap:nowrap; margin:0; }
+.menu > ul > .menu-discovery > ul {
+  --utility-flyout-shift:clamp(0px,calc(1370px - 100vw),90px);
+  right:var(--utility-flyout-shift);
+}
+/* Keep the hover path connected to the header when reserving room on the right. */
+.menu > ul > .menu-discovery > ul::before {
+  content:''; position:absolute; top:0; bottom:0; right:calc(-1 * var(--utility-flyout-shift)); width:var(--utility-flyout-shift);
+}
+.menu .menu-discovery > ul > .has-submenu > a { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.menu .menu-discovery > ul > .has-submenu > a::after {
+  content:''; width:7px; height:7px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(-45deg);
+}
+.menu .menu-discovery ul.menu-utilities {
+  left:100%; right:auto; top:0; min-width:0; width:240px; max-width:calc(100vw - 32px);
+}
+.menu .menu-discovery li:hover > ul.menu-utilities,
+.menu .menu-discovery li:focus-within > ul.menu-utilities { display:block; animation:menu-reveal .3s ease; }
 @keyframes menu-reveal { from {opacity:0;transform:translateY(-4px)} to {opacity:1;transform:translateY(0)} }
-.wap_header .menu > ul > li > a { background-image:none; display:inline-flex; align-items:center; gap:7px; }
+.wap_header .menu > ul > li > a { background-image:none; display:inline-flex; align-items:center; gap:6px; padding:0 12px; }
 .menu > ul > li.has-submenu > a::after {
   content:""; display:inline-block; width:7px; height:7px;
   border-right:2px solid currentColor; border-bottom:2px solid currentColor;
@@ -552,9 +625,12 @@ html[data-site-intro] .tt-site-intro { display:block; }
 }
 @media (min-width:961px) and (max-width:1180px) {
   .wap_header .logo img { max-height:50px; }
-  .menu > ul > li > a { padding:0 9px; font-size:15px; }
+  .wap_header .menu > ul > li > a { padding:0 8px; font-size:15px; }
   .header-actions { gap:6px; }
   .header-actions .hotline { font-size:14px; margin:0; padding-left:26px; }
+}
+@media (min-width:961px) and (max-width:1050px) {
+  .wap_header .menu > ul > li > a { padding:0 6px; font-size:14px; gap:5px; white-space:nowrap; }
 }
 .menu_mobi_add .close_menu, .icon_menu_mobi { cursor:pointer; }
 .slick-slider { min-width:0; }
@@ -1431,8 +1507,12 @@ body .wap_item { justify-content:flex-start; column-gap:2%; }
 
 /* Home utilities and editorial news replace the old platform and brand directory. */
 .tt-home-bottom { color:#17243b; }
-.tt-home-cars { padding-bottom:42px; margin-bottom:24px; }
-#tt-accessories-root .tt-accessories { padding-top:42px; }
+.wap_sanpham.tt-home-cars { padding-bottom:28px; margin-bottom:0; }
+.tt-home-cars .loadthem_sp1 { margin-bottom:0; }
+.tt-home-cars .xemtatca { margin:24px 0 0; }
+.tt-home-cars .xemtatca a { display:inline-flex; align-items:center; justify-content:center; min-width:176px; min-height:44px; margin:0; padding:10px 32px; }
+#tt-accessories-root .tt-accessories { padding-top:32px; }
+#tt-accessories-root .tt-accessories__heading { margin-bottom:24px; }
 .tt-accessories { padding:64px 0 72px; background:#f6f7fa; color:#17243b; }
 .tt-accessories .main_fix { width:min(1250px,calc(100% - 40px)); }
 .tt-accessories__heading { position:relative; margin-bottom:29px; text-align:center; }
@@ -1515,8 +1595,11 @@ body .wap_item { justify-content:flex-start; column-gap:2%; }
   #tt-accessories-root .tt-accessories__controls { display:none; }
 }
 @media(max-width:600px) {
-  .tt-home-cars { padding-bottom:28px; margin-bottom:18px; }
-  #tt-accessories-root .tt-accessories { padding-top:34px; }
+  .wap_sanpham.tt-home-cars { padding-bottom:20px; margin-bottom:0; }
+  .tt-home-cars .xemtatca { margin-top:18px; }
+  .tt-home-cars .xemtatca a { min-width:160px; padding:10px 24px; }
+  #tt-accessories-root .tt-accessories { padding-top:26px; }
+  #tt-accessories-root .tt-accessories__heading { margin-bottom:20px; }
   .tt-accessories { padding:48px 0 53px; }
   .tt-accessories .main_fix { width:calc(100% - 20px); }
   .tt-accessories__heading { margin-bottom:22px; }
@@ -1846,6 +1929,19 @@ body .wap_item { justify-content:flex-start; column-gap:2%; }
 .tt-call-info b { font-size:17px; color:#e00; letter-spacing:.3px; }
 .tt-call-empty { line-height:1.7; margin:0; }
 .tt-call-empty a { color:#e00; font-weight:700; }
+button.scrollToTop { display:grid; place-items:center; width:44px; height:44px; padding:0; right:23px; bottom:calc(18px + env(safe-area-inset-bottom)); border:0; border-radius:11px; background:var(--color-red,#e20000); color:#fff; box-shadow:0 4px 12px rgba(160,0,0,.2); transition:background-color .2s,transform .2s,box-shadow .2s; }
+button.scrollToTop svg { width:22px; height:22px; }
+button.scrollToTop:focus-visible { outline:2px solid #a50000; outline-offset:3px; }
+@media(hover:hover) { button.scrollToTop:hover { background:#bd0000; transform:translateY(-2px); box-shadow:0 6px 16px rgba(160,0,0,.27); } }
+@media(prefers-reduced-motion:reduce) { button.scrollToTop { transition:none; } button.scrollToTop:hover { transform:none; } }
+/* Three 70px visible contact buttons with 20px gaps between their outer rings. */
+.btn-zalo.btn-frame { bottom:150px; }
+.btn-phone.btn-frame { bottom:240px; }
+@media(max-height:560px) {
+  .btn-zalo.btn-frame { bottom:30px; }
+  .btn-phone.btn-frame { bottom:120px; }
+  button.scrollToTop { right:100px; }
+}
 .migrated-dialog .tt-call-dialog .fancybox-close-small { top:12px; right:12px; border-radius:50%; transition:background-color .2s,color .2s; }
 .migrated-dialog .tt-call-dialog .fancybox-close-small:hover { color:#e00; background:#fff0f0; }
 @media(max-width:575px) {
