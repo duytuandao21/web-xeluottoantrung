@@ -613,11 +613,13 @@ html[data-site-intro] .tt-site-intro { display:block; }
   .menu_mobi .sale-header-button { flex:0 0 44px; }
 }
 @media(prefers-reduced-motion:reduce) { .sale-header-button { transition:none; } }
-.wapper select.form-control:not([multiple]):not([size]) {
+.wapper select:not([multiple]):not([size]),
+.migrated-dialog select:not([multiple]):not([size]) {
   -webkit-appearance:none;
   -moz-appearance:none;
   appearance:none;
   padding-right:42px;
+  text-overflow:ellipsis;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23495057' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/%3E%3C/svg%3E");
   background-repeat:no-repeat;
   background-position:right 16px center;

@@ -1,6 +1,7 @@
 import LegacyContent from "@/components/common/LegacyContent";
 import type { LegacyPageData } from "@/types/legacy";
 import { load } from 'cheerio';
+import HomeScrollReveal from './HomeScrollReveal';
 
 export default function LegacyPage({ page }: { page: LegacyPageData }) {
   const $ = load(page.content, {}, false);
@@ -22,5 +23,9 @@ export default function LegacyPage({ page }: { page: LegacyPageData }) {
     });
     if (sources.length) root.empty().append($('<nav aria-label="Đường dẫn"></nav>').append(trail));
   });
-  return <LegacyContent key={page.route} html={$.html()} cars={page.cars || {}} />;
+  const content = <LegacyContent key={page.route} html={$.html()} cars={page.cars || {}} />;
+  if (page.route === '/ban-xe' || page.route === '/len-doi') {
+    return <HomeScrollReveal key={page.route} variant="vehicle-service">{content}</HomeScrollReveal>;
+  }
+  return content;
 }

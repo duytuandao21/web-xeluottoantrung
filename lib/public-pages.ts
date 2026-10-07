@@ -441,10 +441,9 @@ function prepareServiceTabs($: ReturnType<typeof load>, section: ReturnType<Retu
 }
 
 async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len-doi'): Promise<LegacyPageData> {
-  const [base, sellingSteps, tradeInSteps, testimonials, articles, whyChoose, whyChooseImages] = await Promise.all([
+  const [base, steps, testimonials, articles, whyChoose, whyChooseImages] = await Promise.all([
     settingsPage(page, route === '/ban-xe' ? 'thiet-lap-text-ban-xe' : 'thiet-lap-text-len-doi'),
-    publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-ban-xe' }),
-    publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-len-doi' }),
+    publicApi<ServiceStep[]>('/content', { group: route === '/ban-xe' ? 'thiet-lap-cac-buoc-ban-xe' : 'thiet-lap-cac-buoc-len-doi' }),
     allPublicLookups<Testimonial>('/testimonials'),
     publicApi<PageResult<Article>>('/articles', { limit: 3 }),
     publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-tai-sao-chon' }),
@@ -471,14 +470,11 @@ async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len
     contacts.before('<p class="trade-in-contact-label">Liên hệ lên đời xe nhanh</p>');
   }
   contacts.append('<a class="sell-car-valuation" href="/tien-ich/dinh-gia-xe">Định giá xe của tôi</a>');
+  renderServiceSteps($, panel, route === '/ban-xe' ? 'buoc-ban-xe' : 'buoc-len-doi', steps);
   if (route === '/ban-xe') {
-    renderServiceSteps($, panel, 'buoc-ban-xe', sellingSteps);
-    const tradeInPanel = panel.clone();
-    renderServiceSteps($, tradeInPanel, 'buoc-len-doi', tradeInSteps);
-    section.append(tradeInPanel);
-    prepareServiceTabs($, section);
+    section.find('.cap1').replaceWith('<div class="title-main title-main2"><span>Quy trình bán xe</span></div>');
   } else {
-    renderServiceSteps($, panel, 'buoc-len-doi', tradeInSteps);
+    section.children('.main_fix').first().find('.title-main span').first().text('Quy trình lên đời');
   }
   renderTestimonials($, '.wap_camnhan .camnhan', testimonials, true);
   replaceHomeBottom($, articles.data);

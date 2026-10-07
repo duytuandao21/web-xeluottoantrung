@@ -1,0 +1,146 @@
+.tt-valuation-page { padding: 24px 20px 64px; color: #14213a; }
+.tt-valuation-page h1, .tt-valuation-page h2, .tt-valuation-page h3 { color: inherit; font-weight: 700; line-height: 1.3; margin: 0; }
+.tt-valuation-page p { line-height: 1.6; margin: 0; }
+.tt-valuation-hero { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+.tt-valuation-accent { display: block; width: 60px; height: 5px; background: #f2d475; border-radius: 4px; margin-bottom: 14px; }
+.tt-valuation-hero h1 { font-size: clamp(28px, 3vw, 38px); margin-bottom: 10px; }
+.tt-valuation-hero p { color: #647084; font-size: 16px; max-width: 630px; }
+.tt-valuation-hero__icon { position: relative; overflow: hidden; width: 136px; height: 104px; flex: 0 0 auto; }
+.tt-valuation-hero__icon img { position: absolute; width: 141.4%; max-width: none !important; height: auto; left: -24%; top: -51%; }
+.tt-valuation-progress { margin-bottom: 22px; }
+.tt-valuation-progress ol { padding: 0; margin: 0; list-style: none; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.tt-valuation-progress li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #e3e7ef; border-radius: 12px; font-size: 14px; color: #697487; background: #f8f9fc; transition: background .2s, color .2s; }
+.tt-valuation-progress li > span:first-child { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: #e8ecf3; flex-shrink: 0; font-weight: 700; }
+.tt-valuation-progress li.is-current { background: #fff4f4; color: #c90000; border-color: #f1a9ae; font-weight: 700; }
+.tt-valuation-progress li.is-current > span:first-child { background: #e00000; color: #fff; }
+.tt-valuation-progress li.is-done { color: #34425a; }
+.tt-valuation-progress li.is-done > span:first-child { background: #ffe3e4; color: #bd0000; }
+.tt-valuation-progress > p { font-size: 14px; margin-top: 10px; color: #647084; }
+.tt-valuation-progress li { position: relative; }
+.tt-valuation-progress__edit { position: absolute; inset: 0; background: transparent; border: 0; border-radius: inherit; cursor: pointer; }
+.tt-valuation-progress__edit:disabled { cursor: not-allowed; }
+.tt-valuation-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr); gap: 24px; align-items: start; }
+.tt-valuation-layout.is-result { display: block; }
+.tt-valuation-panel__heading { margin-bottom: 24px; }
+.tt-valuation-panel__heading h2 { font-size: 24px; scroll-margin-top: 120px; }
+.tt-valuation-panel__heading p { color: #647084; margin-top: 8px; font-size: 15px; }
+.tt-valuation-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 18px; min-width: 0; margin: 0; padding: 0; border: 0; animation: tt-valuation-enter .22s ease both; }
+.tt-valuation-field { min-width: 0; }
+.tt-valuation-field > label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 16px; }
+.tt-valuation-field > label > span { color: #d00000; }
+.tt-valuation-field input, .tt-valuation-field select { display: block; width: 100%; min-width: 0; min-height: 48px; padding: 11px 12px; border: 1px solid #d8dfeb; border-radius: 10px; background: #fff; color: #14213a; font: inherit; font-size: 16px; line-height: 1.4; text-overflow: ellipsis; }
+.tt-valuation-field small { display: block; margin-top: 7px; color: #647084; font-size: 13px; line-height: 1.5; }
+.tt-valuation-field input[aria-invalid="true"] { border-color: #d00000; }
+.tt-valuation-field input:disabled, .tt-valuation-field select:disabled { color: #768297; background: #f4f6fa; opacity: 1; cursor: not-allowed; }
+.tt-valuation-page :is(button, a, input, select):focus-visible { outline: 3px solid #edb8ba; outline-offset: 3px; }
+.tt-valuation-input-unit { position: relative; }
+.tt-valuation-input-unit input { padding-right: 45px; }
+.tt-valuation-input-unit > span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #647084; pointer-events: none; }
+.tt-valuation-odometer { display:flex; flex-direction:column; gap:8px; min-width:0; }
+.tt-valuation-odometer .tt-valuation-checkbox { align-self:flex-start; }
+.tt-valuation-checkbox { display: flex; align-items: center; gap: 10px; font-size: 16px; min-height: 48px; align-self: end; cursor: pointer; }
+.tt-valuation-checkbox input { width: 20px; height: 20px; accent-color: #e00000; flex: 0 0 auto; }
+.tt-valuation-wide, .tt-valuation-field-error { grid-column: 1 / -1; }
+.tt-valuation-muted { color: #647084; font-size: 14px; }
+.tt-valuation-field-error { color: #bd0000; font-size: 14px; }
+.tt-valuation-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid #ecedf2; }
+.tt-valuation-actions > button:last-child { margin-left: auto; }
+.tt-valuation-page .tt-date-button { font-family: inherit; text-align: center; line-height: 1.4; transition: background .2s, box-shadow .2s, transform .2s; }
+.tt-valuation-page .tt-date-button:not(:disabled):hover { background: #c60000; color: #fff; box-shadow: 0 5px 14px #bd00001a; transform: translateY(-1px); }
+.tt-valuation-page .tt-date-button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+.tt-valuation-text-button { color: #bd0000; background: transparent; border: 0; padding: 10px 0; min-height: 44px; font: inherit; font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+.tt-valuation-text-button:disabled { color: #768297; cursor: not-allowed; }
+.tt-valuation-help { background: #f7f8fb; border: 1px solid #e4e8f0; border-radius: 18px; padding: 24px; position: sticky; top: 110px; min-width: 0; }
+.tt-valuation-help h2 { font-size: 20px; }
+.tt-valuation-help h3 { font-size: 16px; margin-top: 22px; margin-bottom: 8px; }
+.tt-valuation-help p { font-size: 14px; }
+.tt-valuation-help p + p { margin-top: 12px; }
+.tt-valuation-help dl { margin: 16px 0 0; }
+.tt-valuation-help dl > div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-bottom: 1px solid #e4e8f0; font-size: 14px; line-height: 1.5; }
+.tt-valuation-help dt { color: #647084; }
+.tt-valuation-help dd { font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.tt-valuation-notice { margin: 20px 0; padding: 18px; background: #fff9ef; border: 1px solid #efd5a3; border-radius: 12px; }
+.tt-valuation-notice h3 { font-size: 18px; margin-bottom: 8px; }
+.tt-valuation-notice ul { margin: 10px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
+.tt-valuation-notice .tt-date-button { margin-top: 12px; }
+.tt-valuation-contact { margin-top: 24px; }
+.tt-valuation-contact > p { font-size: 17px; font-weight: 700; margin-bottom: 12px; }
+.tt-valuation-contact > div { display: flex; flex-wrap: wrap; gap: 10px; }
+.tt-valuation-contact .tt-date-button { font-size: 15px; padding: 11px 16px; }
+.tt-valuation-result { animation: tt-valuation-enter .25s ease both; }
+.tt-valuation-page.tt-valuation-lead-dialog { position: fixed; inset: auto; width: min(640px, var(--tt-valuation-dialog-width, calc(100vw - 48px))); max-width: none; max-height: var(--tt-valuation-dialog-height, calc(100dvh - 48px)); margin: 0; padding: 0; transform: translateX(-50%); border: 1px solid #e3e7ef; border-radius: 18px; background: #fff; color: #14213a; box-shadow: 0 24px 80px #14213a33; overflow: hidden; font-family: inherit; }
+.tt-valuation-lead-dialog[open] { display: flex; flex-direction: column; }
+.tt-valuation-lead-dialog::backdrop { background: #14213a66; backdrop-filter: blur(4px); }
+.tt-valuation-lead-dialog__header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: 0 0 auto; padding: 18px 24px; border-bottom: 1px solid #ecedf2; }
+.tt-valuation-lead-dialog__header h3 { font-size: 22px; }
+.tt-valuation-lead-dialog__close { display: grid; place-items: center; flex: 0 0 auto; width: 40px; height: 40px; border: 0; border-radius: 10px; background: #f4f5f9; color: #647084; cursor: pointer; transition: background .2s, color .2s; }
+.tt-valuation-lead-dialog__close:hover { background: #ffe9e9; color: #c90000; }
+.tt-valuation-lead-dialog__close:disabled { opacity: .5; cursor: not-allowed; }
+.tt-valuation-lead { min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 20px 24px 24px; }
+.tt-valuation-lead > p { color: #647084; font-size: 14px; margin: 0 0 18px; }
+.tt-valuation-lead .tt-valuation-checkbox { align-items: flex-start; line-height: 1.5; }
+.tt-valuation-lead .tt-valuation-checkbox input { margin-top: 2px; }
+.tt-valuation-lead input[readonly] { background: #f7f8fb; color: #34425a; }
+.tt-valuation-result__summary { margin-bottom: 18px; }
+.tt-valuation-result__summary h3 { font-size: 21px; margin: 0 0 4px; }
+.tt-valuation-result__summary > p { color: #647084; font-size: 14px; overflow-wrap: anywhere; }
+.tt-valuation-result__prices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.tt-valuation-price { min-width: 0; background: #f7f8fb; border: 1px solid #e2e6ee; border-radius: 14px; padding: 24px; }
+.tt-valuation-price > h3 { font-size: 17px; font-weight: 600; }
+.tt-valuation-price > strong { display: block; font-size: clamp(26px, 3.2vw, 38px); font-weight: 700; color: #14213a; margin-top: 12px; line-height: 1.3; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tt-valuation-price > small { display: block; color: #647084; margin-top: 6px; font-size: 15px; }
+.tt-valuation-price--dealer { background: #fff4f4; border-color: #f2b9bd; }
+.tt-valuation-price--dealer > strong { color: #c90000; }
+.tt-valuation-price__unavailable { margin-top: 12px !important; color: #647084; font-size: 17px; }
+.tt-valuation-result__inspection { color: #647084; font-size: 14px; margin-top: 12px !important; }
+.tt-valuation-result__actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 640px; margin: 24px auto 0; }
+.tt-valuation-result__actions .tt-date-button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; padding: 12px 16px; font-size: 16px; }
+.tt-valuation-result__actions .tt-date-button--secondary { background: #f4f5f9; color: #c90000; border-color: #e3e7ef; }
+.tt-valuation-result__sent { text-align: center; color: #276541; font-size: 15px; margin-top: 16px !important; }
+.tt-valuation-loading { display: flex; align-items: center; gap: 12px; min-height: 150px; }
+.tt-valuation-skeleton { width: 24px; height: 24px; border-radius: 50%; background: #ffd7d9; animation: tt-valuation-pulse 1s ease-in-out infinite alternate; }
+.tt-valuation-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@keyframes tt-valuation-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes tt-valuation-pulse { from { opacity: .4; } to { opacity: 1; } }
+@media (max-width: 1100px) {
+  .tt-valuation-progress li { flex-direction: column; text-align: center; gap: 6px; padding: 10px 4px; }
+}
+@media (max-width: 900px) {
+  .tt-valuation-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .tt-valuation-help { position: static; }
+}
+@media (max-width: 600px) {
+  .tt-valuation-page { padding: 16px 16px 40px; }
+  .tt-valuation-hero { gap: 10px; margin-bottom: 22px; align-items: flex-start; }
+  .tt-valuation-hero h1 { font-size: 28px; }
+  .tt-valuation-hero p { font-size: 14px; }
+  .tt-valuation-hero__icon { width: 82px; height: 64px; margin-top: 8px; }
+  .tt-valuation-progress ol { gap: 5px; }
+  .tt-valuation-progress li { padding: 8px 2px; border-radius: 9px; font-size: 11px; gap: 5px; }
+  .tt-valuation-progress li > span:first-child { width: 24px; height: 24px; }
+  .tt-valuation-progress li > span:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tt-valuation-page .tt-date-panel { padding: 18px; border-radius: 14px; }
+  .tt-valuation-panel__heading h2 { font-size: 22px; }
+  .tt-valuation-panel__heading { margin-bottom: 20px; }
+  .tt-valuation-fields { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .tt-valuation-checkbox { align-self: start; min-height: 44px; }
+  .tt-valuation-actions { margin-top: 22px; padding-top: 16px; }
+  .tt-valuation-actions .tt-date-button { font-size: 15px; padding: 10px 14px; }
+  .tt-valuation-help { padding: 18px; border-radius: 14px; }
+  .tt-valuation-help h2 { font-size: 18px; }
+  .tt-valuation-contact > div { flex-direction: column; }
+  .tt-valuation-contact .tt-date-button { width: 100%; }
+  .tt-valuation-result__prices { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .tt-valuation-price { padding: 18px; }
+  .tt-valuation-price > h3 { font-size: 16px; }
+  .tt-valuation-price > strong { font-size: 28px; margin-top: 8px; }
+  .tt-valuation-result__summary h3 { font-size: 20px; }
+  .tt-valuation-result__actions { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 20px; }
+  .tt-valuation-page.tt-valuation-lead-dialog { border-radius: 14px; }
+  .tt-valuation-lead-dialog__header { padding: 12px 16px; }
+  .tt-valuation-lead-dialog__header h3 { font-size: 20px; }
+  .tt-valuation-lead { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-valuation-page *, .tt-valuation-page *::before, .tt-valuation-page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

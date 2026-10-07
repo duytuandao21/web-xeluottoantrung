@@ -3,7 +3,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 
 // Reveal carousel containers, leaving slide transforms and card hover effects independent.
-const targets = [
+const homeTargets = [
   '.muaxe .title-main', '.muaxe .thuonghieu', '.muaxe .ngansach', '.home-buy-banner',
   '.banxe', '.item_qt', '.wap_sanpham .td_kp', '.wap_sanpham .loadthem_sp1',
   '.wap_sanpham .xemtatca', '.tt-accessories__heading', '.tt-accessories__carousel',
@@ -13,13 +13,26 @@ const targets = [
   '.tt-home-utility', '.tt-home-news-card', '.tt-home-news-more',
 ].join(',');
 
-export default function HomeScrollReveal({ children }: { children: ReactNode }) {
+const serviceTargets = [
+  '.vehicle-service-landing .lendoi_l > .ten', '.vehicle-service-landing .service-landing-copy',
+  '.vehicle-service-landing .trade-in-contact-label', '.vehicle-service-landing .lienhe_ct > a',
+  '.vehicle-service-landing .lendoi_l > .img', '.vehicle-service-landing .lendoi_r',
+  '.wap_dichvu2 .title-main', '.wap_dichvu2 .slick4321', '.wap_dichvu2 .selling-process-empty',
+  '.wap_visao .title-main', '.wap_visao .item_vs', '.wap_visao .visao_r',
+  '.wap_thongke .item_tk', '.wap_thongke .thongke_r',
+  '.wap_camnhan .title-main', '.wap_camnhan .camnhan', '.wap_camnhan .xemtatca2',
+  '.tt-home-section-heading', '.tt-home-utility', '.tt-home-news-card',
+  '.tt-home-news-empty', '.tt-home-news-more',
+].join(',');
+
+export default function HomeScrollReveal({ children, variant = 'home' }: { children: ReactNode; variant?: 'home' | 'vehicle-service' }) {
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const root = rootRef.current;
     if (!root || !('IntersectionObserver' in window)) return;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     if (reducedMotion.matches) return;
+    const targets = variant === 'vehicle-service' ? serviceTargets : homeTargets;
     const registered = new Set<HTMLElement>();
     let scanFrame = 0;
     const reveal = (element: HTMLElement) => {
@@ -40,7 +53,7 @@ export default function HomeScrollReveal({ children }: { children: ReactNode }) 
           element.dataset.revealState = 'visible';
           return;
         }
-        const staggerGroup = element.closest('.tt-home-utility-grid,.tt-home-news-grid,.quytrinh2');
+        const staggerGroup = element.closest('.tt-home-utility-grid,.tt-home-news-grid,.quytrinh2,.lienhe_ct,.visao_l,.thongke_l');
         const siblings = staggerGroup ? [...staggerGroup.querySelectorAll<HTMLElement>(targets)] : [];
         element.style.setProperty('--reveal-delay', `${Math.max(0, siblings.indexOf(element)) % 4 * 75}ms`);
         element.dataset.revealState = 'pending';
@@ -68,6 +81,6 @@ export default function HomeScrollReveal({ children }: { children: ReactNode }) 
       reducedMotion.removeEventListener('change', onMotionChange);
       registered.forEach(element => { delete element.dataset.revealState; element.style.removeProperty('--reveal-delay'); });
     };
-  }, []);
+  }, [variant]);
   return <div className="tt-home-motion" ref={rootRef}>{children}</div>;
 }
