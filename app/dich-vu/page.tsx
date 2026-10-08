@@ -1,3 +1,4 @@
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Metadata } from 'next';
 import { routeMetadata } from '@/lib/page-metadata';
 import Link from 'next/link';
@@ -28,7 +29,7 @@ export default async function ServicesPage() {
           <Link href={`/dich-vu/${service.slug}`} className="tt-service-card__link" aria-label={`Xem dịch vụ ${service.title}`}>
             <div className="tt-service-card__media">
               {service.imageUrl && /^(https?:\/\/|\/(?!\/))/i.test(service.imageUrl)
-                ? <img src={service.imageUrl} alt="" loading="lazy" decoding="async" />
+                ? <ResponsiveImage profile="card" src={service.imageUrl} alt="" loading="lazy" decoding="async" />
                 : <span aria-hidden="true">TT</span>}
             </div>
             <div className="tt-service-card__content"><h2>{service.title}</h2><p>{excerpt(service.description)}</p><span className="tt-service-card__more">Tìm hiểu thêm <span aria-hidden="true">→</span></span></div>

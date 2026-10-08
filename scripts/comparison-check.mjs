@@ -6,7 +6,6 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   for (const width of [1440, 390]) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
-    await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
     await page.goto(`${base}/san-pham`);
     const controls = page.locator('.id_ss');
     await page.locator('.c_sosanh').press('Enter');
@@ -64,7 +63,6 @@ try {
     await page.close();
   }
   const page = await browser.newPage();
-  await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
   await page.route('**/api/v1/cars/*', route => route.fulfill({ status: 503, body: '{}' }));
   await page.goto(`${base}/san-pham`);
   await page.locator('.c_sosanh').click();

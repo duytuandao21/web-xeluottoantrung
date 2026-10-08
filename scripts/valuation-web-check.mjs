@@ -66,7 +66,6 @@ try {
       try { await route.fulfill({ status: response.statusCode, contentType: 'application/json', body: response.body }); } catch (error) { if (!/closed|cancel|disposed/i.test(error.message)) throw error; }
     });
     await page.goto(`${url}/tien-ich/dinh-gia-xe`, { waitUntil: 'domcontentloaded', timeout: 120000 });
-    await page.waitForFunction(() => !document.documentElement.dataset.siteIntro);
     await field('brandId').waitFor(); await page.waitForFunction(() => !document.querySelector('#valuation-brandId').disabled);
     assert.equal(await next().isDisabled(), true, 'Missing required vehicle disables Next');
     assert.equal(await field('modelId').isDisabled(), true);

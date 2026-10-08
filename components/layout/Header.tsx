@@ -1,4 +1,5 @@
 "use client";
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -48,8 +49,8 @@ export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }:
   }, [pathname]);
   useEffect(()=>setOpen(false),[pathname]);
   useEffect(()=>{if(!open)return;const close=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false);};document.addEventListener('keydown',close);return()=>document.removeEventListener('keydown',close);},[open]);
-  const logo=<img src={logoUrl} alt="Logo Toàn Trung" data-header-logo />;
-  const mobileLogo=<img src={mobileLogoUrl} alt="Logo Toàn Trung" data-header-logo />;
+  const logo=<ResponsiveImage profile="logo" sizes="150px" src={logoUrl} alt="Logo Toàn Trung" data-header-logo />;
+  const mobileLogo=<ResponsiveImage profile="logo" sizes="125px" src={mobileLogoUrl} alt="Logo Toàn Trung" data-header-logo />;
   const goHomeTop = (event: MouseEvent<HTMLAnchorElement>) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     setOpen(false);

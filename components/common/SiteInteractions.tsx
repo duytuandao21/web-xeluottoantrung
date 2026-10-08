@@ -1,4 +1,5 @@
 "use client";
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createPortal } from 'react-dom';
@@ -90,7 +91,9 @@ export default function SiteInteractions() {
       image.hidden=true;
       image.closest('.vehicle-brands__option')?.querySelector<HTMLElement>('.vehicle-brands__fallback')?.removeAttribute('hidden');
     };
-    const imageError=(event:Event)=>{if(event.target instanceof HTMLImageElement)showBrandFallback(event.target);};
+    const imageError=(event:Event)=>{const image=event.target;if(image instanceof HTMLImageElement)queueMicrotask(()=>{
+      if(image.complete && image.naturalWidth===0)showBrandFallback(image);
+    });};
     document.addEventListener('error',imageError,true);
     document.querySelectorAll<HTMLImageElement>('[data-brand-logo]').forEach(image=>{
       if(image.complete && image.naturalWidth===0)showBrandFallback(image);
@@ -392,7 +395,7 @@ export default function SiteInteractions() {
     {dialog && createPortal(<div className="fancybox-container fancybox-is-open migrated-dialog" role="dialog" aria-modal="true" aria-label={image?'Ảnh xe':dialog.id==='nutgoi'?'Liên hệ Toàn Trung':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin'} tabIndex={-1} ref={dialogRef}>
       <div className="fancybox-bg"/><div className="fancybox-inner"><div className="fancybox-stage"><div className="fancybox-slide fancybox-slide--html fancybox-slide--current fancybox-slide--complete" onClick={e=>{if(e.target===e.currentTarget)setDialog(null);}}>
         <div className={`fancybox-content ${image?'dialog-gallery':dialog.className||''}`} id={dialog.id}>
-          {image?<img className="dialog-image" src={image.src} alt={image.alt}/>:<Markup html={dialog.html||''}/>}
+          {image?<ResponsiveImage profile="content" className="dialog-image" src={image.src} alt={image.alt}/>:<Markup html={dialog.html||''}/>}
           <button type="button" className="fancybox-button fancybox-close-small" aria-label="Đóng" onClick={()=>setDialog(null)}><svg viewBox="0 0 24 24"><path d="M12 10.6l6-6 1.4 1.4-6 6 6 6-1.4 1.4-6-6-6 6-1.4-1.4 6-6-6-6L6 4.6z"/></svg></button>
         </div>
         {dialog.images && dialog.images.length>1 && <>{[-1,1].map(dir=><button key={dir} className={`fancybox-button fancybox-button--arrow_${dir===-1?'left':'right'}`} aria-label={dir===-1?'Ảnh trước':'Ảnh tiếp theo'} onClick={()=>setDialog(d=>d?.images?{...d,index:((d.index||0)+dir+d.images.length)%d.images.length}:d)} style={{position:'absolute',top:'50%',left:dir===-1?0:undefined,right:dir===1?0:undefined}}>{dir===-1?'‹':'›'}</button>)}</>}

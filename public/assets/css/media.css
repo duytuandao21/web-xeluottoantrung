@@ -71,7 +71,7 @@
 	}
 	.icon_login{
 		width:40px;
-		background:url(../images/i_loginm.png) center no-repeat;
+		background:url("https://cdn.toantrungxeluot.io.vn/website-static/085adbc231a9a67c2a5f687351f453e79937136cc43e22432d9b23736cfaab34.png") center no-repeat;
 		height:50px;
 		background-size:30px 30px;
 	}
@@ -177,7 +177,7 @@
 	.close_menu {
 		width:40px;
 		height:40px;
-		background:url(../images/x.svg) center no-repeat;
+		background:url("https://cdn.toantrungxeluot.io.vn/website-static/02eeab5b82cc9051d12d9fb08fe271190b95afa0e15f90f9c2123f75e545ea56.svg") center no-repeat;
 	}	
 	.top-contact{
 		display: block;

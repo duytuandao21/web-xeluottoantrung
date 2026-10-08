@@ -16,7 +16,6 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(({ width }) => {
       if (window.top !== window) return;
-      sessionStorage.setItem('tt-site-intro-seen', '1');
       const viewport = Object.assign(new EventTarget(), { offsetLeft: 0, offsetTop: 0, width, height: 900 });
       Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
       window.setChatTestViewport = value => { Object.assign(viewport, value); viewport.dispatchEvent(new Event('resize')); viewport.dispatchEvent(new Event('scroll')); };

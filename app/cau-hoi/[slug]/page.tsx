@@ -1,3 +1,5 @@
+import ImageMarkup from '@/components/common/ImageMarkup';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Metadata } from 'next';
 import { routeMetadata } from '@/lib/page-metadata';
 import { notFound } from 'next/navigation';
@@ -28,8 +30,8 @@ export default async function FaqArticlePage({ params }: { params: Promise<{ slu
       <div className="tt-article__meta"><Link href="/bai-viet#muc-cau-hoi">Câu hỏi thường gặp</Link></div>
       <div className="title-main"><h1 id="faq-title">{faq.question}</h1></div>
       {faq.imageUrl && /^(https?:\/\/|\/(?!\/))/i.test(faq.imageUrl) && !$('img[src]').toArray().some(element => $(element).attr('src') === faq.imageUrl) &&
-        <figure className="tt-article__hero"><img src={faq.imageUrl} alt={faq.question} decoding="async" /></figure>}
-      <div className="tt-article__body" dangerouslySetInnerHTML={{ __html: $.html() }} />
+        <figure className="tt-article__hero"><ResponsiveImage profile="content" src={faq.imageUrl} alt={faq.question} decoding="async" /></figure>}
+      <div className="tt-article__body" ><ImageMarkup html={$.html()} /></div>
     </main>
   </>;
 }

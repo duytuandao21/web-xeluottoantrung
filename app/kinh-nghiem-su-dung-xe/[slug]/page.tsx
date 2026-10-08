@@ -1,3 +1,5 @@
+import ImageMarkup from '@/components/common/ImageMarkup';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Metadata } from 'next';
 import { routeMetadata } from '@/lib/page-metadata';
 import { notFound } from 'next/navigation';
@@ -33,8 +35,8 @@ export default async function DrivingExperiencePage({ params }: { params: Promis
       </div>
       <div className="title-main"><h1 id="experience-title">{article.title}</h1></div>
       {article.imageUrl && /^(https?:\/\/|\/(?!\/))/i.test(article.imageUrl) && !$('img[src]').toArray().some(element => $(element).attr('src') === article.imageUrl) &&
-        <figure className="tt-article__hero"><img src={article.imageUrl} alt={article.title} decoding="async" /></figure>}
-      <div className="tt-article__body" dangerouslySetInnerHTML={{ __html: $.html() }} />
+        <figure className="tt-article__hero"><ResponsiveImage profile="content" src={article.imageUrl} alt={article.title} decoding="async" /></figure>}
+      <div className="tt-article__body" ><ImageMarkup html={$.html()} /></div>
     </main>
   </>;
 }

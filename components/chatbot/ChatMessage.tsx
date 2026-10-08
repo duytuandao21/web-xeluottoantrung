@@ -1,3 +1,4 @@
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CHATBOT_ICON, safeChatUrl, type ChatMessage as Message } from '@/lib/chatbot';
@@ -5,7 +6,7 @@ import ChatSources from './ChatSources';
 
 export default function ChatMessage({ message, onRetry, retryable }: { message: Message; onRetry: () => void; retryable: boolean }) {
   return <article className={`tt-chat-message is-${message.role}`} aria-label={message.role === 'user' ? 'Câu hỏi của bạn' : 'Trợ lý AI trả lời'}>
-    {message.role === 'assistant' && <img className="tt-chat-avatar" src={CHATBOT_ICON} alt="" width="28" height="28" />}
+    {message.role === 'assistant' && <ResponsiveImage profile="icon" className="tt-chat-avatar" sizes="28px" src={CHATBOT_ICON} alt="" width="28" height="28" />}
     <div className="tt-chat-message__body">
       {message.role === 'user' ? <p>{message.content}</p> : <>
         {message.content ? <div className="tt-chat-markdown"><ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml components={{

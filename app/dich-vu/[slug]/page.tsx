@@ -1,3 +1,5 @@
+import ImageMarkup from '@/components/common/ImageMarkup';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Metadata } from 'next';
 import { routeMetadata } from '@/lib/page-metadata';
 import { notFound, permanentRedirect } from 'next/navigation';
@@ -53,8 +55,8 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
       <div className="tt-article__meta"><Link href="/dich-vu">Dịch vụ</Link></div>
       <div className="title-main"><h1 id="service-title">{service.title}</h1></div>
       {service.imageUrl && /^(https?:\/\/|\/(?!\/))/i.test(service.imageUrl) && !body.includes(service.imageUrl) &&
-        <figure className="tt-article__hero"><img src={service.imageUrl} alt={service.title} decoding="async" /></figure>}
-      <div className="tt-article__body" dangerouslySetInnerHTML={{ __html: body }} />
+        <figure className="tt-article__hero"><ResponsiveImage profile="content" src={service.imageUrl} alt={service.title} decoding="async" /></figure>}
+      <div className="tt-article__body" ><ImageMarkup html={body} /></div>
     </main>
   </>;
 }

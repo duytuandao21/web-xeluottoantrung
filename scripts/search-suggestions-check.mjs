@@ -23,7 +23,6 @@ try {
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error' && /unique.*key|hydration|cannot update/i.test(message.text())) errors.push(message.text()); });
-    await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
     const popup = page.locator('#tt-product-search-popup');
     const waitItems = async (count) => {
       await page.waitForFunction(count => document.querySelectorAll('.tt-search-suggestions__product').length === count, count);
@@ -141,7 +140,6 @@ try {
   }
   // Late results and temporary API failures must never overwrite the current query.
   const page = await browser.newPage();
-  await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
   let failed = true;
   await page.route('**/api/v1/search/suggestions?*', async route => {
     const q = new URL(route.request().url()).searchParams.get('q');

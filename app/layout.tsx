@@ -10,21 +10,20 @@ import { allPublicLookups, publicApi, type Service, type CallContact } from '@/l
 import { groupShowrooms, type Branch, type Region } from '@/lib/showrooms';
 import { SaleAccessProvider } from '@/components/sale/SaleAccess';
 import { getSiteInfo, getSiteName } from '@/lib/site-info';
-import SiteIntro from '@/components/layout/SiteIntro';
-import { siteIntroBootstrap } from '@/lib/site-intro';
 import { getPolicies } from '@/lib/website-content';
 import { getSiteBranding } from '@/lib/site-branding';
 import type { ContentEntry } from '@/lib/public-api';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import ChatbotLauncher from '@/components/chatbot/ChatbotLauncher';
 import '@/components/chatbot/chatbot.css';
+import { getImageOriginalUrl } from '@/lib/image-delivery';
 
 export async function generateMetadata(): Promise<Metadata> {
   const [siteName, branding] = await Promise.all([getSiteName(), getSiteBranding()]);
   return {
     metadataBase: new URL('https://xeluottoantrung.com'),
     title: { default: siteName, template: `%s | ${siteName}` },
-    icons: { icon: branding.favicon },
+    icons: { icon: getImageOriginalUrl(branding.favicon) },
   };
 }
 
@@ -60,8 +59,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const footerSettings = Object.fromEntries(footerRows.map(row => [row.key, row.value]));
   const showrooms = groupShowrooms(branches, regions);
   return (
-    <html lang="vi" suppressHydrationWarning><head><script id="tt-site-intro-bootstrap" dangerouslySetInnerHTML={{ __html: siteIntroBootstrap }} />{legacyStyles.map((href) => <link key={href} rel="stylesheet" href={href} />)}</head>
-      <body><SiteIntro logoUrl={branding.logo} /><SaleAccessProvider><div className="wapper"><Header phone={info.phone} services={services} logoUrl={branding.logo} mobileLogoUrl={branding.logoMobile} />{children}<Footer showrooms={showrooms} phone={info.phone} zalo={info.zalo} settings={footerSettings} callContacts={callContacts} policies={policies} logoUrl={branding.logoDark} socialLinks={socialLinks} appLinks={appLinks} /></div><Suspense fallback={null}><SiteInteractions/><SearchSuggestions/></Suspense><ChatbotLauncher /></SaleAccessProvider></body>
+    <html lang="vi"><head>{legacyStyles.map((href) => <link key={href} rel="stylesheet" href={href} />)}</head>
+      <body><SaleAccessProvider><div className="wapper"><Header phone={info.phone} services={services} logoUrl={branding.logo} mobileLogoUrl={branding.logoMobile} />{children}<Footer showrooms={showrooms} phone={info.phone} zalo={info.zalo} settings={footerSettings} callContacts={callContacts} policies={policies} logoUrl={branding.logoDark} socialLinks={socialLinks} appLinks={appLinks} /></div><Suspense fallback={null}><SiteInteractions/><SearchSuggestions/></Suspense><ChatbotLauncher /></SaleAccessProvider></body>
     </html>
   );
 }

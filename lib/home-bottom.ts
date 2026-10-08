@@ -6,15 +6,15 @@ import type { Article } from './public-api';
 
 type UtilityIcon = { file: string; artwork: [number, number, number, number] };
 const utilityIcons: Record<string, UtilityIcon> = {
-  '/tien-ich/mua-xe-theo-nhu-cau': { file: 'mua-xe-theo-nhu-cau.png', artwork: [220, 360, 864, 638] },
-  '/tien-ich/dinh-gia-xe': { file: 'dinh-gia-xe-cu.png', artwork: [213, 357, 887, 658] },
-  '/tien-ich/tra-cuu-phat-nguoi': { file: 'tra-cuu-phat-nguoi.png', artwork: [233, 418, 896, 627] },
-  '/tien-ich/xem-ngay-mua-xe': { file: 'xem-ngay-mua-xe.png', artwork: [231, 277, 850, 768] },
-  '/tien-ich/xem-gia-xang-dau': { file: 'xem-gia-xang-dau.png', artwork: [296, 298, 777, 689] },
+  '/tien-ich/mua-xe-theo-nhu-cau': { file: 'mua-xe-theo-nhu-cau.lossless-v1.webp', artwork: [220, 360, 864, 638] },
+  '/tien-ich/dinh-gia-xe': { file: 'dinh-gia-xe-cu.lossless-v1.webp', artwork: [213, 357, 887, 658] },
+  '/tien-ich/tra-cuu-phat-nguoi': { file: 'tra-cuu-phat-nguoi.lossless-v1.webp', artwork: [233, 418, 896, 627] },
+  '/tien-ich/xem-ngay-mua-xe': { file: 'xem-ngay-mua-xe.lossless-v1.webp', artwork: [231, 277, 850, 768] },
+  '/tien-ich/xem-gia-xang-dau': { file: 'xem-gia-xang-dau.lossless-v1.webp', artwork: [296, 298, 777, 689] },
 };
 
-// The original 1254px PNGs have transparent margins. Frame the artwork with CSS,
-// retaining each source file and its proportions.
+// The original 1254px artwork has transparent margins. The lossless WebP
+// variants keep that canvas and its proportions, framed by the same CSS.
 function utilityIconStyle({ artwork }: UtilityIcon) {
   const [left, top, width, height] = artwork;
   const scale = Math.min(96 / width, 76 / height);

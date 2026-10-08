@@ -1,4 +1,5 @@
 'use client';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
@@ -50,7 +51,7 @@ export default function AccessoryFilters({ brands, categories, brand, category, 
       <button type="button" className="tt-accessory-filters__arrow" aria-label="Xem thương hiệu phía trước" onClick={() => track.current?.scrollBy({ left: -360, behavior: 'smooth' })}>‹</button>
       <div className="tt-accessory-filters__brand-track" ref={track}>
         {brands.map(item => <Link key={item.id} href={href(brand === item.id ? undefined : item.id, category)} className={`tt-accessory-filters__brand ${brand === item.id ? 'is-selected' : ''}`} aria-current={brand === item.id ? 'true' : undefined}>
-          {item.imageUrl ? <img src={item.imageUrl} alt="" loading="lazy" /> : <span className="tt-accessory-filters__brand-fallback" aria-hidden="true">{item.name.slice(0, 1).toUpperCase()}</span>}
+          {item.imageUrl ? <ResponsiveImage profile="logo" sizes="78px" src={item.imageUrl} alt="" loading="lazy" /> : <span className="tt-accessory-filters__brand-fallback" aria-hidden="true">{item.name.slice(0, 1).toUpperCase()}</span>}
           <span>{item.name}</span>
         </Link>)}
       </div>

@@ -1,3 +1,4 @@
+import ImageMarkup from '@/components/common/ImageMarkup';
 import type { Metadata } from 'next';
 import { routeMetadata } from '@/lib/page-metadata';
 import Link from 'next/link';
@@ -19,7 +20,7 @@ export default async function FaqListPage({ searchParams }: { searchParams: Prom
     <SiteBreadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: 'Bài viết', href: '/bai-viet' }, { label: 'Câu hỏi thường gặp' }]} />
     <main className="main_content main_fix tt-faq-list">
       <div className="title-main"><h1>Câu hỏi thường gặp</h1></div>
-      {result.data.length ? <div dangerouslySetInnerHTML={{ __html: faqCardsHtml(result.data) }} /> : <p className="tt-faq-empty">Các câu hỏi đang được cập nhật.</p>}
+      {result.data.length ? <div ><ImageMarkup html={faqCardsHtml(result.data)} /></div> : <p className="tt-faq-empty">Các câu hỏi đang được cập nhật.</p>}
       {result.meta.totalPages > 1 && <nav className="car-pagination" aria-label="Phân trang câu hỏi thường gặp">
         {page > 1 && <Link href={`/cau-hoi?page=${page - 1}`} rel="prev">‹ Trước</Link>}
         <span>Trang {page} / {result.meta.totalPages}</span>

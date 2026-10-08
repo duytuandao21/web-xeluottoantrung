@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
+import { getImageOriginalUrl, responsiveImage } from '@/lib/image-delivery';
 
 type GalleryImage = { src: string; alt: string; href: string };
 type Transform = { scale: number; x: number; y: number };
@@ -16,6 +18,14 @@ export default function VehicleLightbox({ images, initialIndex, subject = 'xe', 
   const [playing, setPlaying] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [transform, setTransform] = useState<Transform>(initialTransform);
+  const [fullImage, setFullImage] = useState<string | null>(null);
+  useEffect(() => {
+    let disposed = false;
+    const original = getImageOriginalUrl(images[index].href || images[index].src);
+    const full = new Image(); full.src = original;
+    void full.decode().then(() => { if (!disposed) setFullImage(original); }).catch(() => {});
+    return () => { disposed = true; };
+  }, [images, index]);
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -221,6 +231,10 @@ export default function VehicleLightbox({ images, initialIndex, subject = 'xe', 
   };
 
   const image = images[index];
+  const original = getImageOriginalUrl(image.href || image.src);
+  // Keep an already-loaded gallery preview visible while the full-resolution
+  // CDN original decodes. Zoom/fullscreen use the original as soon as ready.
+  const preview = responsiveImage(image.src, 'gallery');
   return createPortal(
     <div className="vehicle-lightbox" ref={rootRef} role="dialog" aria-modal="true" aria-label={`Thư viện ảnh ${subject}`}>
       <div className="vehicle-lightbox__toolbar">
@@ -238,7 +252,9 @@ export default function VehicleLightbox({ images, initialIndex, subject = 'xe', 
       <div className="vehicle-lightbox__stage" ref={stageRef} onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
         {images.length > 1 && <button type="button" className="vehicle-lightbox__arrow vehicle-lightbox__arrow--left"
           aria-label="Ảnh trước" onClick={() => changeImage(index - 1)}>‹</button>}
-        <img ref={imageRef} src={image.href || image.src} alt={image.alt} draggable={false}
+        <img ref={imageRef} src={fullImage === original ? original : preview.src}
+          srcSet={fullImage === original ? `${original} 1x` : preview.srcSet} sizes={fullImage === original ? undefined : preview.sizes}
+          data-image-original={image.href || image.src} alt={image.alt} draggable={false}
           className="vehicle-lightbox__image" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
             cursor: transform.scale > 1 ? 'grab' : 'default' }}
           onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerEnd} onPointerCancel={pointerEnd} />
@@ -251,7 +267,7 @@ export default function VehicleLightbox({ images, initialIndex, subject = 'xe', 
           {images.map((item, position) => <button key={`${item.href}-${position}`} type="button"
             ref={position === index ? selectedThumbRef : undefined} className={position === index ? 'is-active' : ''}
             aria-label={`Xem ảnh ${position + 1}`} aria-current={position === index ? 'true' : undefined}
-            onClick={() => changeImage(position)}><img src={item.src} alt={item.alt} /></button>)}
+            onClick={() => changeImage(position)}><ResponsiveImage profile="thumbnail" src={item.src} alt={item.alt} /></button>)}
         </div>
       </div>
     </div>, document.body);

@@ -1,4 +1,5 @@
 'use client';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
@@ -75,7 +76,7 @@ export default function ChatbotLauncher() {
   const close = () => { setOpen(false); requestAnimationFrame(() => launcher.current?.focus({ preventScroll: true })); };
   return createPortal(<div ref={layer} className={`tt-chat-layer${open ? ' is-open' : ''}${position?.mobile ? ' is-mobile' : ''}${position?.compact ? ' is-compact' : ''}`}>
     <button ref={launcher} type="button" className="tt-chat-launcher" style={position?.launcher} aria-label={open ? 'Đóng trợ lý AI' : 'Mở trợ lý AI'} aria-expanded={open} aria-controls="tt-chat-panel" onClick={() => { setLoaded(true); setOpen(value => !value); }}>
-      <img src={CHATBOT_ICON} alt="" width="70" height="70" /><span className="tt-chat-launcher__label">Hỏi trợ lý AI</span>
+      <ResponsiveImage profile="icon" sizes="70px" src={CHATBOT_ICON} alt="" width="70" height="70" /><span className="tt-chat-launcher__label">Hỏi trợ lý AI</span>
     </button>
     {loaded && position && <ChatbotPanel open={open} mobile={position.mobile} onClose={close} style={position.panel} />}
   </div>, document.body);

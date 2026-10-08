@@ -5,7 +5,7 @@
 }
 .slick-loading .slick-list
 {
-    background: #fff url('../images/slick/ajax-loader.gif') center center no-repeat;
+    background: #fff url("https://cdn.toantrungxeluot.io.vn/website-static/e7b44c86b050fca766a96ddac2d0932af0126da6f2305280342d909168dcce6b.gif") center center no-repeat;
 }
 .slick-prev
 {
@@ -23,7 +23,7 @@
     color: transparent;
     border: none;
     outline: none;
-    background: #ffffff url(../images/slick/next_xam.png) center no-repeat;
+    background: #ffffff url("https://cdn.toantrungxeluot.io.vn/website-static/03fa212efeb4ea5b70af53d293ff74209d8c62c0f69f65b775968605148e6fe3.png") center no-repeat;
     z-index:10;
     transition:1s;
     transform:rotate(180deg);
@@ -48,7 +48,7 @@
     color: transparent;
     border: none;
     outline: none;
-    background: #ffffff url(../images/slick/next_xam.png) center no-repeat;
+    background: #ffffff url("https://cdn.toantrungxeluot.io.vn/website-static/03fa212efeb4ea5b70af53d293ff74209d8c62c0f69f65b775968605148e6fe3.png") center no-repeat;
     z-index:10;
     transition:1s;
     margin-top:-20px;
@@ -196,7 +196,7 @@
 
 .control_slick_doc .slick-prev
 {
-    background: #ffffff url(../images/slick/next_xam.png) center no-repeat;
+    background: #ffffff url("https://cdn.toantrungxeluot.io.vn/website-static/03fa212efeb4ea5b70af53d293ff74209d8c62c0f69f65b775968605148e6fe3.png") center no-repeat;
     top:0;
     bottom:auto;
     right:auto;
@@ -210,7 +210,7 @@
 }
 .control_slick_doc .slick-next
 {
-    background: #ffffff url(../images/slick/next_xam.png) center no-repeat;
+    background: #ffffff url("https://cdn.toantrungxeluot.io.vn/website-static/03fa212efeb4ea5b70af53d293ff74209d8c62c0f69f65b775968605148e6fe3.png") center no-repeat;
     bottom:0;
     top:auto;
     right:auto;
@@ -230,13 +230,13 @@
 
 .control_slick .slick-prev
 {
-    background: #ffffff url(../images/slick/next_xam.png) center no-repeat;
+    background: #ffffff url("https://cdn.toantrungxeluot.io.vn/website-static/03fa212efeb4ea5b70af53d293ff74209d8c62c0f69f65b775968605148e6fe3.png") center no-repeat;
     display: none !important;
     background-size: 50%;
 }
 .control_slick .slick-next
 {
-    background: #ffffff url(../images/slick/next_xam.png) center no-repeat;
+    background: #ffffff url("https://cdn.toantrungxeluot.io.vn/website-static/03fa212efeb4ea5b70af53d293ff74209d8c62c0f69f65b775968605148e6fe3.png") center no-repeat;
     display:none !important;
     background-size: 50%;
 }

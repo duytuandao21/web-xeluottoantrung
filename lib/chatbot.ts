@@ -1,4 +1,4 @@
-export const CHATBOT_ICON = '/images/chatbot/chatbot-icon.png';
+export const CHATBOT_ICON = '/images/chatbot/chatbot-icon.lossless-v1.webp';
 export type ChatSource = { title: string; url: string };
 export type ChatMessage = { id: string; role: 'user' | 'assistant'; content: string; sources?: ChatSource[]; searchEntryPoint?: string; status: 'streaming' | 'done' | 'error'; error?: string; truncated?: boolean };
 export type ChatHistory = { role: 'user' | 'assistant'; content: string }[];

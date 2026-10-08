@@ -12,7 +12,6 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   for (const width of realImages ? [390] : [320, 390, 430]) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, hasTouch: true, ignoreHTTPSErrors: true });
-    await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
     if (!realImages) await page.route('**/*', route => imageUrls.has(route.request().url())
       ? route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#ccd3de"/></svg>' }) : route.continue());
     await page.goto(`${base}/san-pham`);
@@ -76,7 +75,6 @@ try {
     await page.close();
   }
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await desktop.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
   await desktop.goto(`${base}/san-pham`);
   assert(await desktop.locator('.vehicle-results .slick-arrow:visible').count() > 0);
   console.log('Passed desktop gallery arrows.');

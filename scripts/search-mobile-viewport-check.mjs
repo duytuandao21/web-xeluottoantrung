@@ -8,7 +8,6 @@ try {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => {
-    sessionStorage.setItem('tt-site-intro-seen', '1');
     // Headless browsers cannot display an OS keyboard. Reproduce its viewport
     // resizing and panning without changing the layout viewport, as on iOS.
     const viewport = Object.assign(new EventTarget(), { offsetTop: 0, offsetLeft: 0, width: 390, height: 844, scale: 1 });

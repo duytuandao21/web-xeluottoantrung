@@ -14,7 +14,6 @@ try {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' && /unique.*key|hydration|render/i.test(message.text())) errors.push(message.text()); });
-  await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
   await page.goto('http://localhost:3001');
   const branding = Object.fromEntries((await api('/site-settings/thiet-lap-logo')).map(row => [row.key, row.value]));
   assert.equal(await page.locator('.wap_header [data-header-logo]').getAttribute('src'), branding.logo);

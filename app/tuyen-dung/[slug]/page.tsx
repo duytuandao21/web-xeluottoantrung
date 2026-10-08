@@ -1,3 +1,5 @@
+import ImageMarkup from '@/components/common/ImageMarkup';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Metadata } from 'next';
 import { routeMetadata } from '@/lib/page-metadata';
 import { notFound, permanentRedirect } from 'next/navigation';
@@ -34,8 +36,8 @@ export default async function RecruitmentDetailPage({ params }: { params: Promis
       <div className="tt-article__meta"><Link href="/tuyen-dung">Tuyển dụng</Link>{date && !Number.isNaN(date.getTime()) && <><span aria-hidden="true">·</span><time dateTime={date.toISOString()}>{new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' }).format(date)}</time></>}</div>
       <div className="title-main"><h1 id="recruitment-title">{job.title}</h1></div>
       {job.imageUrl && /^(https?:\/\/|\/(?!\/))/i.test(job.imageUrl) && !$('img[src]').toArray().some(element => $(element).attr('src') === job.imageUrl) &&
-        <figure className="tt-article__hero"><img src={job.imageUrl} alt={job.title} decoding="async" /></figure>}
-      <div className="tt-article__body" dangerouslySetInnerHTML={{ __html: $.html() }} />
+        <figure className="tt-article__hero"><ResponsiveImage profile="content" src={job.imageUrl} alt={job.title} decoding="async" /></figure>}
+      <div className="tt-article__body" ><ImageMarkup html={$.html()} /></div>
     </main>
   </>;
 }

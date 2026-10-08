@@ -80,14 +80,14 @@ b,strong,h1,h2,h3,h4,h5,h6{font-family: 'tieude';}
 	position:relative;
 }
 .hotline{
-	background:url(../images/phone.svg) left center no-repeat;
+	background:url("https://cdn.toantrungxeluot.io.vn/website-static/c4d540babc3a985e2e1bd1867701434d4251ac1d7a3a233a013c33a019318346.svg") left center no-repeat;
 	padding-left: 30px;
 	margin: 0 15px;
 	color: var(--color-main);
 }
 
 .user_login{
-	background: url(../images/i_login.png) left center no-repeat;
+	background: url("https://cdn.toantrungxeluot.io.vn/website-static/ed59fe48166451b40c5cd0f15173c5be29bb699e3927727ffaa2bf7b63727622.png") left center no-repeat;
 	background-size: auto 24px;
 	padding-left: 29px;
 	max-width: 350px;
@@ -123,7 +123,7 @@ b,strong,h1,h2,h3,h4,h5,h6{font-family: 'tieude';}
 	text-decoration:none;
 	display:block;
 	font-family: 'tieude';
-	background: url(../images/li.svg) 95% center no-repeat;
+	background: url("https://cdn.toantrungxeluot.io.vn/website-static/e682d4a529194f7f89429ab5ad107ab8e158e47bfa65e8d2f4d4a9c1c3031ada.svg") 95% center no-repeat;
 	background-size: auto 7px;
 }
 .menu ul li a:hover,.menu ul li a.active,.menu ul li a.active2
@@ -176,7 +176,7 @@ b,strong,h1,h2,h3,h4,h5,h6{font-family: 'tieude';}
 .main_content .search
 {margin-top: -30px;margin-bottom: 10px;}
 .search input{
-	background: url(../images/icon_s.png) 15px center no-repeat;
+	background: url("https://cdn.toantrungxeluot.io.vn/website-static/c8fade26f9edab3f9ae7f0bb3d2cd9418abaa29d175966df77ad6c09cb450ead.png") 15px center no-repeat;
 	padding-left: 45px;
 	box-shadow: 0 2px 8px 0 rgba(99,99,99,.2)!important;
 }
@@ -351,7 +351,7 @@ b,strong,h1,h2,h3,h4,h5,h6{font-family: 'tieude';}
 	position:absolute;
 	right:0;
 	top:0;
-	background:var(--color-red) url(../images/coc.png) 14px center no-repeat;
+	background:var(--color-red) url("https://cdn.toantrungxeluot.io.vn/website-static/2ec5750e1cd6d7e975c2873e0325dfa1bcc61dcdfbc93176b5ca01de32b62b5e.png") 14px center no-repeat;
 	background-size:auto 15px;
 	color:#ffffff;
 	padding:3px 15px;
@@ -426,7 +426,7 @@ b,strong,h1,h2,h3,h4,h5,h6{font-family: 'tieude';}
 	color: #ffffff;
 	font-size:14px;
 	margin-left:10px;
-	background:url(../images/helf.svg) right center no-repeat;
+	background:url("https://cdn.toantrungxeluot.io.vn/website-static/e57a82cabfae569e602a99edd2a5f98655dad5e5fda11664208b27f7f1d3df86.svg") right center no-repeat;
 	padding-right:20px;
 	cursor: pointer;
 }
@@ -435,7 +435,7 @@ b,strong,h1,h2,h3,h4,h5,h6{font-family: 'tieude';}
 }
 .giachitu .ct{
 	text-align:right;
-	background:url(../images/helf.svg) right center no-repeat;
+	background:url("https://cdn.toantrungxeluot.io.vn/website-static/e57a82cabfae569e602a99edd2a5f98655dad5e5fda11664208b27f7f1d3df86.svg") right center no-repeat;
 	padding-right:20px;
 	cursor: pointer;
 	color: #000000;
@@ -738,7 +738,7 @@ b,strong,h1,h2,h3,h4,h5,h6{font-family: 'tieude';}
 .color-pro-detail{display:inline-block;vertical-align:top;position:relative;width:35px;height:30px;margin:0px 0px 3px 0px;border:1px solid transparent;}
 .size-pro-detail{border:1px solid #ccc;padding:3px 10px 4px 10px;display:inline-block;position:relative;}
 .size-pro-detail.active,.color-pro-detail.active{border-color:#e5101d;color:#e5101d;}
-.color-pro-detail.active:before,.size-pro-detail.active:before{content:'';position:absolute;width:100%;height:100%;top:0px;left:0px;bottom:0px;right:0px;margin:auto;z-index:1;background-image:url(../images/check-cart.png);background-repeat:no-repeat;background-position:bottom right;}
+.color-pro-detail.active:before,.size-pro-detail.active:before{content:'';position:absolute;width:100%;height:100%;top:0px;left:0px;bottom:0px;right:0px;margin:auto;z-index:1;background-image:url("https://cdn.toantrungxeluot.io.vn/website-static/0f960ced50d9ee9b0b8a7ff29cb6e21f023338f9ef83aece9f68a297bff34822.png");background-repeat:no-repeat;background-position:bottom right;}
 .color-pro-detail input[type=radio],.size-pro-detail input[type=radio]{outline:none;position:absolute;cursor:pointer;width:100%;height:100%;-webkit-appearance:none;border:0px;top:0px;left:0px;}
 .quantity-pro-detail{width:100%;max-width:110px;line-height:normal;display:flex;align-items:center;justify-content:space-between;text-align:center;}
 .quantity-pro-detail span{line-height:25px;padding:0px;width:30px;height:30px;color:#5f5f5f;cursor:pointer;font-size:22px;border:1px solid #cccccc;}
@@ -912,7 +912,7 @@ coccocgrammar{display:none;}
   left: -27px;
   width: 95px;
   height: 95px;
-  background: url(../images/contact_rotate.png) center no-repeat;
+  background: url("https://cdn.toantrungxeluot.io.vn/website-static/109b9611fe396182ce2dc86107b9ec5f3572a907e5ef6a552bf6d11b2d5bcc68.png") center no-repeat;
   animation: rotate 3s linear infinite;
 }
 
@@ -1055,7 +1055,7 @@ coccocgrammar{display:none;}
 .fixbar ul{margin:0px;padding:0px;list-style:none;}
 .fixbar ul li{display:inline-block;margin:0 auto 10px;text-align:center;width:25%;float:left;}
 .fixbar .icon-cart-mobile,.fixbar .icon-cart-new,.fixbar .icon-home-new,.fixbar .icon-hotdeal-new{width:20px;height:20px;display:block;margin:8px auto 0;}
-.fixbar .icon-cart-mobile{background:url(../images/cart-mobile.png) no-repeat;}
+.fixbar .icon-cart-mobile{background:url("https://cdn.toantrungxeluot.io.vn/website-static/17c7c48234c2eb99ca1c21c0c2878c6170e64bd8a601b9a34259926d4563f875.png") no-repeat;}
 .cart-total-header-mobile{font-size:10px;position:absolute;background:red;color:#fff!important;border-radius:50%;height:15px;width:15px;line-height:15px;top:5px;margin-left:5px;}
 .fixbar ul li a{font-size:11px;text-decoration:none;color:#333;}
 .fixbar ul li a i{font-size:20px;}
@@ -1493,7 +1493,7 @@ span.total{ display:none;}
 	margin-bottom:4px;
 }
 .thuonghieu .slick-next,.thuonghieu .slick-prev{
-	background:url(../images/right.png) center no-repeat;
+	background:url("https://cdn.toantrungxeluot.io.vn/website-static/6e59f5ed26c0d8f3236062b7263ed4daa526c61086c22410e7e562d1bb32552e.png") center no-repeat;
 	box-shadow:none;
 	background-size: auto;
 	width: 25px;
@@ -1674,7 +1674,7 @@ ul.cap1 li.active,ul.cap1 li:hover{
 	/* color: var(--color-red); */
 	font-family: 'tieude';
 	font-size: 17px;
-	background: url(../images/cauhoi.svg) right center no-repeat;
+	background: url("https://cdn.toantrungxeluot.io.vn/website-static/ebc26719952da498712047913482679a1bd195a9b52260d5a345868d7afd1065.svg") right center no-repeat;
 	padding: 12px 0;
 	padding-right: 40px;
 	margin: 15px auto;
@@ -1866,7 +1866,7 @@ ul.cap1 li.active,ul.cap1 li:hover{
 }
 #nutgoi ul li a{
 	display: block;
-	background: url(../images/phone.svg) left center no-repeat;
+	background: url("https://cdn.toantrungxeluot.io.vn/website-static/c4d540babc3a985e2e1bd1867701434d4251ac1d7a3a233a013c33a019318346.svg") left center no-repeat;
 	padding-left: 30px;
 	color: #1a1a1a;
 	padding: 9px 0;
@@ -1965,7 +1965,7 @@ ul.cap1 li.active,ul.cap1 li:hover{
 	margin-bottom:10px;
 }
 .lendoi_r .td{
-	background: var(--color-nen) url(../images/banxe.png) center 10px no-repeat;
+	background: var(--color-nen) url("https://cdn.toantrungxeluot.io.vn/website-static/c07a2a82fb6c84df042cd8444b0747410e0ed5e24013849dbf552d0a5800185e.png") center 10px no-repeat;
 	padding: 10px 0;
 	padding-top: 30px;
 	text-align: center;
@@ -2085,7 +2085,7 @@ ul.cap1 li.active,ul.cap1 li:hover{
 	background: var(--color-nen);
 }
 .chonloc li.cuoi{
-	background: url(../images/fill.png) 90% center no-repeat;
+	background: url("https://cdn.toantrungxeluot.io.vn/website-static/5f5c8c9500ea5901deb218c267772d2ae4814e7859f420a1f2ff2adcfcf6cd1a.png") 90% center no-repeat;
 	padding-right: 40px;
 }
 .demxe{
@@ -2443,7 +2443,7 @@ body.ss .c_sosanh span:before{
 	right: 10px;
 	top: 10px;
 	z-index:20;
-	background: #ffffff url(../images/x.svg) center;
+	background: #ffffff url("https://cdn.toantrungxeluot.io.vn/website-static/02eeab5b82cc9051d12d9fb08fe271190b95afa0e15f90f9c2123f75e545ea56.svg") center;
 	background-size: 80%;
 	width: 25px;
 	height: 25px;

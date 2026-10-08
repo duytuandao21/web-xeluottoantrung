@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import { displayClassification, dateApi, formatDate, type DateConfig, type DetailResult, type SearchInput, type SearchResult } from '@/lib/auspicious-date';
 import DateForm from './auspicious-date/DateForm';
 import ResultCalendar from './auspicious-date/ResultCalendar';
@@ -53,7 +53,7 @@ export default function AuspiciousDateViewer() {
     finally { if (mounted.current && current === generation.current) setDetailBusy(false); }
   };
   return <>
-    <header className="tt-date-hero"><div><h1>{config?.name || 'Xem ngày mua xe'}</h1><p>Tham khảo ngày phù hợp để mua xe, nhận xe hoặc ký hợp đồng.</p></div><div className="tt-date-hero__icon" aria-hidden="true"><Image src="/images/utilities/test-icon-tien-ich/xem-ngay-mua-xe.png" alt="" width={1280} height={1280} /></div></header>
+    <header className="tt-date-hero"><div><h1>{config?.name || 'Xem ngày mua xe'}</h1><p>Tham khảo ngày phù hợp để mua xe, nhận xe hoặc ký hợp đồng.</p></div><div className="tt-date-hero__icon" aria-hidden="true"><ResponsiveImage profile="icon" sizes="(max-width:600px) 90px, 160px" loading="lazy" src="/images/utilities/test-icon-tien-ich/xem-ngay-mua-xe.lossless-v1.webp" alt="" width={1280} height={1280} /></div></header>
     {configError ? <div className="tt-date-panel" role="alert"><p>{configError}</p><button type="button" className="tt-date-button" onClick={() => { setConfigError(''); setReload(value => value + 1); }}>Thử lại</button></div>
       : !config ? <div className="tt-date-panel tt-date-skeleton" role="status">Đang tải tiện ích…</div>
       : !config.enabled ? <div className="tt-date-panel tt-date-maintenance"><h2>Tiện ích đang tạm bảo trì.</h2><p>Vui lòng quay lại sau.</p><Link className="tt-date-button" href="/san-pham">{config.ctaLabel}</Link></div>

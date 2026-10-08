@@ -4,7 +4,6 @@ import { chromium } from 'playwright';
 const base = process.env.TEST_BASE_URL || 'http://localhost:3001';
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const init = () => {
-  sessionStorage.setItem('tt-site-intro-seen', '1');
   window.__documentMarker = crypto.randomUUID();
   window.__articleAnimations = [];
   const animate = Element.prototype.animate;

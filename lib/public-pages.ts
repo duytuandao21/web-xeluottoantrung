@@ -22,7 +22,8 @@ const publicHref = (value?: string | null) => value && /^(https?:\/\/|\/(?!\/))/
 
 function cardMarkup(cars: PublicCar[]): { html: string; mapped: Record<string, Car> } {
   const mapped = Object.fromEntries(cars.map(car => [car.slug, carToCard(car)]));
-  return { html: cars.map(car => `<car-card data-key="${escape(car.slug)}"></car-card>`).join(''), mapped };
+  // Preserve eager discovery for the first row (three desktop/two mobile cards).
+  return { html: cars.map((car,index) => `<car-card data-key="${escape(car.slug)}"${index>=3?' data-image-loading="lazy"':''}></car-card>`).join(''), mapped };
 }
 
 async function fetchFilterLookups() {
@@ -50,8 +51,8 @@ async function filterLookups(): Promise<FilterLookups> {
   return filterLookupsPending;
 }
 
-async function populateCarFormBrands($: ReturnType<typeof load>) {
-  const brands = await publicApi<PublicBrand[]>('/brands');
+async function populateCarFormBrands($: ReturnType<typeof load>, existingBrands?: PublicBrand[]) {
+  const brands = existingBrands ?? await publicApi<PublicBrand[]>('/brands');
   for (const name of ['hangxe_lendoi', 'hangxe_lendoimm']) {
     const select = $(`select[name="${name}"]`);
     if (!select.length) continue;
@@ -734,8 +735,24 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
     canonical: `/${car.slug}`, openGraphImage: images[0]?.url || '', content: $.html(), cars: relatedCards.mapped };
 }
 
+// These reads are independent of policy rendering and can start immediately.
+const getHomeData = () => Promise.all([
+  publicApi<PageResult<PublicCar>>('/cars', { limit: 6, sort: 'newest' }),
+  allPublicLookups<Slide>('/slides'), publicApi<PublicBrand[]>('/brands'),
+  publicApi<PageResult<PublicLookup>>('/lookups/body-styles', { limit: 100 }),
+  allPublicLookups<PublicLookup & RangeOption>('/lookups/filter-options', { group: 'budget' }),
+  allPublicLookups<Testimonial>('/testimonials'),
+  publicApi<{ title: string; imageUrl?: string | null }[]>('/content', { group: 'thiet-lap-quy-trinh-ban-xe' }),
+  publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-mua-xe' }),
+  publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-ban-xe' }),
+  publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-len-doi' }),
+  publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-banner-dong-xe' }),
+]);
+
 export async function getPublicPage(pathname: string, searchParams: SearchParams = {}): Promise<LegacyPageData | null> {
-  const policies = await getPolicies();
+  const [policies, homeData] = await Promise.all([
+    getPolicies(), pathname === '/' ? getHomeData() : Promise.resolve(null),
+  ]);
   const policy = policies.find(entry => `/${entry.key}` === pathname);
   if (policy) {
     const template = await getLegacyPage('/dieu-khoan-su-dung');
@@ -755,24 +772,19 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
   }
   if (pathname === '/') {
     if (!page) return null;
-    const [result, slides, brands, styles, budgets, testimonials, sellingProcess, buyingSteps, sellingSteps, tradeInSteps, banners] = await Promise.all([
-      publicApi<PageResult<PublicCar>>('/cars', { limit: 6, sort: 'newest' }),
-      allPublicLookups<Slide>('/slides'), publicApi<PublicBrand[]>('/brands'),
-      publicApi<PageResult<PublicLookup>>('/lookups/body-styles', { limit: 100 }),
-      allPublicLookups<PublicLookup & RangeOption>('/lookups/filter-options', { group: 'budget' }),
-      allPublicLookups<Testimonial>('/testimonials'),
-      publicApi<{ title: string; imageUrl?: string | null }[]>('/content', { group: 'thiet-lap-quy-trinh-ban-xe' }),
-      publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-mua-xe' }),
-      publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-ban-xe' }),
-      publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-len-doi' }),
-      publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-banner-dong-xe' }),
-    ]);
+    const [result, slides, brands, styles, budgets, testimonials, sellingProcess, buyingSteps, sellingSteps, tradeInSteps, banners] = homeData!;
     const $ = load(page.content, {}, false);
     const cards = cardMarkup(result.data);
     $('.wap_sanpham .loadthem_sp1').html(cards.html);
     const slider = $('.slider_slick').first().empty();
-    for (const slide of slides) slider.append($('<a></a>').attr({ href: publicHref(slide.link), title: slide.title })
-      .append($('<img class="no_lazy">').attr({ src: slide.imageUrl, alt: slide.title })));
+    // Give the initially visible LCP image high priority. Keep the other
+    // slides' original loading behavior: deprioritizing them regressed cold
+    // network autoplay tests while delivery still uses the large originals.
+    for (const [index, slide] of slides.entries()) {
+      const image = $('<img class="no_lazy">').attr({ src: slide.imageUrl, alt: slide.title });
+      if (index === 0) image.attr({ loading: 'eager', fetchpriority: 'high' });
+      slider.append($('<a></a>').attr({ href: publicHref(slide.link), title: slide.title }).append(image));
+    }
     if (!slides.length) {
       slider.closest('.slider').remove();
       $('.wap_muaxe').addClass('home-no-slides');
@@ -788,7 +800,7 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
         const query = new URLSearchParams({ 'ngan-sach': `${bounds!.min ?? ''}-${bounds!.max ?? ''}` });
         target.append($('<a></a>').attr({ href: `/san-pham?${query}`, title: item.name }).text(item.name));
       }
-      target.append('<a class="home-view-all" href="/san-pham" title="Xem tất cả xe">Xem tất cả xe</a>');
+      target.append('<a class="home-view-all" href="/tien-ich/mua-xe-theo-nhu-cau" title="Tìm xe theo nhu cầu">Tìm xe theo nhu cầu</a>');
     });
     $('.muaxe .thuonghieu').each((index, element) => {
       const group = groups[index];
@@ -830,7 +842,7 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
     }
     prepareServiceTabs($, serviceSection);
     renderTestimonials($, '.wap_camnhan .camnhan', testimonials, true);
-    await populateCarFormBrands($);
+    await populateCarFormBrands($, brands);
     return { ...page, content: $.html(), cars: cards.mapped };
   }
   if (pathname === '/cam-nhan' && page) return testimonialPage(page);

@@ -1,3 +1,4 @@
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Metadata } from 'next';
 import { routeMetadata } from '@/lib/page-metadata';
 import Link from 'next/link';
@@ -20,7 +21,7 @@ export default async function RecruitmentsPage() {
         return <article className="tt-service-card" key={job.id}>
           <Link className="tt-service-card__link" href={`/tuyen-dung/${job.slug}`}>
             <div className="tt-service-card__media">{job.imageUrl && /^(https?:\/\/|\/(?!\/))/i.test(job.imageUrl)
-              ? <img src={job.imageUrl} alt="" loading="lazy" decoding="async" /> : <span aria-hidden="true">TT</span>}</div>
+              ? <ResponsiveImage profile="card" src={job.imageUrl} alt="" loading="lazy" decoding="async" /> : <span aria-hidden="true">TT</span>}</div>
             <div className="tt-service-card__content"><h2>{job.title}</h2><p>{summary.length > 180 ? `${summary.slice(0, 180).trimEnd()}…` : summary}</p><span className="tt-service-card__more">Đọc bài viết <span aria-hidden="true">→</span></span></div>
           </Link>
         </article>;

@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
+import ResponsiveImage from './ResponsiveImage';
+import { getImageDeliveryUrl, responsiveImage } from '@/lib/image-delivery';
 
 export type BannerSlide = { key: string; src: string; href: string; alt: string };
 
@@ -13,7 +15,10 @@ export default function BuySellBanner({ slides }: { slides: BannerSlide[] }) {
     // Decode both images before autoplay, including images already in cache.
     void Promise.all(slides.map(slide => {
       const image = new Image();
-      image.src = slide.src;
+      const delivery = responsiveImage(slide.src, 'hero', '(max-width:1024px) 100vw, 1024px');
+      if (delivery.srcSet) image.srcset = delivery.srcSet;
+      if (delivery.sizes) image.sizes = delivery.sizes;
+      image.src = delivery.src;
       return image.decode();
     })).then(() => {
       if (!disposed) timer = setInterval(() => setActive(value => (value + 1) % slides.length), 7000);
@@ -27,8 +32,8 @@ export default function BuySellBanner({ slides }: { slides: BannerSlide[] }) {
   return <div className="home-buy-banner" aria-label="Mua và bán xe tại Toàn Trung">
     <a href={current.href} aria-label={current.alt}>
       {slides.map((slide, index) => <span key={slide.key} className={`home-buy-banner__slide${index === Math.min(active, slides.length - 1) ? ' is-active' : ''}`} aria-hidden="true">
-        <span className="home-buy-banner__backdrop" style={{ backgroundImage: `url(${JSON.stringify(slide.src)})` }} />
-        <img src={slide.src} alt="" width="1024" height="177" decoding="async" />
+        <span className="home-buy-banner__backdrop" style={{ backgroundImage: `url(${JSON.stringify(getImageDeliveryUrl({src:slide.src,width:640,kind:'hero'}))})` }} />
+        <ResponsiveImage src={slide.src} profile="hero" sizes="(max-width:1024px) 100vw, 1024px" alt="" width="1024" height="177" decoding="async" />
       </span>)}
     </a>
   </div>;

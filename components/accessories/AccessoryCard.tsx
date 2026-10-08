@@ -1,10 +1,11 @@
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Accessory } from '@/lib/public-api';
 import Link from 'next/link';
 
 export default function AccessoryCard({ item }: { item: Accessory }) {
   return <article className="tt-accessories__card" data-accessory-id={item.id}>
     <Link href={`/phu-kien-o-to/${item.id}`} className="tt-accessories__image" aria-label={`Xem chi tiết ${item.name}`}>
-      <img src={item.imageUrl} alt={item.name} loading="lazy" decoding="async" />
+      <ResponsiveImage profile="card" src={item.imageUrl} alt={item.name} loading="lazy" decoding="async" />
     </Link>
     <div className="tt-accessories__price">{Number(item.price).toLocaleString('vi-VN')} đ</div>
     <div className="tt-accessories__body">

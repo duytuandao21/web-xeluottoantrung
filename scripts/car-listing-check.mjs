@@ -9,7 +9,6 @@ const ids = page => page.locator('.vehicle-results > .item').evaluateAll(items =
 const waitCount = (page, count) => page.waitForFunction(count => document.querySelectorAll('.vehicle-results > .item').length === count, count);
 const makePage = async width => {
   const page = await browser.newPage({ viewport: { width, height: 900 }, ignoreHTTPSErrors: true });
-  await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
   page.on('pageerror', error => { throw error; });
   return page;
 };

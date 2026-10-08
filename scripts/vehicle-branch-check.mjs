@@ -30,7 +30,6 @@ try {
     assert.equal(response.status(), 200);
     const card = page.locator('.vehicle-detail-sidebar .tt-installation-store--branch');
     await card.waitFor();
-    await page.locator('.tt-site-intro').waitFor({ state: 'hidden' });
     assert.equal(await card.locator('h2').innerText(), branch.name);
     assert.equal(await card.locator('.tt-installation-store__location-row p').innerText(), branch.address);
     assert.equal(await card.locator('a[href^="tel:"]').getAttribute('href'), `tel:${branch.phone.replace(/[^+\d]/g, '')}`);

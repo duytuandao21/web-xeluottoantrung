@@ -25,7 +25,6 @@ try {
     page.on('console', message => {
       if (message.type() === 'error' && /unique.*key|hydration|cannot update/i.test(message.text())) errors.push(message.text());
     });
-    await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
     const row = name => page.locator(`[data-vehicle-row="${name}"]`);
     const ready = async () => {
       await page.waitForFunction(() => {

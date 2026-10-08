@@ -88,7 +88,7 @@ function CarListingResults({ query, initialResult, searchCars }: { query: string
 
   const hasMore = Boolean(result && result.meta.page < result.meta.totalPages);
   return <div className="wap_item vehicle-results" aria-busy={state.loading}>
-    {result?.data.map(car => <CarCard key={car.slug} car={carToCard(car)} />)}
+    {result?.data.map((car,index) => <CarCard key={car.slug} car={carToCard(car)} imageLoading={index>=3?'lazy':undefined} />)}
     {!result && state.loading && <p className="vehicle-results__message" role="status">Đang tìm xe...</p>}
     {result && !result.data.length && <p className="vehicle-results__message" role="status">Chưa có xe phù hợp</p>}
     {(hasMore || state.error) && <div className="car-load-more">

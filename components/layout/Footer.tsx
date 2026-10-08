@@ -1,4 +1,5 @@
 "use client";
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
@@ -78,10 +79,10 @@ export default function Footer({ showrooms, phone, address, zalo, settings, call
       <div className="tt-footer-wrap">
         <div className="tt-footer-main">
           <div className="tt-footer-brand">
-            <Link href="/" aria-label="Về trang chủ Toàn Trung"><img src={logoUrl} alt="Auto Toàn Trung" /></Link>
+            <Link href="/" aria-label="Về trang chủ Toàn Trung"><ResponsiveImage profile="logo" sizes="285px" src={logoUrl} alt="Auto Toàn Trung" /></Link>
             <p>{value('footerAbout', 'Hệ thống mua bán ô tô đã qua sử dụng, hướng tới trải nghiệm minh bạch, thuận tiện và chuyên nghiệp cho khách hàng.')}</p>
-            {socials.length > 0 && <div className="tt-footer-social" aria-label="Mạng xã hội">{socials.map(social => <a key={social.id} href={social.link!} target="_blank" rel="noopener noreferrer" aria-label={social.title} title={social.title}>{social.imageUrl ? <img src={social.imageUrl} alt="" /> : social.title}</a>)}</div>}
-            {apps.length > 0 && <div className="tt-footer-apps" aria-label="Tải ứng dụng">{apps.map(app => <a key={app.id} href={app.link!} target="_blank" rel="noopener noreferrer" aria-label={app.title}>{app.imageUrl ? <img src={app.imageUrl} alt={app.title} /> : app.title}</a>)}</div>}
+            {socials.length > 0 && <div className="tt-footer-social" aria-label="Mạng xã hội">{socials.map(social => <a key={social.id} href={social.link!} target="_blank" rel="noopener noreferrer" aria-label={social.title} title={social.title}>{social.imageUrl ? <ResponsiveImage profile="logo" sizes="24px" src={social.imageUrl} alt="" /> : social.title}</a>)}</div>}
+            {apps.length > 0 && <div className="tt-footer-apps" aria-label="Tải ứng dụng">{apps.map(app => <a key={app.id} href={app.link!} target="_blank" rel="noopener noreferrer" aria-label={app.title}>{app.imageUrl ? <ResponsiveImage profile="logo" sizes="140px" src={app.imageUrl} alt={app.title} /> : app.title}</a>)}</div>}
           </div>
           <div><h2 className="tt-footer-heading">{value('serviceTitle', 'Dịch vụ')}</h2><FooterLinks links={services} /></div>
           <div><h2 className="tt-footer-heading">{value('aboutTitle', 'Về Toàn Trung')}</h2><FooterLinks links={about} /></div>
@@ -127,10 +128,10 @@ export default function Footer({ showrooms, phone, address, zalo, settings, call
       </div>
     </footer>
     <a className="btn-zalo btn-frame text-decoration-none hidden_m2" target="_blank" rel="noreferrer" href={zaloHref(zalo)}>
-      <div className="animated infinite zoomIn kenit-alo-circle"/><div className="animated infinite pulse kenit-alo-circle-fill"/><i><img src="/assets/images/zl.png" alt="Zalo" className="no_lazy"/></i>
+      <div className="animated infinite zoomIn kenit-alo-circle"/><div className="animated infinite pulse kenit-alo-circle-fill"/><i><ResponsiveImage profile="logo" src="/assets/images/zl.png" alt="Zalo" className="no_lazy"/></i>
     </a>
     <a className="btn-phone btn-frame text-decoration-none hidden_m2" href="#nutgoi" data-fancybox data-src="#nutgoi" aria-label="Gọi tư vấn Toàn Trung">
-      <div className="animated infinite zoomIn kenit-alo-circle"/><div className="animated infinite pulse kenit-alo-circle-fill"/><i><img src="/assets/images/hl.png" alt="Hotline" className="no_lazy"/></i>
+      <div className="animated infinite zoomIn kenit-alo-circle"/><div className="animated infinite pulse kenit-alo-circle-fill"/><i><ResponsiveImage profile="logo" src="/assets/images/hl.png" alt="Hotline" className="no_lazy"/></i>
     </a>
     <div id="nutgoi" className="tt-call-dialog">
       <h2>Liên hệ Toàn Trung</h2>

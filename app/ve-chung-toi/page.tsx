@@ -1,3 +1,5 @@
+import ImageMarkup from '@/components/common/ImageMarkup';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Metadata } from 'next';
 import { routeMetadata } from '@/lib/page-metadata';
 import { cache } from 'react';
@@ -48,15 +50,15 @@ export default async function AboutPage() {
       <div className="title-main"><h1 id="tt-about-title">{first?.title || 'Về chúng tôi'}</h1></div>
       {first ? <>
         {first.imageUrl && /^(https?:\/\/|\/(?!\/))/i.test(first.imageUrl) && !firstBody.includes(first.imageUrl) &&
-          <figure className="tt-article__hero"><img src={first.imageUrl} alt={first.title} decoding="async" /></figure>}
-        <div className="tt-article__body" dangerouslySetInnerHTML={{ __html: firstBody }} />
+          <figure className="tt-article__hero"><ResponsiveImage profile="content" src={first.imageUrl} alt={first.title} decoding="async" /></figure>}
+        <div className="tt-article__body" ><ImageMarkup html={firstBody} /></div>
         {rest.map(entry => {
           const body = articleBody(entry.body || '');
           return <section className="tt-about__section" key={entry.key} aria-labelledby={`about-${entry.key}`}>
             <h2 id={`about-${entry.key}`}>{entry.title}</h2>
             {entry.imageUrl && /^(https?:\/\/|\/(?!\/))/i.test(entry.imageUrl) && !body.includes(entry.imageUrl) &&
-              <figure className="tt-article__hero"><img src={entry.imageUrl} alt={entry.title} loading="lazy" decoding="async" /></figure>}
-            <div className="tt-article__body" dangerouslySetInnerHTML={{ __html: body }} />
+              <figure className="tt-article__hero"><ResponsiveImage profile="content" src={entry.imageUrl} alt={entry.title} loading="lazy" decoding="async" /></figure>}
+            <div className="tt-article__body" ><ImageMarkup html={body} /></div>
           </section>;
         })}
       </> : <p className="tt-about__empty">Nội dung giới thiệu đang được cập nhật.</p>}

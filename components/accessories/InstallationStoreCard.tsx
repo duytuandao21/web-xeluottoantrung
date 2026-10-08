@@ -1,3 +1,4 @@
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 export type InstallationStore = {
   name: string;
   location: string;
@@ -12,11 +13,11 @@ export default function InstallationStoreCard({ store, kind = 'installation' }: 
   const branch = kind === 'branch';
   return <section className={`tt-installation-store${branch ? ' tt-installation-store--branch' : ''}`} aria-label={branch ? 'Chi nhánh đang có xe' : 'Cửa hàng lắp đặt phụ kiện'}>
     {store.coverImageUrl
-      ? <img className="tt-installation-store__cover" src={store.coverImageUrl} alt={`${branch ? 'Chi nhánh' : 'Cửa hàng lắp đặt'} ${store.name}`} loading="lazy" />
+      ? <ResponsiveImage profile="card" sizes="(max-width:960px) calc(100vw - 32px), 400px" className="tt-installation-store__cover" src={store.coverImageUrl} alt={`${branch ? 'Chi nhánh' : 'Cửa hàng lắp đặt'} ${store.name}`} loading="lazy" />
       : <div className="tt-installation-store__cover tt-installation-store__cover--empty"><span>Ảnh {branch ? 'chi nhánh' : 'cửa hàng'} đang được cập nhật</span></div>}
     <div className="tt-installation-store__body">
       <div className="tt-installation-store__identity">
-        <span className="tt-installation-store__logo"><img src={store.logoImageUrl} alt={`Logo ${store.name}`} loading="lazy" /></span>
+        <span className="tt-installation-store__logo"><ResponsiveImage profile="logo" sizes="47px" src={store.logoImageUrl} alt={`Logo ${store.name}`} loading="lazy" /></span>
         <div><small>{branch ? 'Chi nhánh đang có xe' : 'Cửa hàng lắp đặt'}</small><h2>{store.name}</h2></div>
       </div>
       <div className="tt-installation-store__location-row">

@@ -1,3 +1,4 @@
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import Link from 'next/link';
 
 export type ArticlePreview = {
@@ -15,7 +16,7 @@ export default function ArticleSectionItems({ items, kind }: { items: ArticlePre
     const hasImage = !!item.imageUrl && /^(https?:\/\/|\/(?!\/))/i.test(item.imageUrl);
     return <article key={item.href} className={`tt-article-preview${lead ? ' is-lead' : ''}${hasImage ? '' : ' is-text-only'}`}>
       {hasImage ? <Link href={item.href} className="tt-article-preview__image" tabIndex={-1} aria-hidden="true">
-        <img src={item.imageUrl!} alt="" loading="lazy" decoding="async" />
+        <ResponsiveImage profile="card" sizes="(max-width:960px) calc(100vw - 32px), 640px" src={item.imageUrl!} alt="" loading="lazy" decoding="async" />
       </Link> : <span className="tt-article-preview__symbol" aria-hidden="true">
         {kind === 'faq' ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-3 2V11.5a10 10 0 0 1 20 0Z" /><path d="M8.8 8a3 3 0 0 1 5.8 1c0 2-3 2-3 4" /><path d="M11.6 16h.01" /></svg> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 7h8M8 11h8M8 15h5" /></svg>}
       </span>}

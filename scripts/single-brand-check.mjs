@@ -11,7 +11,6 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   for (const width of [390, 1440]) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
-    await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
     page.on('pageerror', error => { throw error; });
     await page.goto(`${base}/san-pham?hang-xe=${carA},${carB}&gia=gia%20asc&so-km=0-100000`);
     await page.locator('#ngansach-range .ui-slider-handle').first().waitFor({ state: 'attached' });

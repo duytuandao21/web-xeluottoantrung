@@ -15,7 +15,6 @@ const waitCount = (page, count) => page.waitForFunction(count => document.queryS
 try {
   for (const width of [320, 390, 430, 1440]) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, ignoreHTTPSErrors: true });
-    await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
     page.on('pageerror', error => { throw error; });
     await page.goto(`${base}/phu-kien-o-to`);
     assert.deepEqual(await ids(page), initial.data.map(item => item.id));
@@ -69,7 +68,6 @@ try {
   }
 
   const page = await browser.newPage({ viewport: { width: 390, height: 900 } });
-  await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
   await page.goto(`${base}/phu-kien-o-to?sort=price-asc`);
   const ascending = await get('sort=price-asc');
   assert.deepEqual(await ids(page), ascending.data.map(item => item.id));

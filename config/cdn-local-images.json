@@ -1,0 +1,641 @@
+{
+  "/assets/images/banxe.png": {
+    "key": "website-static/c07a2a82fb6c84df042cd8444b0747410e0ed5e24013849dbf552d0a5800185e.png",
+    "sha256": "c07a2a82fb6c84df042cd8444b0747410e0ed5e24013849dbf552d0a5800185e",
+    "bytes": 1243,
+    "width": 24,
+    "height": 23,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/c07a2a82fb6c84df042cd8444b0747410e0ed5e24013849dbf552d0a5800185e.png"
+  },
+  "/assets/images/bienso.png": {
+    "key": "website-static/55ed3de998a41d853383223a750184e8b34d17d3dd69c911194f92ed00f0f29b.png",
+    "sha256": "55ed3de998a41d853383223a750184e8b34d17d3dd69c911194f92ed00f0f29b",
+    "bytes": 1742,
+    "width": 30,
+    "height": 30,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/55ed3de998a41d853383223a750184e8b34d17d3dd69c911194f92ed00f0f29b.png"
+  },
+  "/assets/images/cart-mobile.png": {
+    "key": "website-static/17c7c48234c2eb99ca1c21c0c2878c6170e64bd8a601b9a34259926d4563f875.png",
+    "sha256": "17c7c48234c2eb99ca1c21c0c2878c6170e64bd8a601b9a34259926d4563f875",
+    "bytes": 598,
+    "width": 20,
+    "height": 20,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/17c7c48234c2eb99ca1c21c0c2878c6170e64bd8a601b9a34259926d4563f875.png"
+  },
+  "/assets/images/cauhoi.svg": {
+    "key": "website-static/ebc26719952da498712047913482679a1bd195a9b52260d5a345868d7afd1065.svg",
+    "sha256": "ebc26719952da498712047913482679a1bd195a9b52260d5a345868d7afd1065",
+    "bytes": 269,
+    "width": 22,
+    "height": 22,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/ebc26719952da498712047913482679a1bd195a9b52260d5a345868d7afd1065.svg"
+  },
+  "/assets/images/check-cart.png": {
+    "key": "website-static/0f960ced50d9ee9b0b8a7ff29cb6e21f023338f9ef83aece9f68a297bff34822.png",
+    "sha256": "0f960ced50d9ee9b0b8a7ff29cb6e21f023338f9ef83aece9f68a297bff34822",
+    "bytes": 206,
+    "width": 13,
+    "height": 13,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/0f960ced50d9ee9b0b8a7ff29cb6e21f023338f9ef83aece9f68a297bff34822.png"
+  },
+  "/assets/images/chinhanh.png": {
+    "key": "website-static/819a0f097c058851fe2c25406ac331669e382d6802e515b5b4f964d5f22b9f80.png",
+    "sha256": "819a0f097c058851fe2c25406ac331669e382d6802e515b5b4f964d5f22b9f80",
+    "bytes": 2956,
+    "width": 96,
+    "height": 96,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/819a0f097c058851fe2c25406ac331669e382d6802e515b5b4f964d5f22b9f80.png"
+  },
+  "/assets/images/coc.png": {
+    "key": "website-static/2ec5750e1cd6d7e975c2873e0325dfa1bcc61dcdfbc93176b5ca01de32b62b5e.png",
+    "sha256": "2ec5750e1cd6d7e975c2873e0325dfa1bcc61dcdfbc93176b5ca01de32b62b5e",
+    "bytes": 986,
+    "width": 64,
+    "height": 64,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/2ec5750e1cd6d7e975c2873e0325dfa1bcc61dcdfbc93176b5ca01de32b62b5e.png"
+  },
+  "/assets/images/contact_rotate.png": {
+    "key": "website-static/109b9611fe396182ce2dc86107b9ec5f3572a907e5ef6a552bf6d11b2d5bcc68.png",
+    "sha256": "109b9611fe396182ce2dc86107b9ec5f3572a907e5ef6a552bf6d11b2d5bcc68",
+    "bytes": 3900,
+    "width": 95,
+    "height": 95,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/109b9611fe396182ce2dc86107b9ec5f3572a907e5ef6a552bf6d11b2d5bcc68.png"
+  },
+  "/assets/images/fill.png": {
+    "key": "website-static/5f5c8c9500ea5901deb218c267772d2ae4814e7859f420a1f2ff2adcfcf6cd1a.png",
+    "sha256": "5f5c8c9500ea5901deb218c267772d2ae4814e7859f420a1f2ff2adcfcf6cd1a",
+    "bytes": 284,
+    "width": 18,
+    "height": 18,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/5f5c8c9500ea5901deb218c267772d2ae4814e7859f420a1f2ff2adcfcf6cd1a.png"
+  },
+  "/assets/images/helf.svg": {
+    "key": "website-static/e57a82cabfae569e602a99edd2a5f98655dad5e5fda11664208b27f7f1d3df86.svg",
+    "sha256": "e57a82cabfae569e602a99edd2a5f98655dad5e5fda11664208b27f7f1d3df86",
+    "bytes": 33547,
+    "width": 16,
+    "height": 16,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/e57a82cabfae569e602a99edd2a5f98655dad5e5fda11664208b27f7f1d3df86.svg"
+  },
+  "/assets/images/hl.png": {
+    "key": "website-static/65002234c0c3aff7e3eddea5d50a857b92770dd78d5664f1d73a73b70d7a0279.png",
+    "sha256": "65002234c0c3aff7e3eddea5d50a857b92770dd78d5664f1d73a73b70d7a0279",
+    "bytes": 691,
+    "width": 35,
+    "height": 35,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/65002234c0c3aff7e3eddea5d50a857b92770dd78d5664f1d73a73b70d7a0279.png"
+  },
+  "/assets/images/hopso.png": {
+    "key": "website-static/818d97a1162fe67beffacb26150c0d3d3a10f750eeae0c5849145232260bd35c.png",
+    "sha256": "818d97a1162fe67beffacb26150c0d3d3a10f750eeae0c5849145232260bd35c",
+    "bytes": 369,
+    "width": 48,
+    "height": 48,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/818d97a1162fe67beffacb26150c0d3d3a10f750eeae0c5849145232260bd35c.png"
+  },
+  "/assets/images/i_login.png": {
+    "key": "website-static/ed59fe48166451b40c5cd0f15173c5be29bb699e3927727ffaa2bf7b63727622.png",
+    "sha256": "ed59fe48166451b40c5cd0f15173c5be29bb699e3927727ffaa2bf7b63727622",
+    "bytes": 5880,
+    "width": 64,
+    "height": 64,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/ed59fe48166451b40c5cd0f15173c5be29bb699e3927727ffaa2bf7b63727622.png"
+  },
+  "/assets/images/i_loginm.png": {
+    "key": "website-static/085adbc231a9a67c2a5f687351f453e79937136cc43e22432d9b23736cfaab34.png",
+    "sha256": "085adbc231a9a67c2a5f687351f453e79937136cc43e22432d9b23736cfaab34",
+    "bytes": 4044,
+    "width": 64,
+    "height": 64,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/085adbc231a9a67c2a5f687351f453e79937136cc43e22432d9b23736cfaab34.png"
+  },
+  "/assets/images/icon_s.png": {
+    "key": "website-static/c8fade26f9edab3f9ae7f0bb3d2cd9418abaa29d175966df77ad6c09cb450ead.png",
+    "sha256": "c8fade26f9edab3f9ae7f0bb3d2cd9418abaa29d175966df77ad6c09cb450ead",
+    "bytes": 702,
+    "width": 27,
+    "height": 28,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/c8fade26f9edab3f9ae7f0bb3d2cd9418abaa29d175966df77ad6c09cb450ead.png"
+  },
+  "/assets/images/km.png": {
+    "key": "website-static/764fa577736e730d206208585ab495c634c2a00fe5995635255525e5cd7a7b97.png",
+    "sha256": "764fa577736e730d206208585ab495c634c2a00fe5995635255525e5cd7a7b97",
+    "bytes": 757,
+    "width": 48,
+    "height": 48,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/764fa577736e730d206208585ab495c634c2a00fe5995635255525e5cd7a7b97.png"
+  },
+  "/assets/images/li.svg": {
+    "key": "website-static/e682d4a529194f7f89429ab5ad107ab8e158e47bfa65e8d2f4d4a9c1c3031ada.svg",
+    "sha256": "e682d4a529194f7f89429ab5ad107ab8e158e47bfa65e8d2f4d4a9c1c3031ada",
+    "bytes": 654,
+    "width": 13,
+    "height": 9,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/e682d4a529194f7f89429ab5ad107ab8e158e47bfa65e8d2f4d4a9c1c3031ada.svg"
+  },
+  "/assets/images/nhienlieu.png": {
+    "key": "website-static/32a46261c4c2c51046178537e48ab2bf618154ad4d4ea8ff1f3013dfa79a6dfe.png",
+    "sha256": "32a46261c4c2c51046178537e48ab2bf618154ad4d4ea8ff1f3013dfa79a6dfe",
+    "bytes": 578,
+    "width": 48,
+    "height": 48,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/32a46261c4c2c51046178537e48ab2bf618154ad4d4ea8ff1f3013dfa79a6dfe.png"
+  },
+  "/assets/images/phone.svg": {
+    "key": "website-static/c4d540babc3a985e2e1bd1867701434d4251ac1d7a3a233a013c33a019318346.svg",
+    "sha256": "c4d540babc3a985e2e1bd1867701434d4251ac1d7a3a233a013c33a019318346",
+    "bytes": 1245,
+    "width": 24,
+    "height": 24,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/c4d540babc3a985e2e1bd1867701434d4251ac1d7a3a233a013c33a019318346.svg"
+  },
+  "/assets/images/right.png": {
+    "key": "website-static/6e59f5ed26c0d8f3236062b7263ed4daa526c61086c22410e7e562d1bb32552e.png",
+    "sha256": "6e59f5ed26c0d8f3236062b7263ed4daa526c61086c22410e7e562d1bb32552e",
+    "bytes": 1113,
+    "width": 7,
+    "height": 11,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/6e59f5ed26c0d8f3236062b7263ed4daa526c61086c22410e7e562d1bb32552e.png"
+  },
+  "/assets/images/slick/ajax-loader.gif": {
+    "key": "website-static/e7b44c86b050fca766a96ddac2d0932af0126da6f2305280342d909168dcce6b.gif",
+    "sha256": "e7b44c86b050fca766a96ddac2d0932af0126da6f2305280342d909168dcce6b",
+    "bytes": 4178,
+    "width": 32,
+    "height": 384,
+    "animated": true,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/e7b44c86b050fca766a96ddac2d0932af0126da6f2305280342d909168dcce6b.gif"
+  },
+  "/assets/images/slick/next_xam.png": {
+    "key": "website-static/03fa212efeb4ea5b70af53d293ff74209d8c62c0f69f65b775968605148e6fe3.png",
+    "sha256": "03fa212efeb4ea5b70af53d293ff74209d8c62c0f69f65b775968605148e6fe3",
+    "bytes": 1123,
+    "width": 40,
+    "height": 40,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/03fa212efeb4ea5b70af53d293ff74209d8c62c0f69f65b775968605148e6fe3.png"
+  },
+  "/assets/images/socho.png": {
+    "key": "website-static/84ecb319f0d42b3671ce117c4443994460169cdfac41d4611d3c3fdd8a1a73b7.png",
+    "sha256": "84ecb319f0d42b3671ce117c4443994460169cdfac41d4611d3c3fdd8a1a73b7",
+    "bytes": 549,
+    "width": 48,
+    "height": 48,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/84ecb319f0d42b3671ce117c4443994460169cdfac41d4611d3c3fdd8a1a73b7.png"
+  },
+  "/assets/images/x.svg": {
+    "key": "website-static/02eeab5b82cc9051d12d9fb08fe271190b95afa0e15f90f9c2123f75e545ea56.svg",
+    "sha256": "02eeab5b82cc9051d12d9fb08fe271190b95afa0e15f90f9c2123f75e545ea56",
+    "bytes": 319,
+    "width": 24,
+    "height": 24,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/02eeab5b82cc9051d12d9fb08fe271190b95afa0e15f90f9c2123f75e545ea56.svg"
+  },
+  "/assets/images/zalo_ct.png": {
+    "key": "website-static/dae2c8d3be02a706bdb5deb10f83d83e5738a4b4e4463414cadd11410558271c.png",
+    "sha256": "dae2c8d3be02a706bdb5deb10f83d83e5738a4b4e4463414cadd11410558271c",
+    "bytes": 1814,
+    "width": 78,
+    "height": 62,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/dae2c8d3be02a706bdb5deb10f83d83e5738a4b4e4463414cadd11410558271c.png"
+  },
+  "/assets/images/zl.png": {
+    "key": "website-static/596fd9482afa63955a26733b38fadb158443ea78b2751f573675aa3861809fd2.png",
+    "sha256": "596fd9482afa63955a26733b38fadb158443ea78b2751f573675aa3861809fd2",
+    "bytes": 797,
+    "width": 35,
+    "height": 35,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/596fd9482afa63955a26733b38fadb158443ea78b2751f573675aa3861809fd2.png"
+  },
+  "/assets/webfonts/fa-brands-400.svg": {
+    "key": "website-static/a465ad235869fc8df546f6d73f5eef47852194913934411082a2d45d63414160.svg",
+    "sha256": "a465ad235869fc8df546f6d73f5eef47852194913934411082a2d45d63414160",
+    "bytes": 712198,
+    "width": 0,
+    "height": 0,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/a465ad235869fc8df546f6d73f5eef47852194913934411082a2d45d63414160.svg"
+  },
+  "/assets/webfonts/fa-duotone-900.svg": {
+    "key": "website-static/f51adb33616ab3d47547599d63886f2b04fb04e9fcdaee43bea7092a4543381f.svg",
+    "sha256": "f51adb33616ab3d47547599d63886f2b04fb04e9fcdaee43bea7092a4543381f",
+    "bytes": 2537123,
+    "width": 0,
+    "height": 0,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/f51adb33616ab3d47547599d63886f2b04fb04e9fcdaee43bea7092a4543381f.svg"
+  },
+  "/assets/webfonts/fa-light-300.svg": {
+    "key": "website-static/634d26f2fbce0e825a17131380906c959835f78f2a6eb70414cc0102d844ee9d.svg",
+    "sha256": "634d26f2fbce0e825a17131380906c959835f78f2a6eb70414cc0102d844ee9d",
+    "bytes": 2351062,
+    "width": 0,
+    "height": 0,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/634d26f2fbce0e825a17131380906c959835f78f2a6eb70414cc0102d844ee9d.svg"
+  },
+  "/assets/webfonts/fa-regular-400.svg": {
+    "key": "website-static/0028d7b88af3442013264a5a14afd94508fb1926461a5b250d993603cadb030f.svg",
+    "sha256": "0028d7b88af3442013264a5a14afd94508fb1926461a5b250d993603cadb030f",
+    "bytes": 2102184,
+    "width": 0,
+    "height": 0,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/0028d7b88af3442013264a5a14afd94508fb1926461a5b250d993603cadb030f.svg"
+  },
+  "/assets/webfonts/fa-solid-900.svg": {
+    "key": "website-static/cce84c184d29246c7e34b97314806cecd91e26cca77b1d2b14c6347ed66e63cc.svg",
+    "sha256": "cce84c184d29246c7e34b97314806cecd91e26cca77b1d2b14c6347ed66e63cc",
+    "bytes": 1720144,
+    "width": 0,
+    "height": 0,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/cce84c184d29246c7e34b97314806cecd91e26cca77b1d2b14c6347ed66e63cc.svg"
+  },
+  "/images/ban-xe-banner.png": {
+    "key": "website-static/e20eb09f255ad66832f0d20d4c74d9b214e1d592540fe84a008c6b51eecd1c28.png",
+    "sha256": "e20eb09f255ad66832f0d20d4c74d9b214e1d592540fe84a008c6b51eecd1c28",
+    "bytes": 42227,
+    "width": 1024,
+    "height": 177,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/e20eb09f255ad66832f0d20d4c74d9b214e1d592540fe84a008c6b51eecd1c28.png"
+  },
+  "/images/chatbot/chatbot-icon.lossless-v1.webp": {
+    "key": "website-static/2973654773afd55d48a81c63869b252f69c29692e3bcc2c94b8d4ff1e1686f6d.webp",
+    "sha256": "2973654773afd55d48a81c63869b252f69c29692e3bcc2c94b8d4ff1e1686f6d",
+    "bytes": 795068,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/2973654773afd55d48a81c63869b252f69c29692e3bcc2c94b8d4ff1e1686f6d.webp"
+  },
+  "/images/chatbot/chatbot-icon.png": {
+    "key": "website-static/27e4e0b9dd7d9d4f0a0ee30d6a528b038c2eb8cb16167628c0a9bed7b6214c95.png",
+    "sha256": "27e4e0b9dd7d9d4f0a0ee30d6a528b038c2eb8cb16167628c0a9bed7b6214c95",
+    "bytes": 1137994,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/27e4e0b9dd7d9d4f0a0ee30d6a528b038c2eb8cb16167628c0a9bed7b6214c95.png"
+  },
+  "/images/mua-xe-banner.png": {
+    "key": "website-static/c944355f664645854386e378196b2aa90ab9c43238b7e2dc3bd33c945f64d52a.png",
+    "sha256": "c944355f664645854386e378196b2aa90ab9c43238b7e2dc3bd33c945f64d52a",
+    "bytes": 53523,
+    "width": 1024,
+    "height": 177,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/c944355f664645854386e378196b2aa90ab9c43238b7e2dc3bd33c945f64d52a.png"
+  },
+  "/images/utilities/dinh-gia-xe-cu.png": {
+    "key": "website-static/14788837e6dfdb09da5e0e604253a530e4c5303b45109aa0a074341e62ee4fca.png",
+    "sha256": "14788837e6dfdb09da5e0e604253a530e4c5303b45109aa0a074341e62ee4fca",
+    "bytes": 654221,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/14788837e6dfdb09da5e0e604253a530e4c5303b45109aa0a074341e62ee4fca.png"
+  },
+  "/images/utilities/dinh-gia-xe.svg": {
+    "key": "website-static/195bcabf05a7599ce6bd10ba4a04cef84d65be96b0f1aeb1e82566c466201b47.svg",
+    "sha256": "195bcabf05a7599ce6bd10ba4a04cef84d65be96b0f1aeb1e82566c466201b47",
+    "bytes": 741,
+    "width": 80,
+    "height": 80,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/195bcabf05a7599ce6bd10ba4a04cef84d65be96b0f1aeb1e82566c466201b47.svg"
+  },
+  "/images/utilities/mua-xe-theo-nhu-cau.svg": {
+    "key": "website-static/56b971cea9b6d0b1b6b83574b4c782c776ff5c0086efd8ebcbb672e8a8500550.svg",
+    "sha256": "56b971cea9b6d0b1b6b83574b4c782c776ff5c0086efd8ebcbb672e8a8500550",
+    "bytes": 963,
+    "width": 80,
+    "height": 80,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/56b971cea9b6d0b1b6b83574b4c782c776ff5c0086efd8ebcbb672e8a8500550.svg"
+  },
+  "/images/utilities/mua-xe-theo-yeu-cau.png": {
+    "key": "website-static/41a2126c6a09a5a159bd9819cc0afd7c513187ae69af4e243cc7dfcbcda36bff.png",
+    "sha256": "41a2126c6a09a5a159bd9819cc0afd7c513187ae69af4e243cc7dfcbcda36bff",
+    "bytes": 557683,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/41a2126c6a09a5a159bd9819cc0afd7c513187ae69af4e243cc7dfcbcda36bff.png"
+  },
+  "/images/utilities/test-icon-tien-ich/dinh-gia-xe-cu.lossless-v1.webp": {
+    "key": "website-static/48837729c780d00620f0e3c0286877f339f2f33e57bb7c7a5bbae9011f0d6017.webp",
+    "sha256": "48837729c780d00620f0e3c0286877f339f2f33e57bb7c7a5bbae9011f0d6017",
+    "bytes": 162464,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/48837729c780d00620f0e3c0286877f339f2f33e57bb7c7a5bbae9011f0d6017.webp"
+  },
+  "/images/utilities/test-icon-tien-ich/dinh-gia-xe-cu.png": {
+    "key": "website-static/fa8fff40736458dfd540913bad7024675703cf22d16a7682f72832308d55e8fa.png",
+    "sha256": "fa8fff40736458dfd540913bad7024675703cf22d16a7682f72832308d55e8fa",
+    "bytes": 269983,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/fa8fff40736458dfd540913bad7024675703cf22d16a7682f72832308d55e8fa.png"
+  },
+  "/images/utilities/test-icon-tien-ich/mua-xe-theo-nhu-cau.lossless-v1.webp": {
+    "key": "website-static/fabcd61e6e3698e32b89104120be4f3542a03514aa0df5c1c061ed30c4243f1c.webp",
+    "sha256": "fabcd61e6e3698e32b89104120be4f3542a03514aa0df5c1c061ed30c4243f1c",
+    "bytes": 153006,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/fabcd61e6e3698e32b89104120be4f3542a03514aa0df5c1c061ed30c4243f1c.webp"
+  },
+  "/images/utilities/test-icon-tien-ich/mua-xe-theo-nhu-cau.png": {
+    "key": "website-static/a4d309edf23c429a072aa9905407ef6678e45cb36e44acdf731d24486296ecdb.png",
+    "sha256": "a4d309edf23c429a072aa9905407ef6678e45cb36e44acdf731d24486296ecdb",
+    "bytes": 259829,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/a4d309edf23c429a072aa9905407ef6678e45cb36e44acdf731d24486296ecdb.png"
+  },
+  "/images/utilities/test-icon-tien-ich/tra-cuu-phat-nguoi.lossless-v1.webp": {
+    "key": "website-static/9dfbfaeed75c135fbd193e14b2750565b070cd0a87925c99a0ad25a55d0e21b0.webp",
+    "sha256": "9dfbfaeed75c135fbd193e14b2750565b070cd0a87925c99a0ad25a55d0e21b0",
+    "bytes": 145736,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/9dfbfaeed75c135fbd193e14b2750565b070cd0a87925c99a0ad25a55d0e21b0.webp"
+  },
+  "/images/utilities/test-icon-tien-ich/tra-cuu-phat-nguoi.png": {
+    "key": "website-static/b690cf0e28a638a42b0f1b1b294f586c5afcc6be3437eaa524a3fcc5d124a321.png",
+    "sha256": "b690cf0e28a638a42b0f1b1b294f586c5afcc6be3437eaa524a3fcc5d124a321",
+    "bytes": 249867,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/b690cf0e28a638a42b0f1b1b294f586c5afcc6be3437eaa524a3fcc5d124a321.png"
+  },
+  "/images/utilities/test-icon-tien-ich/xem-gia-xang-dau.lossless-v1.webp": {
+    "key": "website-static/df051b0d1f69ac05021b1d8fd73366ea4c45bb04cf6ab4b5453efa8886c50567.webp",
+    "sha256": "df051b0d1f69ac05021b1d8fd73366ea4c45bb04cf6ab4b5453efa8886c50567",
+    "bytes": 148382,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/df051b0d1f69ac05021b1d8fd73366ea4c45bb04cf6ab4b5453efa8886c50567.webp"
+  },
+  "/images/utilities/test-icon-tien-ich/xem-gia-xang-dau.png": {
+    "key": "website-static/ef26b8daec72bc5679d73e4f8181ca875841d961eebf70b55d2c960450410a6c.png",
+    "sha256": "ef26b8daec72bc5679d73e4f8181ca875841d961eebf70b55d2c960450410a6c",
+    "bytes": 256912,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/ef26b8daec72bc5679d73e4f8181ca875841d961eebf70b55d2c960450410a6c.png"
+  },
+  "/images/utilities/test-icon-tien-ich/xem-ngay-mua-xe.lossless-v1.webp": {
+    "key": "website-static/67a6301cd4e0cbf509ab46b81acd911f92385c629ad63c4c0e4fca1b13e25ff6.webp",
+    "sha256": "67a6301cd4e0cbf509ab46b81acd911f92385c629ad63c4c0e4fca1b13e25ff6",
+    "bytes": 194342,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/67a6301cd4e0cbf509ab46b81acd911f92385c629ad63c4c0e4fca1b13e25ff6.webp"
+  },
+  "/images/utilities/test-icon-tien-ich/xem-ngay-mua-xe.png": {
+    "key": "website-static/636e4a9a3b9c223da008b0cf4be4e401d8bb0f0c3e3c2776383c1d8df48fe486.png",
+    "sha256": "636e4a9a3b9c223da008b0cf4be4e401d8bb0f0c3e3c2776383c1d8df48fe486",
+    "bytes": 321805,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/636e4a9a3b9c223da008b0cf4be4e401d8bb0f0c3e3c2776383c1d8df48fe486.png"
+  },
+  "/images/utilities/tra-cuu-phat-nguoi.png": {
+    "key": "website-static/658e1d60c7eb76ec8b3f6072e55c65460e02ffca4d65c35142bac1d9b851e2a8.png",
+    "sha256": "658e1d60c7eb76ec8b3f6072e55c65460e02ffca4d65c35142bac1d9b851e2a8",
+    "bytes": 467876,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/658e1d60c7eb76ec8b3f6072e55c65460e02ffca4d65c35142bac1d9b851e2a8.png"
+  },
+  "/images/utilities/tra-cuu-phat-nguoi.svg": {
+    "key": "website-static/8b452df302e47f6ced0ad718a87e4ef4f17a4b4c01766d8e5400e1e340248edd.svg",
+    "sha256": "8b452df302e47f6ced0ad718a87e4ef4f17a4b4c01766d8e5400e1e340248edd",
+    "bytes": 440,
+    "width": 80,
+    "height": 80,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/8b452df302e47f6ced0ad718a87e4ef4f17a4b4c01766d8e5400e1e340248edd.svg"
+  },
+  "/images/utilities/xem-gia-xang-dau.png": {
+    "key": "website-static/975a631d848d8b3dac0bb3dc2ae2804fc6cf5706cae2b1cc6cdb1fc04c095eac.png",
+    "sha256": "975a631d848d8b3dac0bb3dc2ae2804fc6cf5706cae2b1cc6cdb1fc04c095eac",
+    "bytes": 547220,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/975a631d848d8b3dac0bb3dc2ae2804fc6cf5706cae2b1cc6cdb1fc04c095eac.png"
+  },
+  "/images/utilities/xem-gia-xang-dau.svg": {
+    "key": "website-static/65e2653e4483c43fc208ea1353ef81bfced757a29943a04018c515bc4e904c2f.svg",
+    "sha256": "65e2653e4483c43fc208ea1353ef81bfced757a29943a04018c515bc4e904c2f",
+    "bytes": 488,
+    "width": 80,
+    "height": 80,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/65e2653e4483c43fc208ea1353ef81bfced757a29943a04018c515bc4e904c2f.svg"
+  },
+  "/images/utilities/xem-ngay-mua-xe.png": {
+    "key": "website-static/659d5a991ada1f35335f205a5f302ce50c5e210edf87923d4b7a7e73c57e198c.png",
+    "sha256": "659d5a991ada1f35335f205a5f302ce50c5e210edf87923d4b7a7e73c57e198c",
+    "bytes": 674558,
+    "width": 1254,
+    "height": 1254,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/659d5a991ada1f35335f205a5f302ce50c5e210edf87923d4b7a7e73c57e198c.png"
+  },
+  "/images/utilities/xem-ngay-mua-xe.svg": {
+    "key": "website-static/f2d6f6c134c7b5874098255b459fd7803199e6851d627c9bd04fb0ec16bbb44a.svg",
+    "sha256": "f2d6f6c134c7b5874098255b459fd7803199e6851d627c9bd04fb0ec16bbb44a",
+    "bytes": 654,
+    "width": 80,
+    "height": 80,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/f2d6f6c134c7b5874098255b459fd7803199e6851d627c9bd04fb0ec16bbb44a.svg"
+  },
+  "/thumbs/90x90x2/assets/images/noimage.png": {
+    "key": "website-static/38d512415c67bf8961d3b5570b3492e2416d3882c2fb9d92a70e4ec62905209b.png",
+    "sha256": "38d512415c67bf8961d3b5570b3492e2416d3882c2fb9d92a70e4ec62905209b",
+    "bytes": 5443,
+    "width": 90,
+    "height": 90,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/38d512415c67bf8961d3b5570b3492e2416d3882c2fb9d92a70e4ec62905209b.png"
+  },
+  "/upload/news/z5430025073029f4f2d428b858e67dec08bdf6ad3ab3d9-removebg-preview-4869.png": {
+    "key": "website-static/45549840675eeb646bf2a1dc433946a480f4f5df0278fe106ec3a8218ab8405e.png",
+    "sha256": "45549840675eeb646bf2a1dc433946a480f4f5df0278fe106ec3a8218ab8405e",
+    "bytes": 240396,
+    "width": 600,
+    "height": 400,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/45549840675eeb646bf2a1dc433946a480f4f5df0278fe106ec3a8218ab8405e.png"
+  },
+  "/upload/news/z5430048952628bebc88299e1b87e96914633c2da3326c-removebg-preview-6304.png": {
+    "key": "website-static/3205e5b2c4007b58b24dd689d971719ba66d39d9ea40d07ceaa64c301f6dd901.png",
+    "sha256": "3205e5b2c4007b58b24dd689d971719ba66d39d9ea40d07ceaa64c301f6dd901",
+    "bytes": 233495,
+    "width": 546,
+    "height": 457,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/3205e5b2c4007b58b24dd689d971719ba66d39d9ea40d07ceaa64c301f6dd901.png"
+  },
+  "/upload/photo/20673-8148.png": {
+    "key": "website-static/a0102958de41adefa990cbe430a3c1e5d40c9b6ca3f22359f228bbc22a9b2603.png",
+    "sha256": "a0102958de41adefa990cbe430a3c1e5d40c9b6ca3f22359f228bbc22a9b2603",
+    "bytes": 3853,
+    "width": 256,
+    "height": 256,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/a0102958de41adefa990cbe430a3c1e5d40c9b6ca3f22359f228bbc22a9b2603.png"
+  },
+  "/upload/photo/4138198-7894.png": {
+    "key": "website-static/b685352b16c54aedcd3e035a1c3ec31b96f877763014206eb998250634d91e48.png",
+    "sha256": "b685352b16c54aedcd3e035a1c3ec31b96f877763014206eb998250634d91e48",
+    "bytes": 12155,
+    "width": 512,
+    "height": 512,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/b685352b16c54aedcd3e035a1c3ec31b96f877763014206eb998250634d91e48.png"
+  },
+  "/upload/photo/favicon-3815.png": {
+    "key": "website-static/c9bc434e5161ca6b79ac7e68d50f4c8b730f16322265169102c8d8772f1a3c78.png",
+    "sha256": "c9bc434e5161ca6b79ac7e68d50f4c8b730f16322265169102c8d8772f1a3c78",
+    "bytes": 3820,
+    "width": 100,
+    "height": 100,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/c9bc434e5161ca6b79ac7e68d50f4c8b730f16322265169102c8d8772f1a3c78.png"
+  },
+  "/upload/photo/img8444-2-7758.jpg": {
+    "key": "website-static/ea9236a66bd8731eff71456b3663688d059e8a35eca1b31bdb38dfe544aa0f27.jpg",
+    "sha256": "ea9236a66bd8731eff71456b3663688d059e8a35eca1b31bdb38dfe544aa0f27",
+    "bytes": 2467494,
+    "width": 1600,
+    "height": 1200,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/ea9236a66bd8731eff71456b3663688d059e8a35eca1b31bdb38dfe544aa0f27.jpg"
+  },
+  "/upload/photo/logo-tt-gold-6981.webp": {
+    "key": "website-static/27cc76fe1e49581b905047c75de7ccd8dff8da7895e977f15c14bef6a7ad7322.webp",
+    "sha256": "27cc76fe1e49581b905047c75de7ccd8dff8da7895e977f15c14bef6a7ad7322",
+    "bytes": 114634,
+    "width": 1600,
+    "height": 640,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/27cc76fe1e49581b905047c75de7ccd8dff8da7895e977f15c14bef6a7ad7322.webp"
+  },
+  "/upload/photo/orange-and-brown-modern-car-wash-service-banner-8023.png": {
+    "key": "website-static/b44058ee51a5abd39323efe65929859df98860efdfbbf376b94bd9858295ff7e.png",
+    "sha256": "b44058ee51a5abd39323efe65929859df98860efdfbbf376b94bd9858295ff7e",
+    "bytes": 5129164,
+    "width": 1600,
+    "height": 800,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/b44058ee51a5abd39323efe65929859df98860efdfbbf376b94bd9858295ff7e.png"
+  },
+  "/upload/photo/youtube-150-4900.png": {
+    "key": "website-static/ee6aa1b3bf36515fd97c43eeac7f20079e4b04d3bec323e2797ef0238106a31b.png",
+    "sha256": "ee6aa1b3bf36515fd97c43eeac7f20079e4b04d3bec323e2797ef0238106a31b",
+    "bytes": 10932,
+    "width": 512,
+    "height": 512,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/ee6aa1b3bf36515fd97c43eeac7f20079e4b04d3bec323e2797ef0238106a31b.png"
+  },
+  "/upload/photo/z542696452086627bb2b6a9a249c269886d0a6ef071eaa-4670.jpg": {
+    "key": "website-static/9335d342e0bb59ea96619b08ad67f65e7b656332eef1369df19815c53b4f47a5.jpg",
+    "sha256": "9335d342e0bb59ea96619b08ad67f65e7b656332eef1369df19815c53b4f47a5",
+    "bytes": 428948,
+    "width": 1274,
+    "height": 956,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/9335d342e0bb59ea96619b08ad67f65e7b656332eef1369df19815c53b4f47a5.jpg"
+  },
+  "https://xeluottoantrung.com/upload/elfinder/NewFolder/440567601_927819369142718_2129534941866194444_n.jpg": {
+    "key": "website-static/a84f4fb0b5215f273f2872b3e43c4a0e0ee9d5c7895185f632fac7657ee1a72e.jpg",
+    "sha256": "a84f4fb0b5215f273f2872b3e43c4a0e0ee9d5c7895185f632fac7657ee1a72e",
+    "bytes": 72776,
+    "width": 1280,
+    "height": 854,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/a84f4fb0b5215f273f2872b3e43c4a0e0ee9d5c7895185f632fac7657ee1a72e.jpg"
+  },
+  "https://xeluottoantrung.com/upload/elfinder/NewFolder/440572519_927819345809387_1254034212757511651_n.jpg": {
+    "key": "website-static/53df3d5393eff595a60c68e6ac61dcc659ab9e115ab82996e7f44d186a1ffa32.jpg",
+    "sha256": "53df3d5393eff595a60c68e6ac61dcc659ab9e115ab82996e7f44d186a1ffa32",
+    "bytes": 98775,
+    "width": 1280,
+    "height": 854,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/53df3d5393eff595a60c68e6ac61dcc659ab9e115ab82996e7f44d186a1ffa32.jpg"
+  },
+  "https://xeluottoantrung.com/upload/elfinder/NewFolder/441445133_927819335809388_6565359121962616621_n.jpg": {
+    "key": "website-static/01ce25c4126e6076795406578be8a42a9ada4336912d419f37121585801a9113.jpg",
+    "sha256": "01ce25c4126e6076795406578be8a42a9ada4336912d419f37121585801a9113",
+    "bytes": 76823,
+    "width": 1280,
+    "height": 854,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/01ce25c4126e6076795406578be8a42a9ada4336912d419f37121585801a9113.jpg"
+  },
+  "https://xeluottoantrung.com/upload/elfinder/NewFolder/Thi%E1%BA%BFt%20k%E1%BA%BF%20ch%C6%B0a%20c%C3%B3%20t%C3%AAn%20%281%29.png": {
+    "key": "website-static/75bc0d4e5ef9b42f7e1055cd32b86daebca0c868b4a0ab1a7e12f0b64c73960f.png",
+    "sha256": "75bc0d4e5ef9b42f7e1055cd32b86daebca0c868b4a0ab1a7e12f0b64c73960f",
+    "bytes": 191883,
+    "width": 400,
+    "height": 250,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/75bc0d4e5ef9b42f7e1055cd32b86daebca0c868b4a0ab1a7e12f0b64c73960f.png"
+  },
+  "https://xeluottoantrung.com/upload/elfinder/NewFolder/z5426964526704_1ba54c812b7c630185c2d60055e8f9d9.jpg": {
+    "key": "website-static/f9c8d53a67d8cf80fb0f7ab2312928a0d671926b067e4bc14ed961bd0d998491.jpg",
+    "sha256": "f9c8d53a67d8cf80fb0f7ab2312928a0d671926b067e4bc14ed961bd0d998491",
+    "bytes": 435411,
+    "width": 1276,
+    "height": 956,
+    "animated": false,
+    "url": "https://cdn.toantrungxeluot.io.vn/website-static/f9c8d53a67d8cf80fb0f7ab2312928a0d671926b067e4bc14ed961bd0d998491.jpg"
+  }
+}

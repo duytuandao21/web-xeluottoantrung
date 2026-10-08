@@ -1,4 +1,5 @@
 'use client';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -280,7 +281,7 @@ export default function SearchSuggestions() {
           <div className="tt-search-suggestions__product-heading" role="presentation"><SearchIcon /><span>Gợi ý sản phẩm</span></div>
           {data.items.length ? hasQuery ? data.items.map((item, index) => <Link key={`${item.kind}:${item.id}`} id={optionId(keywords.length + index)} href={item.href} prefetch={false}
           role="option" aria-selected={keywords.length + index === active} className={`tt-search-suggestions__product${keywords.length + index === active ? ' is-active' : ''}`} onMouseEnter={() => chooseActive(keywords.length + index)} onClick={dismiss}>
-          <img src={searchImage(item.imageUrl)} alt="" width="64" height="48" decoding="async" onError={event => {
+          <ResponsiveImage profile="thumbnail" src={searchImage(item.imageUrl)} alt="" sizes="64px" width="64" height="48" decoding="async" onError={event => {
             const image = event.currentTarget;
             if (image.src !== new URL(searchImage(null), location.origin).href) image.src = searchImage(null);
           }} />
@@ -288,7 +289,7 @@ export default function SearchSuggestions() {
         </Link>) : <div className="tt-search-suggestions__recommendations" style={{ gridTemplateColumns: `repeat(${(position.width >= 600) ? 4 : 2}, minmax(0, 1fr))` }} role="group" aria-label="Xe và phụ kiện được gợi ý">
           {data.items.map((item, index) => <Link key={`${item.kind}:${item.id}`} id={optionId(keywords.length + index)} href={item.href} prefetch={false}
             role="option" aria-selected={keywords.length + index === active} className={`tt-search-suggestions__card${keywords.length + index === active ? ' is-active' : ''}`} onMouseEnter={() => chooseActive(keywords.length + index)} onClick={dismiss}>
-            <div className="tt-search-suggestions__card-image"><img src={searchImage(item.imageUrl)} alt="" width="240" height="150" decoding="async" onError={event => {
+            <div className="tt-search-suggestions__card-image"><ResponsiveImage profile="card" src={searchImage(item.imageUrl)} alt="" sizes="(max-width:600px) calc((100vw - 60px) / 2), 320px" width="240" height="150" decoding="async" onError={event => {
               const image = event.currentTarget;
               if (image.src !== new URL(searchImage(null), location.origin).href) image.src = searchImage(null);
             }} /><span>{item.kind === 'car' ? 'Ô tô' : 'Phụ kiện'}</span></div>

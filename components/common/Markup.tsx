@@ -9,6 +9,8 @@ import type { Car } from '@/types/car';
 import { SalePlate } from '@/components/sale/SaleAccess';
 import CarListing from '@/components/car/CarListing';
 import type { PageResult, PublicCar } from '@/lib/public-api';
+import ResponsiveImage from './ResponsiveImage';
+import { getImageOriginalUrl, imageProfile } from '@/lib/image-delivery';
 import InstallationStoreCard, { type InstallationStore } from '@/components/accessories/InstallationStoreCard';
 
 export default function Markup({html,cars={}}:{html:string;cars?:Record<string,Car>}) {
@@ -16,8 +18,22 @@ export default function Markup({html,cars={}}:{html:string;cars?:Record<string,C
     if(!(node instanceof Element)) return;
     const cls=node.attribs.class || '';
     if(node.name==='script') return <></>;
+    // Preserve every CSS declaration; only normalize managed inline image URLs.
+    if(node.attribs.style?.includes('url(')) {
+      node.attribs.style=node.attribs.style.replace(/url\((["']?)([^"')]+)\1\)/g,(_match,quote,url)=>`url(${quote}${getImageOriginalUrl(url)}${quote})`);
+    }
+    // react-property does not yet map fetchpriority to React's fetchPriority.
+    // Normalize it explicitly so React SSR also respects the image preload hint.
+    if(node.name==='img') {
+      const {fetchpriority,...attrs}=node.attribs;
+      const classes=[cls];let parent=node.parent;while(parent instanceof Element){classes.push(parent.attribs.class||'');parent=parent.parent;}
+      const profile=imageProfile(classes.join(' '));
+      return <ResponsiveImage {...attributesToProps(attrs)} src={attrs.src||''} profile={profile}
+        sizes={profile==='logo'?'71px':profile==='thumbnail'?'100px':undefined}
+        fetchPriority={fetchpriority==='high'?'high':fetchpriority==='low'?'low':undefined} />;
+    }
     if(cls.split(' ').includes('home-buy-banner')) return <BuySellBanner slides={JSON.parse(node.attribs['data-slides'] || '[]') as BannerSlide[]} />;
-    if(node.name==='car-card') {const car=cars[node.attribs['data-key']];return car?<CarCard key={car.id} car={car}/>:<></>;}
+    if(node.name==='car-card') {const car=cars[node.attribs['data-key']];return car?<CarCard key={car.id} car={car} imageLoading={node.attribs['data-image-loading']==='lazy'?'lazy':undefined}/>:<></>;}
     if(node.name==='sale-plate') return <SalePlate slug={node.attribs['data-slug'] || ''} />;
     if(node.name==='vehicle-branch-card') return <InstallationStoreCard kind="branch" store={JSON.parse(node.attribs['data-store']) as InstallationStore} />;
     if(cls.split(' ').includes('wap_item') && node.attribs['data-car-list-query']) {

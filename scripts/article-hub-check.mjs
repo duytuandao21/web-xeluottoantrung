@@ -19,7 +19,6 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   for (const width of [1440, 390]) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
-    await page.addInitScript(() => sessionStorage.setItem('tt-site-intro-seen', '1'));
     const response = await page.goto(`${base}/tin-tuc`);
     assert.equal(response.status(), 200);
     assert.equal(new URL(page.url()).pathname, '/bai-viet');

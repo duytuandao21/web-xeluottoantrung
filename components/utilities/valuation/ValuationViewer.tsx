@@ -1,5 +1,5 @@
 'use client';
-import Image from 'next/image';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { fieldLabels, formatKm, formatKmInput, kmDigits, ValuationApiError, valuationApi, type CatalogItem, type ConditionField, type EstimateInput, type ValuationConfig, type ValuationResult as Result } from '@/lib/valuation';
 import useCatalog from './useCatalog';
@@ -105,7 +105,7 @@ export default function ValuationViewer({ contact }: { contact: ValuationContact
   const noSupport = !brands.loading && !brands.error && enabled && !brands.data.length;
   return <>
     <header className="tt-valuation-hero"><div><span className="tt-valuation-accent" aria-hidden="true" /><h1>Định giá xe cũ</h1><p>Hiểu hơn giá trị chiếc xe của bạn trước khi quyết định bán hoặc lên đời.</p></div>
-      <div className="tt-valuation-hero__icon" aria-hidden="true"><Image src="/images/utilities/test-icon-tien-ich/dinh-gia-xe-cu.png" alt="" width={1254} height={1254} /></div></header>
+      <div className="tt-valuation-hero__icon" aria-hidden="true"><ResponsiveImage profile="icon" sizes="(max-width:600px) 90px, 160px" loading="lazy" src="/images/utilities/test-icon-tien-ich/dinh-gia-xe-cu.lossless-v1.webp" alt="" width={1254} height={1254} /></div></header>
     {configError ? <section className="tt-date-panel" role="alert"><h2>Chưa thể tải tiện ích</h2><p>{configError}</p><button type="button" className="tt-date-button" onClick={refresh}>Thử lại</button><ContactActions contact={contact} label="Liên hệ tư vấn giá xe" /></section>
       : !config ? <section className="tt-date-panel tt-valuation-loading" role="status"><span className="tt-valuation-skeleton" />Đang tải tiện ích định giá…</section>
       : !enabled ? <section className="tt-date-panel"><h2>Tiện ích đang được chuẩn bị</h2><p>Toàn Trung đang cập nhật dữ liệu giá tham chiếu. Bạn có thể liên hệ để được tư vấn và kiểm định xe trực tiếp.</p><ContactActions contact={contact} label={config.ctaLabel} /></section>

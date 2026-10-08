@@ -2,8 +2,8 @@ import Link from 'next/link';
 
 type Crumb = { label: string; href?: string };
 
-export default function SiteBreadcrumb({ items }: { items: Crumb[] }) {
-  return <div className="breadCrumbs"><div className="main_fix">
+export default function SiteBreadcrumb({ items, className = '' }: { items: Crumb[]; className?: string }) {
+  return <div className={`breadCrumbs ${className}`.trim()}><div className="main_fix">
     <nav aria-label="Đường dẫn"><ol className="site-breadcrumb">
       {items.map((item, index) => {
         const current = index === items.length - 1;

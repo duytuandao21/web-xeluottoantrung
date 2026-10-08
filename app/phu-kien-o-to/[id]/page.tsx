@@ -1,3 +1,5 @@
+import ImageMarkup from '@/components/common/ImageMarkup';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Metadata } from 'next';
 import { routeMetadata } from '@/lib/page-metadata';
 import { cache } from 'react';
@@ -54,7 +56,7 @@ export default async function AccessoryDetailPage({ params }: PageProps) {
     phone: installation.phone?.trim() || hotline,
     mapUrl,
     coverImageUrl: /^(https:\/\/|\/(?!\/))/i.test(installation.coverImageUrl || '') ? installation.coverImageUrl : undefined,
-    logoImageUrl: /^(https:\/\/|\/(?!\/))/i.test(installation.logoImageUrl || '') ? installation.logoImageUrl : '/upload/photo/logo-tt-gold-6981.png',
+    logoImageUrl: /^(https:\/\/|\/(?!\/))/i.test(installation.logoImageUrl || '') ? installation.logoImageUrl : '/upload/photo/logo-tt-gold-6981.webp',
   };
   const images = [...new Set([item.imageUrl, ...(item.imageUrls || [])])]
     .filter(url => /^(https?:\/\/|\/(?!\/))/i.test(url))
@@ -77,7 +79,7 @@ export default async function AccessoryDetailPage({ params }: PageProps) {
                 <span>Hotline</span><strong>{hotline}</strong>
               </a>
               <a href={zaloHref(info.zalo)} className="tt-accessory-detail__contact" target="_blank" rel="noopener noreferrer">
-                <span>Liên hệ qua</span><strong><img src="/assets/images/zalo_ct.png" alt="" /> ZALO</strong>
+                <span>Liên hệ qua</span><strong><ResponsiveImage profile="icon" src="/assets/images/zalo_ct.png" alt="" /> ZALO</strong>
               </a>
             </div>
             <AccessoryCallback name={item.name} />
@@ -86,7 +88,7 @@ export default async function AccessoryDetailPage({ params }: PageProps) {
         </div>
         <section className="vehicle-detail-description tt-accessory-detail__description" aria-labelledby="accessory-description-title">
           <h2 className="vehicle-detail-heading" id="accessory-description-title">Mô tả chi tiết</h2>
-          <div className="vehicle-detail-description__body" dangerouslySetInnerHTML={{ __html: description || '<p>Mô tả chi tiết đang được cập nhật.</p>' }} />
+          <div className="vehicle-detail-description__body" ><ImageMarkup html={description || '<p>Mô tả chi tiết đang được cập nhật.</p>'} /></div>
         </section>
       </div>
       <RelatedAccessories items={related} />

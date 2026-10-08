@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import LegacyPage from "@/components/common/LegacyPage";
 import AccessoryCarousel from "@/components/accessories/AccessoryCarousel";
-import { publicApi } from "@/lib/public-api";
-import type { Accessory, Article, PageResult } from "@/lib/public-api";
+import { optionalPublicApi, publicApi } from "@/lib/public-api";
+import type { Accessory, Article, PageResult, SeoRecord } from "@/lib/public-api";
 import { replaceHomeBottom } from "@/lib/home-bottom";
 import { safeHtml } from "@/lib/safe-html";
 import { getRequestPublicPage } from "@/lib/public-pages";
@@ -13,7 +13,10 @@ import HomeScrollReveal from '@/components/common/HomeScrollReveal';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return pageMetadata(await getRequestPublicPage('/'), '/');
+  const [page, seo] = await Promise.all([
+    getRequestPublicPage('/'), optionalPublicApi<SeoRecord>('/seo', { route: '/' }),
+  ]);
+  return pageMetadata(page, '/', seo);
 }
 
 type ServiceStep = { title: string; body?: string | null; imageUrl?: string | null };

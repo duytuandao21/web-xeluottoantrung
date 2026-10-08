@@ -1,15 +1,72 @@
 import 'server-only';
+import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 
 const baseUrl = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '');
+
+// Public presentation data can tolerate a short revalidation window. Keep this
+// allowlist narrow: stock counts, prices, policies and API actions stay live.
+const presentationContentGroups = new Set([
+  'thiet-lap-quy-trinh-ban-xe',
+  'thiet-lap-cac-buoc-mua-xe',
+  'thiet-lap-cac-buoc-ban-xe',
+  'thiet-lap-cac-buoc-len-doi',
+  'thiet-lap-banner-dong-xe',
+  'thiet-lap-mang-xa-hoi',
+  'thiet-lap-ung-dung',
+]);
+const presentationSettings = new Set([
+  '/site-settings/thiet-lap-thong-tin',
+  '/site-settings/thiet-lap-logo',
+  '/site-settings/thiet-lap-favicon',
+  '/site-settings/thiet-lap-footer',
+]);
+const presentationCatalogs = new Set(['/lookups/branches', '/lookups/branch-regions', '/services']);
+
+// A cold homepage needs many independent reads. Bound the burst per server
+// process to avoid sending the whole cold render to the public API at once.
+const maxConcurrentReads = 8;
+let activeReads = 0;
+const waitingReads: Array<() => void> = [];
+async function withPublicReadSlot<T>(read: () => Promise<T>): Promise<T> {
+  if (activeReads >= maxConcurrentReads) await new Promise<void>(resolve => waitingReads.push(resolve));
+  else activeReads++;
+  try {
+    return await read();
+  } finally {
+    const next = waitingReads.shift();
+    if (next) next(); // Transfer the slot to the next waiting read.
+    else activeReads--;
+  }
+}
 
 export class PublicApiError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
 
+async function readPublicData(path: string, queryString: string): Promise<unknown> {
+  return withPublicReadSlot(async () => {
+    // Cache outside fetch so background revalidation also acquires a read slot.
+    // Fetch-level SWR would bypass this concurrency limit.
+    const response = await fetch(`${baseUrl}/api/v1${path}${queryString ? `?${queryString}` : ''}`, { cache: 'no-store' });
+    if (!response.ok) throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`);
+    return response.json();
+  });
+}
+
+const readCached60 = unstable_cache(readPublicData, ['public-api-v2-60', baseUrl], { revalidate: 60 });
+const readCached30 = unstable_cache(readPublicData, ['public-api-v2-30', baseUrl], { revalidate: 30 });
+// Reuse parsed results within SSR, including page/layout/metadata callers.
+// Origin, path and the full query also form the persistent cache key.
+const readRequestData = cache((path: string, queryString: string, seconds: number) =>
+  seconds === 60 ? readCached60(path, queryString) : seconds === 30 ? readCached30(path, queryString) : readPublicData(path, queryString));
+
 export async function publicApi<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params ?? {})) if (value !== undefined && value !== '') query.set(key, String(value));
-  // Keep inventory, user-specific data and contact/settings fresh on every request.
+  const presentation = presentationSettings.has(path) || presentationCatalogs.has(path) ||
+    (path === '/content' && presentationContentGroups.has(query.get('group') || ''));
+  // Keep inventory, user-specific data, policies and contact-action content fresh.
   // A revalidated response may remain stale for one request after its TTL expires.
   const immediate = path === '/search' || path.startsWith('/search/') || path === '/seo' || path.startsWith('/auspicious-dates/') ||
     path === '/driving-experiences' || path.startsWith('/driving-experiences/') ||
@@ -23,10 +80,8 @@ export async function publicApi<T>(path: string, params?: Record<string, string 
     path === '/accessory-brands' || path === '/accessory-categories' ||
     path === '/faqs' || path.startsWith('/faqs/') ||
     path === '/recruitments' || path.startsWith('/recruitments/');
-  const response = await fetch(`${baseUrl}/api/v1${path}${query.size ? `?${query}` : ''}`,
-    immediate ? { cache: 'no-store' } : { next: { revalidate: stable ? 60 : 30 } });
-  if (!response.ok) throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`);
-  return response.json() as Promise<T>;
+  const seconds = presentation ? 60 : immediate ? 0 : stable ? 60 : 30;
+  return readRequestData(path, query.toString(), seconds) as Promise<T>;
 }
 
 export type PageResult<T> = { data: T[]; meta: { page: number; limit: number; total: number; totalPages: number } };

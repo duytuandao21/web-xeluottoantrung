@@ -17,7 +17,6 @@ try {
     await context.route('**/*', route => route.request().headers()['next-router-prefetch'] === '1' ? route.abort() : route.continue());
     assert.equal((await page.goto(`${base}/tien-ich/xem-ngay-mua-xe`, { waitUntil: 'domcontentloaded' })).status(), 200);
     await page.locator('input[name="birthDate"]').waitFor();
-    await page.locator('.tt-site-intro').waitFor({ state: 'hidden' });
     assert.equal(await page.locator('.tt-date-eyebrow').count(), 0);
     assert.equal(await page.getByRole('heading', { name: 'Hướng dẫn tra cứu', exact: true }).count(), 1);
     if (width < 600) {

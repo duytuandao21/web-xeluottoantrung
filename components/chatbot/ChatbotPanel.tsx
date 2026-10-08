@@ -1,4 +1,5 @@
 'use client';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { CHATBOT_ICON, chatHistory, streamChat, type ChatMessage as Message } from '@/lib/chatbot';
 import ChatComposer from './ChatComposer';
@@ -106,12 +107,12 @@ export default function ChatbotPanel({ open, mobile, onClose, style }: { open: b
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     }
   }}>
-    <header className="tt-chat-header"><span className="tt-chat-header__avatar"><img src={CHATBOT_ICON} alt="" width="42" height="42" /></span><div><h2 id="tt-chat-title">Trợ lý AI Toàn Trung</h2><p>Trợ lý thông tin ô tô</p></div><button type="button" aria-label="Đóng trợ lý AI" onClick={onClose}>×</button></header>
+    <header className="tt-chat-header"><span className="tt-chat-header__avatar"><ResponsiveImage profile="icon" sizes="42px" src={CHATBOT_ICON} alt="" width="42" height="42" /></span><div><h2 id="tt-chat-title">Trợ lý AI Toàn Trung</h2><p>Trợ lý thông tin ô tô</p></div><button type="button" aria-label="Đóng trợ lý AI" onClick={onClose}>×</button></header>
     <div className="tt-chat-conversation"><div ref={transcript} className="tt-chat-transcript" role="log" aria-label="Hội thoại với trợ lý AI" aria-live="off" onScroll={() => {
       const node = transcript.current!; const near = node.scrollHeight - node.scrollTop - node.clientHeight < 64;
       pinned.current = near; setAtBottom(near);
     }}>
-      {!messages.length && <div className="tt-chat-welcome"><img src={CHATBOT_ICON} alt="" width="76" height="76" /><h3>Xin chào 👋</h3><p>Tôi là trợ lý AI của Toàn Trung.</p><p>Bạn có thể hỏi tôi về xe, phiên bản, thông số, phụ kiện, công nghệ ô tô hoặc các vấn đề liên quan.</p>
+      {!messages.length && <div className="tt-chat-welcome"><ResponsiveImage profile="icon" sizes="76px" src={CHATBOT_ICON} alt="" width="76" height="76" /><h3>Xin chào 👋</h3><p>Tôi là trợ lý AI của Toàn Trung.</p><p>Bạn có thể hỏi tôi về xe, phiên bản, thông số, phụ kiện, công nghệ ô tô hoặc các vấn đề liên quan.</p>
         <div className="tt-chat-suggestions">{suggestions.map(([label, question]) => <button key={label} type="button" onClick={() => { setValue(question); input.current?.focus({ preventScroll: true }); }}>{label}<span aria-hidden="true">↗</span></button>)}</div>
       </div>}
       {messages.map((message, index) => <ChatMessage key={message.id} message={message} onRetry={retry} retryable={!busy && index === messages.length - 1} />)}

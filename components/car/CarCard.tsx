@@ -3,15 +3,17 @@ import { useEffect, useRef, useState } from 'react';
 import parse from 'html-react-parser';
 import { getPublic } from '@/lib/public-client';
 import type { Car } from '@/types/car';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
+import { responsiveImage } from '@/lib/image-delivery';
 import { SalePlate } from '@/components/sale/SaleAccess';
 
 type Motion = { direction: -1 | 1; target: number; phase: 'ready' | 'go' };
 
-export default function CarCard({car}:{car:Car}) {
-  return <CarCardState key={JSON.stringify([car.id,car.images])} car={car}/>;
+export default function CarCard({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'}) {
+  return <CarCardState key={JSON.stringify([car.id,car.images])} car={car} imageLoading={imageLoading}/>;
 }
 
-function CardImage({src,alt}:{src:string;alt:string}) {
+function CardImage({src,alt,loading}:{src:string;alt:string;loading?:'eager'|'lazy'}) {
   const [status,setStatus]=useState<'loading'|'ready'|'error'>('loading');
   const imageRef=useRef<HTMLImageElement>(null);
   useEffect(()=>{
@@ -33,7 +35,7 @@ function CardImage({src,alt}:{src:string;alt:string}) {
     };
   },[src]);
   return <>
-    <img ref={imageRef} src={src} alt={alt} decoding="async" style={{visibility:status==='ready'?'visible':'hidden'}}/>
+    <ResponsiveImage ref={imageRef} src={src} profile="card" alt={alt} loading={loading} decoding="async" style={{visibility:status==='ready'?'visible':'hidden'}}/>
     {status!=='ready'&&<span className="car-card-gallery__placeholder" role="status">{status==='error'?'Không tải được ảnh xe':'Đang tải ảnh xe…'}</span>}
   </>;
 }
@@ -48,14 +50,21 @@ function prepareImage(src:string,signal:AbortSignal):Promise<void> {
     const abort=()=>{finish(new Error('Aborted'));img.src='';};
     const timer=setTimeout(()=>finish(new Error('Image timed out')),20000);
     img.onload=()=>{void img.decode().then(()=>finish()).catch(()=>finish(new Error('Image decode failed')));};
-    img.onerror=()=>finish(new Error('Image failed'));
+    img.onerror=()=>{
+      if (img.src!==delivery.original && delivery.src!==delivery.original) {
+        img.removeAttribute('srcset');img.removeAttribute('sizes');img.src=delivery.original;
+      } else finish(new Error('Image failed'));
+    };
     signal.addEventListener('abort',abort,{once:true});
     if(signal.aborted){abort();return;}
-    img.src=src;
+    const delivery=responsiveImage(src,'card');
+    if(delivery.srcSet)img.srcset=delivery.srcSet;
+    if(delivery.sizes)img.sizes=delivery.sizes;
+    img.src=delivery.src;
   });
 }
 
-function CarCardState({car}:{car:Car}) {
+function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'}) {
   const [images,setImages]=useState(car.images);
   const [activeIndex,setActiveIndex]=useState(0);
   const [galleryLoaded,setGalleryLoaded]=useState(false);
@@ -142,7 +151,8 @@ function CarCardState({car}:{car:Car}) {
             setMotion(null);
             movingRef.current=false;
           }}>
-            {[previous,current,next].map((image,index)=><p className="slick-slide" key={index} data-current={index===1} onClick={event=>{if(Date.now()<suppressClickUntilRef.current){event.preventDefault();return;}window.location.href=car.href;}}><CardImage key={image.src} src={image.src} alt={image.alt}/></p>)}
+            {/* Only the initial cover may be lazy. Keep adjacent gallery images eager after interaction. */}
+            {[previous,current,next].map((image,index)=><p className="slick-slide" key={index} data-current={index===1} onClick={event=>{if(Date.now()<suppressClickUntilRef.current){event.preventDefault();return;}window.location.href=car.href;}}><CardImage key={image.src} src={image.src} alt={image.alt} loading={galleryLoaded?undefined:imageLoading}/></p>)}
           </div>
         </div>
         <button type="button" className="slick-arrow slick-prev" disabled={loading||motion!==null} aria-label={`Ảnh trước của ${car.name}`} onClick={()=>void moveImage(-1)}>Previous</button>
@@ -153,7 +163,7 @@ function CarCardState({car}:{car:Car}) {
     </div>
     <div className="mota"><div className="gia_sp">{parse(car.priceHtml || '')}</div>
       <h3 className={car.nameClass}><a href={car.href} title={car.title}>{car.name}</a></h3>
-      <ul>{car.specs.map((spec,index)=><li key={index} data-spec={spec.alt}>{spec.icon && <img src={spec.icon} alt={spec.alt || ''} />}<span className="car-card-spec__value" title={spec.text}>{spec.alt==='Km'&&spec.text.endsWith(' km')?<>{spec.text.slice(0,-3)}<span className="car-card-spec__unit"> km</span></>:spec.text}</span></li>)}</ul>
+      <ul>{car.specs.map((spec,index)=><li key={index} data-spec={spec.alt}>{spec.icon && <ResponsiveImage src={spec.icon} profile="icon" sizes="18px" alt={spec.alt || ''} />}<span className="car-card-spec__value" title={spec.text}>{spec.alt==='Km'&&spec.text.endsWith(' km')?<>{spec.text.slice(0,-3)}<span className="car-card-spec__unit"> km</span></>:spec.text}</span></li>)}</ul>
       <SalePlate slug={car.id} />
     </div>
   </div>;

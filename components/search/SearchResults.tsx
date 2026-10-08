@@ -1,4 +1,5 @@
 'use client';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -27,7 +28,7 @@ export default function SearchResults({ query, initialResult }: { query: string;
   return <div className="tt-search-results" aria-busy={loading}>
     <p className="tt-search-results__count" role="status">{query ? `Có ${result.meta.total} sản phẩm phù hợp` : 'Nhập tên xe hoặc phụ kiện để tìm kiếm.'}</p>
     {result.data.length ? <div className="tt-search-results__list">{result.data.map(item => <Link key={`${item.kind}:${item.id}`} href={item.href} prefetch={false} className="tt-search-results__item">
-      <img src={searchImage(item.imageUrl)} alt="" width="120" height="88" loading="lazy" decoding="async" onError={event => {
+      <ResponsiveImage profile="thumbnail" src={searchImage(item.imageUrl)} alt="" sizes="120px" width="120" height="88" loading="lazy" decoding="async" onError={event => {
         const image = event.currentTarget;
         if (image.src !== new URL(searchImage(null), location.origin).href) image.src = searchImage(null);
       }} />
