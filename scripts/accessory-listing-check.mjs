@@ -5,7 +5,7 @@ const base = process.env.TEST_BASE_URL || 'http://localhost:3001';
 const get = async query => {
   const params = new URLSearchParams(query);
   if (!params.has('sort')) params.set('sort', 'newest');
-  params.set('limit', '6');
+  params.set('limit', '8');
   return fetch(`${base}/api/v1/accessories?${params}`).then(response => response.json());
 };
 const initial = await get('');
@@ -46,22 +46,22 @@ try {
       await page.locator('.car-load-more__error').waitFor();
       assert.equal(requests.length, 1);
       assert.equal(requests[0].get('page'), '2');
-      assert.equal(requests[0].get('limit'), '6');
-      assert.equal((await ids(page)).length, 6);
+      assert.equal(requests[0].get('limit'), '8');
+      assert.equal((await ids(page)).length, 8);
       fail = false;
       await page.getByRole('button', { name: 'Thử lại', exact: true }).click();
-      await waitCount(page, Math.min(12, initial.meta.total));
+      await waitCount(page, Math.min(16, initial.meta.total));
       assert.equal(requests[1].get('page'), '2');
       for (let next = 3; next <= initial.meta.totalPages; next++) {
         await page.getByRole('button', { name: 'Xem thêm', exact: true }).click();
-        await waitCount(page, Math.min(next * 6, initial.meta.total));
+        await waitCount(page, Math.min(next * 8, initial.meta.total));
       }
       assert.equal(page.url(), url);
       assert.equal(await page.locator('.tt-accessories__grid > article').first().getAttribute('data-test-preserved'), 'yes');
-      assert.deepEqual((await ids(page)).slice(0, 6), initial.data.map(item => item.id));
+      assert.deepEqual((await ids(page)).slice(0, 8), initial.data.map(item => item.id));
       assert.equal(new Set(await ids(page)).size, initial.meta.total);
       assert.equal(await page.locator('.car-load-more__button').count(), 0);
-      console.log('Passed six per click, double-click guard, error/retry, preserved cards, no navigation and load to end.');
+      console.log('Passed eight per click, double-click guard, error/retry, preserved cards, no navigation and load to end.');
     }
     await page.close();
     console.log(`Passed ${width}px accessory cards and prices.`);
@@ -77,17 +77,17 @@ try {
   await page.route(/\/api\/v1\/accessories\?/, async route => {
     const params = new URL(route.request().url()).searchParams;
     assert.equal(params.get('sort'), 'price-asc');
-    assert.equal(params.get('limit'), '6');
+    assert.equal(params.get('limit'), '8');
     started();
     await held;
-    try { await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [{ ...ascending.data[0], id: 'stale-fixture' }], meta: { page: 2, limit: 6, total: 7, totalPages: 2 } }) }); } catch { /* Filter navigation aborts the old request. */ }
+    try { await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [{ ...ascending.data[0], id: 'stale-fixture' }], meta: { page: 2, limit: 8, total: 9, totalPages: 2 } }) }); } catch { /* Filter navigation aborts the old request. */ }
   });
   await page.getByRole('button', { name: 'Xem thêm', exact: true }).click();
   await requested;
   await page.locator('.tt-accessory-filters__sort select').selectOption('price-desc');
   await page.waitForURL(url => url.searchParams.get('sort') === 'price-desc');
   const descending = await get('sort=price-desc');
-  await waitCount(page, 6);
+  await waitCount(page, 8);
   release();
   await page.waitForTimeout(200);
   assert.deepEqual(await ids(page), descending.data.map(item => item.id));
@@ -96,13 +96,13 @@ try {
   const all = await fetch(`${base}/api/v1/accessories?limit=100`).then(response => response.json());
   const brandCounts = new Map();
   for (const item of all.data) if (item.brandId) brandCounts.set(item.brandId, (brandCounts.get(item.brandId) || 0) + 1);
-  const brand = [...brandCounts].find(([, count]) => count > 6)?.[0];
+  const brand = [...brandCounts].find(([, count]) => count > 8)?.[0];
   if (brand) {
     await page.goto(`${base}/phu-kien-o-to?brand=${brand}`);
     let request;
     await page.route(/\/api\/v1\/accessories\?/, async route => { request = new URL(route.request().url()).searchParams; await route.continue(); });
     await page.getByRole('button', { name: 'Xem thêm', exact: true }).click();
-    await waitCount(page, Math.min(12, brandCounts.get(brand)));
+    await waitCount(page, Math.min(16, brandCounts.get(brand)));
     assert.equal(request.get('brandId'), brand);
     await page.unroute(/\/api\/v1\/accessories\?/);
   }
@@ -115,7 +115,7 @@ try {
   }
   await page.locator('.tt-accessory-filters__reset').click();
   await page.waitForURL(`${base}/phu-kien-o-to`);
-  await waitCount(page, 6);
+  await waitCount(page, 8);
   assert.deepEqual(await ids(page), initial.data.map(item => item.id));
   await page.goto(`${base}/phu-kien-o-to?search=missing-accessory-fixture-82731`);
   await page.locator('.tt-accessories__empty').waitFor();

@@ -48,6 +48,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Pro
         pagination={<SectionPagination key="faq-pagination" pages={pages} pageKey="cau-hoi-page" totalPages={faqs.meta.totalPages} label="Câu hỏi thường gặp" />}>
         {faqs.data.length ? <ArticleSectionItems kind="faq" items={faqs.data.map(faq => ({
           href: `/cau-hoi/${faq.slug}`, title: faq.question, imageUrl: faq.imageUrl, summary: faqSummary(faq),
+          faq: { slug: faq.slug, answer: faq.answer },
         }))} /> : <p className="tt-faq-empty">Các câu hỏi đang được cập nhật.</p>}
       </ArticleSectionMotion>
       <ArticleSectionMotion id="muc-kinh-nghiem" titleId="experience-section-title" title="Kinh nghiệm sử dụng xe ô tô" page={pages['kinh-nghiem-page']}

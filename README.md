@@ -163,3 +163,34 @@ the same build. Separate scripts check all published SSR pages, car/accessory
 galleries, slow-network hero/card interactions, search/chatbot images, and
 original-image fallback. Search tests identify when an EC2 endpoint is missing
 and use read-only fixtures from published products; image requests remain real.
+
+## Font delivery (phase 3)
+
+The existing `body`, `tieude`, and `menu` CSS font families now prefer
+fingerprinted WOFF2 files, with their unchanged OTF/TTF originals as format
+fallbacks. All glyphs and visual/shaping tables are preserved. The original
+font-display behavior is retained; the tested preload/swap combination was
+removed after it increased header layout shifts. No `next/font` family or
+weight substitution is applied.
+
+`config/versioned-fonts.json` records the exact files and hashes. Next checks
+their SHA-256 and serves only those fingerprinted URLs with one year immutable
+cache. Include the three WOFF2 assets and manifest in deployment. Do not replace
+the contents of an existing fingerprinted file.
+
+To regenerate fonts using build tools outside the app dependency tree:
+
+```powershell
+python -m pip install --target artifacts/font-tools fonttools==4.62.1 brotli==1.2.0
+python scripts/phase3-fonts.py
+```
+
+The generator validates decoded tables against the source (with only WOFF2
+container metadata exceptions). If source fonts change, update the CSS URLs to
+the new generated names, retain previous assets for cached clients, then build
+and run `phase3-font-render-check.mjs`. Python is not required by build/start.
+
+Phase 3 audit, regression evidence and Vietnamese report are under
+`../toi-uu-hieu-suat-website/phase-3/`. The gallery/listing dynamic imports keep
+SSR enabled. Rollback by restoring their two static imports or the three
+original CSS font sources; rebuild/restart without resetting unrelated changes.

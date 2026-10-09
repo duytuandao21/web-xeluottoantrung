@@ -32,10 +32,10 @@ function MenuList({items,mobile=false,close,depth=0,className,style}:{items:Menu
     </li>;
   })}</ul>;
 }
-function HeaderActions({ phone, onSaleAction }: { phone?: string; onSaleAction?: () => void }) {
+function HeaderActions({ phone, showSaleLogin = true }: { phone?: string; showSaleLogin?: boolean }) {
   return <div className="header-actions">
     <p className="hotline">{phone || '0777393913'}</p>
-    <SaleLoginButton onAction={onSaleAction} />
+    {showSaleLogin && <SaleLoginButton />}
   </div>;
 }
 export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }: { phone?: string; services?: Service[]; logoUrl: string; mobileLogoUrl: string }) {
@@ -95,7 +95,7 @@ export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }:
     </div></div>
     <div className={`menu_mobi_add hidden_d${open?' menu_mobi_active':''}`} aria-hidden={!open}>
       <div className="logo_m logo"><Link href="/" scroll={false} aria-label="Về đầu trang chủ" onClick={goHomeTop}>{mobileLogo}</Link><span className="close_menu" role="button" tabIndex={0} aria-label="Đóng menu" onClick={()=>setOpen(false)}/></div>
-      <MenuList items={menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} onSaleAction={()=>setOpen(false)} />
+      <MenuList items={menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} showSaleLogin={false} />
     </div>
     <div className="menu_mobi hidden_d">
       <p className="menu_baophu" style={{display:open?'block':'none'}} onClick={()=>setOpen(false)}/>

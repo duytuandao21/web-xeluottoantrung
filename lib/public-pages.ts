@@ -68,7 +68,7 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
   const filters = { ...lookups, brands };
   const sortValue = ['gia asc', 'gia desc'].includes(single(searchParams.gia) || '') ? single(searchParams.gia)! : 'newest';
   const sortSelect = $('<select id="vehicle-sort" aria-label="Sắp xếp xe"></select>');
-  for (const [value, label] of [['newest', 'Mới nhất'], ['gia asc', 'Giá từ thấp đến cao'], ['gia desc', 'Giá từ cao đến thấp']]) {
+  for (const [value, label] of [['newest', 'Mới nhất'], ['gia asc', 'Giá tăng dần'], ['gia desc', 'Giá giảm dần']]) {
     const option = $('<option></option>').attr('value', value).text(label);
     if (value === sortValue) option.attr('selected', 'selected');
     sortSelect.append(option);
@@ -77,7 +77,12 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
   if (compare.length) {
     const actions = $('<div class="car-list-actions"></div>');
     compare.before(actions);
-    actions.append(compare, $('<label class="car-sort"></label>').text('Sắp xếp').append(sortSelect));
+    const compareButton = $('<button type="button" class="c_sosanh car-compare-button" aria-pressed="false" aria-label="Bật chế độ chọn xe để so sánh"></button>')
+      .append('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v17M5 20h14M4 7h16M5 7l-3 7h6L5 7Zm14 0-3 7h6l-3-7Z"/><path d="M2 14a3 3 0 0 0 6 0m8 0a3 3 0 0 0 6 0"/></svg>')
+      .append('So sánh')
+      .append('<span class="car-compare-count" aria-hidden="true" hidden>0</span>');
+    compare.remove();
+    actions.append(compareButton, $('<label class="car-sort"></label>').append(sortSelect));
   }
   const searchBar = $('#keyword').closest('.search');
   searchBar.addClass('vehicle-search');
@@ -442,11 +447,10 @@ function prepareServiceTabs($: ReturnType<typeof load>, section: ReturnType<Retu
 }
 
 async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len-doi'): Promise<LegacyPageData> {
-  const [base, steps, testimonials, articles, whyChoose, whyChooseImages] = await Promise.all([
+  const [base, steps, testimonials, whyChoose, whyChooseImages] = await Promise.all([
     settingsPage(page, route === '/ban-xe' ? 'thiet-lap-text-ban-xe' : 'thiet-lap-text-len-doi'),
     publicApi<ServiceStep[]>('/content', { group: route === '/ban-xe' ? 'thiet-lap-cac-buoc-ban-xe' : 'thiet-lap-cac-buoc-len-doi' }),
     allPublicLookups<Testimonial>('/testimonials'),
-    publicApi<PageResult<Article>>('/articles', { limit: 3 }),
     publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-tai-sao-chon' }),
     publicApi<{ key: string; value: string }[]>('/site-settings/thiet-lap-anh-vi-sao-chon'),
   ]);
@@ -478,7 +482,7 @@ async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len
     section.children('.main_fix').first().find('.title-main span').first().text('Quy trình lên đời');
   }
   renderTestimonials($, '.wap_camnhan .camnhan', testimonials, true);
-  replaceHomeBottom($, articles.data);
+  replaceHomeBottom($, [], { showNews: false });
   renderWhyChoose($, whyChoose, whyChooseImages.find(row => row.key === 'image')?.value);
   return { ...base, content: $.html() };
 }
@@ -550,10 +554,13 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
     `${Number(car.mileage || 0).toLocaleString('vi-VN')} km`, car.seatCount ? `${car.seatCount} chỗ` : '—',
     car.transmission || '—', car.fuel || '—', String(car.year), car.branch?.name || '—',
   ];
-  $('.right-pro-detail .mota ul li').each((index, element) => {
+  const factKeys = ['mileage', 'seats', 'transmission', 'fuel', 'year', 'branch'];
+  const detailFacts = $('.right-pro-detail .mota > ul').first().addClass('vehicle-detail-specs');
+  detailFacts.find('li').each((index, element) => {
     if (index < facts.length) {
       const icon = $(element).find('img').first().clone();
-      $(element).empty().append(icon).append(facts[index]);
+      $(element).attr('data-detail-spec', factKeys[index]).empty().append(icon)
+        .append($('<span class="vehicle-detail-spec__value"></span>').text(facts[index]));
     }
   });
   $('.right-pro-detail .mota > ul').first().after($('<sale-plate></sale-plate>').attr('data-slug', car.slug));
@@ -806,6 +813,7 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
       const group = groups[index];
       if (!group) return;
       $(element).empty();
+      if (index === 0) $(element).addClass('home-car-brands');
       for (const item of group) {
         const anchor = $('<a></a>').attr({ href: `/${item.slug}`, title: item.name });
         if (item.imageUrl) anchor.append($('<img>').attr({ src: item.imageUrl, alt: item.name }));

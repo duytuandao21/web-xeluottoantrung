@@ -90,9 +90,17 @@ export default function CarComparison() {
       setAvailable(exists);
       document.body.classList.toggle('ss', exists && enabledRef.current);
       document.querySelectorAll<HTMLElement>('.c_sosanh').forEach(element => {
-        element.setAttribute('role', 'switch');
-        element.setAttribute('aria-label', 'Chọn xe để so sánh');
-        element.setAttribute('aria-checked', String(enabledRef.current));
+        if (element.tagName !== 'BUTTON') element.setAttribute('role', 'button');
+        element.removeAttribute('aria-checked');
+        element.setAttribute('aria-label', `${enabledRef.current ? 'Tắt' : 'Bật'} chế độ chọn xe để so sánh${enabledRef.current ? `, đã chọn ${selectedRef.current.length} xe` : ''}`);
+        element.setAttribute('aria-pressed', String(enabledRef.current));
+        const count = element.querySelector<HTMLElement>('.car-compare-count');
+        if (count) {
+          const next = String(selectedRef.current.length);
+          // The observer watches child changes: only update text when it changes.
+          if (count.textContent !== next) count.textContent = next;
+          count.hidden = !enabledRef.current;
+        }
         element.tabIndex = 0;
       });
       document.querySelectorAll<HTMLElement>('.id_ss').forEach(element => {
@@ -123,7 +131,7 @@ export default function CarComparison() {
       sync();
     };
     const key = (event: KeyboardEvent) => {
-      if (['Enter', ' '].includes(event.key) && event.target instanceof HTMLElement && event.target.matches('.c_sosanh,.id_ss')) { event.preventDefault(); event.target.click(); }
+      if (['Enter', ' '].includes(event.key) && event.target instanceof HTMLElement && event.target.matches('.c_sosanh:not(button),.id_ss')) { event.preventDefault(); event.target.click(); }
     };
     document.addEventListener('click', click);
     document.addEventListener('keydown', key);

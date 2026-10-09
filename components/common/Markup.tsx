@@ -1,17 +1,21 @@
 "use client";
 import parse, { attributesToProps, domToReact, Element, type DOMNode, type HTMLReactParserOptions } from 'html-react-parser';
 import { createElement } from 'react';
+import dynamic from 'next/dynamic';
 import Carousel from './Carousel';
 import BuySellBanner, { type BannerSlide } from './BuySellBanner';
 import CarCard from '@/components/car/CarCard';
-import CarGallery from '@/components/car/CarGallery';
 import type { Car } from '@/types/car';
 import { SalePlate } from '@/components/sale/SaleAccess';
-import CarListing from '@/components/car/CarListing';
 import type { PageResult, PublicCar } from '@/lib/public-api';
 import ResponsiveImage from './ResponsiveImage';
 import { getImageOriginalUrl, imageProfile } from '@/lib/image-delivery';
 import InstallationStoreCard, { type InstallationStore } from '@/components/accessories/InstallationStoreCard';
+
+// These render only on their existing detail/listing paths. Keep SSR enabled
+// so their HTML and controls remain available on the first render.
+const CarGallery = dynamic(() => import('@/components/car/CarGallery'));
+const CarListing = dynamic(() => import('@/components/car/CarListing'));
 
 export default function Markup({html,cars={}}:{html:string;cars?:Record<string,Car>}) {
   const options:HTMLReactParserOptions={replace(node){

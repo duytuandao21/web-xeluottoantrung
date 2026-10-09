@@ -1,0 +1,96 @@
+[
+  {
+    "src": "/assets/fonts/SF-Pro-Display-Regular.a14defb2876c.woff2",
+    "sha256": "a14defb2876ca702420f58cd86a8d10e787aba5c398aeba0b582543850b5b7b9",
+    "original": "/assets/fonts/SF-Pro-Display-Regular.otf",
+    "family": "body",
+    "beforeBytes": 2230364,
+    "afterBytes": 1156688,
+    "glyphCount": 14823,
+    "preservedTables": [
+      "head",
+      "hhea",
+      "maxp",
+      "OS/2",
+      "name",
+      "cmap",
+      "post",
+      "CFF ",
+      "GPOS",
+      "GSUB",
+      "MERG",
+      "bsln",
+      "hmtx",
+      "meta",
+      "trak"
+    ],
+    "containerOnlyChanges": [
+      "head checksumAdjustment",
+      "head flags bit 11"
+    ]
+  },
+  {
+    "src": "/assets/fonts/SF-Pro-Display-Bold.7999684c63dc.woff2",
+    "sha256": "7999684c63dcb58fd522cda34c96a9859ed2c4fb1cbd7a5be7ef3a61a1ddfe99",
+    "original": "/assets/fonts/SF-Pro-Display-Bold.otf",
+    "family": "tieude",
+    "beforeBytes": 2298456,
+    "afterBytes": 1200668,
+    "glyphCount": 14823,
+    "preservedTables": [
+      "head",
+      "hhea",
+      "maxp",
+      "OS/2",
+      "name",
+      "cmap",
+      "post",
+      "CFF ",
+      "GPOS",
+      "GSUB",
+      "MERG",
+      "bsln",
+      "hmtx",
+      "meta",
+      "trak"
+    ],
+    "containerOnlyChanges": [
+      "head checksumAdjustment",
+      "head flags bit 11"
+    ]
+  },
+  {
+    "src": "/assets/fonts/OpenSans-Semibold.0a9ac7f6f758.woff2",
+    "sha256": "0a9ac7f6f7584e8690b1a0d556607cdf8e0fbd609b89ffea8e156c148411d661",
+    "original": "/assets/fonts/OpenSans-Semibold.ttf",
+    "family": "menu",
+    "beforeBytes": 221328,
+    "afterBytes": 69496,
+    "glyphCount": 938,
+    "preservedTables": [
+      "head",
+      "hhea",
+      "maxp",
+      "OS/2",
+      "hmtx",
+      "cmap",
+      "fpgm",
+      "prep",
+      "cvt ",
+      "loca",
+      "glyf",
+      "kern",
+      "name",
+      "post",
+      "gasp",
+      "GDEF",
+      "GPOS",
+      "GSUB"
+    ],
+    "containerOnlyChanges": [
+      "head checksumAdjustment",
+      "head flags bit 11",
+      "DSIG"
+    ]
+  }
+]

@@ -74,7 +74,7 @@ export function AccessorySort({ brand, category, sort, search }: Pick<Props, 'br
     if (search) query.set('search', search);
     router.push(`/phu-kien-o-to${query.size ? `?${query}` : ''}`);
   };
-  return <label className="car-sort tt-accessory-filters__sort">Sắp xếp
+  return <label className="car-sort tt-accessory-filters__sort">
     <select aria-label="Sắp xếp phụ kiện" value={sort} onChange={event => changeSort(event.target.value)}>
       <option value="newest">Mới nhất</option>
       <option value="price-asc">Giá từ thấp đến cao</option>

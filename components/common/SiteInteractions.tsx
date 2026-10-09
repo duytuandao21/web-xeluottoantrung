@@ -8,7 +8,7 @@ import { getPublic, submitPublic } from '@/lib/public-client';
 import { calculateInstallment } from '@/lib/installment-calculator';
 import CarComparison from '@/components/car/CarComparison';
 
-type Dialog = {html?:string;className?:string;id?:string;images?:{src:string;alt:string}[];index?:number};
+type Dialog = {html?:string;className?:string;id?:string;label?:string;images?:{src:string;alt:string}[];index?:number};
 
 export default function SiteInteractions() {
   const pathname=usePathname(); const query=useSearchParams();
@@ -240,7 +240,7 @@ export default function SiteInteractions() {
       if(!target.closest('.vehicle-filter-chip'))closeFilterPopovers();
       if(target.closest('.fancybox-container'))return;
       const trigger=target.closest<HTMLElement>('[data-src^="#"]');
-      if(trigger){const modal=document.querySelector<HTMLElement>(trigger.dataset.src!);if(modal){event.preventDefault();const id=modal.id;sourceRef.current=modal;modal.id=`${id}-source`;modal.style.display='none';setDialog({html:modal.innerHTML,className:modal.className,id});return;}}
+      if(trigger){const modal=document.querySelector<HTMLElement>(trigger.dataset.src!);if(modal){event.preventDefault();const id=modal.id;sourceRef.current=modal;modal.id=`${id}-source`;modal.style.display='none';setDialog({html:modal.innerHTML,className:modal.className,id,label:modal.classList.contains('tt-faq-dialog')?modal.querySelector('h2')?.textContent||'Câu hỏi thường gặp':undefined});return;}}
       const gallery=target.closest<HTMLElement>('[data-gallery="vehicle"]');
       if(gallery){event.preventDefault();const links=[...document.querySelectorAll<HTMLAnchorElement>('.album_pro .slick-slide:not(.slick-cloned) a')];setDialog({images:links.map(a=>({src:a.href,alt:a.querySelector('img')?.alt||''})),index:Number(gallery.dataset.index)});return;}
       const footer=target.closest('.title_f i');if(footer){footer.closest('.item_f')?.classList.toggle('item_f_active');return;}
@@ -392,7 +392,7 @@ export default function SiteInteractions() {
   return <>
     <CarComparison />
     {showTop && <button type="button" className="scrollToTop" aria-label="Về đầu trang" onClick={()=>window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'})}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button>}
-    {dialog && createPortal(<div className="fancybox-container fancybox-is-open migrated-dialog" role="dialog" aria-modal="true" aria-label={image?'Ảnh xe':dialog.id==='nutgoi'?'Liên hệ Toàn Trung':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin'} tabIndex={-1} ref={dialogRef}>
+    {dialog && createPortal(<div className="fancybox-container fancybox-is-open migrated-dialog" role="dialog" aria-modal="true" aria-label={dialog.label || (image?'Ảnh xe':dialog.id==='nutgoi'?'Liên hệ Toàn Trung':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin')} tabIndex={-1} ref={dialogRef}>
       <div className="fancybox-bg"/><div className="fancybox-inner"><div className="fancybox-stage"><div className="fancybox-slide fancybox-slide--html fancybox-slide--current fancybox-slide--complete" onClick={e=>{if(e.target===e.currentTarget)setDialog(null);}}>
         <div className={`fancybox-content ${image?'dialog-gallery':dialog.className||''}`} id={dialog.id}>
           {image?<ResponsiveImage profile="content" className="dialog-image" src={image.src} alt={image.alt}/>:<Markup html={dialog.html||''}/>}

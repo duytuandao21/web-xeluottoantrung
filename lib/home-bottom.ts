@@ -32,8 +32,9 @@ function articleDate(value?: string | null) {
   }).format(date);
 }
 
-export function replaceHomeBottom($: ReturnType<typeof load>, articles: Article[]) {
+export function replaceHomeBottom($: ReturnType<typeof load>, articles: Article[], { showNews = true }: { showNews?: boolean } = {}) {
   const bottom = $('<div class="tt-home-bottom"></div>');
+  if (!showNews) bottom.addClass('tt-home-bottom--utilities-only');
   const utilities = $('<section class="tt-home-utilities" aria-labelledby="tt-home-utilities-title"></section>');
   const utilitiesInner = $('<div class="main_fix"></div>');
   utilitiesInner.append('<div class="tt-home-section-heading"><span class="tt-home-section-heading__line" aria-hidden="true"></span><h2 id="tt-home-utilities-title">Tiện ích</h2></div>');
@@ -53,35 +54,37 @@ export function replaceHomeBottom($: ReturnType<typeof load>, articles: Article[
   utilities.append(utilitiesInner);
   bottom.append(utilities);
 
-  const news = $('<section class="tt-home-news" aria-labelledby="tt-home-news-title"></section>');
-  const newsInner = $('<div class="main_fix"></div>');
-  const newsHeading = $('<div class="tt-home-news-heading"></div>');
-  newsHeading.append('<div class="tt-home-section-heading"><span class="tt-home-section-heading__line" aria-hidden="true"></span><h2 id="tt-home-news-title">Tin tức mới nhất</h2></div>');
-  newsInner.append(newsHeading);
-  const newsGrid = $('<div class="tt-home-news-grid"></div>');
-  if (articles.length === 1) newsGrid.addClass('tt-home-news-grid--single');
-  else if (articles.length === 2) newsGrid.addClass('tt-home-news-grid--two');
-  for (const article of articles.slice(0, 3)) {
-    const href = `/${encodeURIComponent(article.slug)}`;
-    const card = $('<article class="tt-home-news-card"></article>');
-    const imageLink = $('<a class="tt-home-news-card__image" aria-label="Xem bài viết"></a>').attr('href', href);
-    imageLink.append('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM7 8h10M7 11h10M7 14h6M7 17h10"/></svg>');
-    const image = safeImage(article.imageUrl);
-    if (image) imageLink.append($('<img loading="lazy" decoding="async">').attr({ src: image, alt: article.title }));
-    card.append(imageLink);
-    const content = $('<div class="tt-home-news-card__content"></div>');
-    const date = articleDate(article.publishedAt);
-    if (date) content.append($('<time class="tt-home-news-card__date"></time>').attr('datetime', new Date(article.publishedAt!).toISOString()).text(date));
-    content.append($('<h3></h3>').append($('<a></a>').attr('href', href).text(article.title)));
-    if (article.excerpt?.trim()) content.append($('<p></p>').text(article.excerpt.trim()));
-    card.append(content);
-    newsGrid.append(card);
+  if (showNews) {
+    const news = $('<section class="tt-home-news" aria-labelledby="tt-home-news-title"></section>');
+    const newsInner = $('<div class="main_fix"></div>');
+    const newsHeading = $('<div class="tt-home-news-heading"></div>');
+    newsHeading.append('<div class="tt-home-section-heading"><span class="tt-home-section-heading__line" aria-hidden="true"></span><h2 id="tt-home-news-title">Tin tức mới nhất</h2></div>');
+    newsInner.append(newsHeading);
+    const newsGrid = $('<div class="tt-home-news-grid"></div>');
+    if (articles.length === 1) newsGrid.addClass('tt-home-news-grid--single');
+    else if (articles.length === 2) newsGrid.addClass('tt-home-news-grid--two');
+    for (const article of articles.slice(0, 3)) {
+      const href = `/${encodeURIComponent(article.slug)}`;
+      const card = $('<article class="tt-home-news-card"></article>');
+      const imageLink = $('<a class="tt-home-news-card__image" aria-label="Xem bài viết"></a>').attr('href', href);
+      imageLink.append('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM7 8h10M7 11h10M7 14h6M7 17h10"/></svg>');
+      const image = safeImage(article.imageUrl);
+      if (image) imageLink.append($('<img loading="lazy" decoding="async">').attr({ src: image, alt: article.title }));
+      card.append(imageLink);
+      const content = $('<div class="tt-home-news-card__content"></div>');
+      const date = articleDate(article.publishedAt);
+      if (date) content.append($('<time class="tt-home-news-card__date"></time>').attr('datetime', new Date(article.publishedAt!).toISOString()).text(date));
+      content.append($('<h3></h3>').append($('<a></a>').attr('href', href).text(article.title)));
+      if (article.excerpt?.trim()) content.append($('<p></p>').text(article.excerpt.trim()));
+      card.append(content);
+      newsGrid.append(card);
+    }
+    if (!articles.length) newsGrid.append('<p class="tt-home-news-empty">Tin tức đang được cập nhật.</p>');
+    newsInner.append(newsGrid);
+    newsInner.append('<p class="tt-home-news-more"><a class="tt-home-news-all" href="/bai-viet">Xem tất cả tin tức</a></p>');
+    news.append(newsInner);
+    bottom.append(news);
   }
-  if (!articles.length) newsGrid.append('<p class="tt-home-news-empty">Tin tức đang được cập nhật.</p>');
-  newsInner.append(newsGrid);
-  newsInner.append('<p class="tt-home-news-more"><a class="tt-home-news-all" href="/bai-viet">Xem tất cả tin tức</a></p>');
-  news.append(newsInner);
-  bottom.append(news);
 
   const platform = $('.wap_nentang').first();
   if (platform.length) platform.replaceWith(bottom);

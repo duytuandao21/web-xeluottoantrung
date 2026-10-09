@@ -5,6 +5,7 @@ import { getPublic } from '@/lib/public-client';
 import type { Car } from '@/types/car';
 import ResponsiveImage from '@/components/common/ResponsiveImage';
 import { responsiveImage } from '@/lib/image-delivery';
+import { observeCardCover } from '@/lib/card-cover-loading';
 import { SalePlate } from '@/components/sale/SaleAccess';
 
 type Motion = { direction: -1 | 1; target: number; phase: 'ready' | 'go' };
@@ -14,29 +15,25 @@ export default function CarCard({car,imageLoading}:{car:Car;imageLoading?:'eager
 }
 
 function CardImage({src,alt,loading}:{src:string;alt:string;loading?:'eager'|'lazy'}) {
-  const [status,setStatus]=useState<'loading'|'ready'|'error'>('loading');
+  const [failed,setFailed]=useState(false);
   const imageRef=useRef<HTMLImageElement>(null);
   useEffect(()=>{
     const img=imageRef.current;
     if(!img)return;
     let disposed=false;
-    const failed=()=>{if(!disposed)setStatus('error');};
-    const loaded=()=>{
-      void img.decode().then(()=>{if(!disposed)setStatus('ready');}).catch(failed);
-    };
+    const loaded=()=>{if(!disposed)setFailed(false);};
     img.addEventListener('load',loaded);
-    img.addEventListener('error',failed);
     // SSR images can finish loading before hydration attaches event handlers.
-    if(img.complete){if(img.naturalWidth>0)loaded();else failed();}
+    if(img.complete && img.currentSrc)setFailed(img.naturalWidth===0);
     return ()=>{
       disposed=true;
       img.removeEventListener('load',loaded);
-      img.removeEventListener('error',failed);
     };
   },[src]);
   return <>
-    <ResponsiveImage ref={imageRef} src={src} profile="card" alt={alt} loading={loading} decoding="async" style={{visibility:status==='ready'?'visible':'hidden'}}/>
-    {status!=='ready'&&<span className="car-card-gallery__placeholder" role="status">{status==='error'?'Không tải được ảnh xe':'Đang tải ảnh xe…'}</span>}
+    {/* Let the browser paint SSR covers without waiting for hydration/decode(). */}
+    <ResponsiveImage ref={imageRef} src={src} profile="card" alt={alt} loading={loading} decoding="async" onError={()=>setFailed(true)} style={failed?{visibility:'hidden'}:undefined}/>
+    {failed&&<span className="car-card-gallery__placeholder" role="status">Không tải được ảnh xe</span>}
   </>;
 }
 
@@ -76,7 +73,12 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
   const swipeStartRef=useRef<{x:number;y:number}|null>(null);
   const suppressClickUntilRef=useRef(0);
   const [loading,setLoading]=useState(false);
+  const viewportRef=useRef<HTMLDivElement>(null);
   useEffect(()=>()=>requestRef.current?.abort(),[]);
+  useEffect(()=>{
+    if(imageLoading!=='lazy'||galleryLoaded||!viewportRef.current)return;
+    return observeCardCover(viewportRef.current);
+  },[imageLoading,galleryLoaded]);
 
   useEffect(()=>{
     if(motion?.phase!=='ready')return;
@@ -144,7 +146,7 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
     {car.compare && <p className="id_ss" data-id={car.id} role="button" tabIndex={0}><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4.5 4.5L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg></span>So sánh</p>}
     <div className={car.imageClass}>
       <div className="slick_hinhthem car-card-gallery" aria-busy={loading}>
-        <div className="car-card-gallery__viewport" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchCancel={()=>{swipeStartRef.current=null;}}>
+        <div className="car-card-gallery__viewport" ref={viewportRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchCancel={()=>{swipeStartRef.current=null;}}>
           <div className={`car-card-gallery__track${motion?.phase==='go'?' is-moving':''}`} style={{transform:`translateX(${offset}%)`}} onTransitionEnd={event=>{
             if(event.target!==event.currentTarget||event.propertyName!=='transform'||!motion)return;
             setActiveIndex(motion.target);
@@ -163,7 +165,16 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
     </div>
     <div className="mota"><div className="gia_sp">{parse(car.priceHtml || '')}</div>
       <h3 className={car.nameClass}><a href={car.href} title={car.title}>{car.name}</a></h3>
-      <ul>{car.specs.map((spec,index)=><li key={index} data-spec={spec.alt}>{spec.icon && <ResponsiveImage src={spec.icon} profile="icon" sizes="18px" alt={spec.alt || ''} />}<span className="car-card-spec__value" title={spec.text}>{spec.alt==='Km'&&spec.text.endsWith(' km')?<>{spec.text.slice(0,-3)}<span className="car-card-spec__unit"> km</span></>:spec.text}</span></li>)}</ul>
+      <ul>{car.specs.map((spec,index)=>{
+        const text=spec.alt==='Showroom'?spec.text.replace(/^\s*showroom\s+/i,'').trim():spec.text;
+        const showroom=spec.alt==='Showroom'?text.match(/^(Toàn\s+Trung)\s+(.+)$/i):null;
+        return <li key={index} data-spec={spec.alt}>
+          {spec.icon && <ResponsiveImage src={spec.icon} profile="icon" sizes="18px" alt={spec.alt || ''} />}
+          <span className="car-card-spec__value" title={spec.text}>{showroom
+            ? <><span className="car-card-showroom__name">{showroom[1]}</span>{' '}<span className="car-card-showroom__branch">{showroom[2]}</span></>
+            : spec.alt==='Km'&&text.endsWith(' km')?<>{text.slice(0,-3)}<span className="car-card-spec__unit"> km</span></>:text}</span>
+        </li>;
+      })}</ul>
       <SalePlate slug={car.id} />
     </div>
   </div>;

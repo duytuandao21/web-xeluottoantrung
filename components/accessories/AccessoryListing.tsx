@@ -27,7 +27,7 @@ export default function AccessoryListing({ query, initialResult }: { query: Quer
       const params = new URLSearchParams();
       for (const [key, value] of Object.entries(query)) if (value) params.set(key, value);
       params.set('page', String(result.meta.page + 1));
-      params.set('limit', '6');
+      params.set('limit', '8');
       const next = await getPublic<Result>(`/accessories?${params}`, { signal: controller.signal, cache: 'no-store' });
       if (controller.signal.aborted || request.current !== controller) return;
       setResult(current => {

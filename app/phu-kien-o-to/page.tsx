@@ -25,7 +25,7 @@ export default async function AccessoriesPage({ searchParams }: PageProps) {
   const sort = ['price-asc', 'price-desc'].includes(first(params.sort) || '') ? first(params.sort)! : 'newest';
   const search = (first(params.search) || '').trim().slice(0, 120);
   const query = { brandId: brand, categoryId: category, sort, search };
-  const result = await publicApi<PageResult<Accessory>>('/accessories', { page: 1, limit: 6, ...query });
+  const result = await publicApi<PageResult<Accessory>>('/accessories', { page: 1, limit: 8, ...query });
   return <>
     <SiteBreadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: 'Phụ kiện ô tô' }]} />
     <main className="tt-accessories tt-accessories--listing">

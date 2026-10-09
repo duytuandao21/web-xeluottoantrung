@@ -112,8 +112,9 @@ export function imageDimensions(src: string): Dimensions | undefined {
     : Object.prototype.hasOwnProperty.call(remoteDimensions, src) ? (remoteDimensions as Record<string, Dimensions>)[src] : undefined;
 }
 
-export type ImageProfile = Exclude<ImageDeliveryKind, 'lightbox'> | 'icon';
+export type ImageProfile = Exclude<ImageDeliveryKind, 'lightbox'> | 'icon' | 'brand';
 export const IMAGE_SIZES: Record<ImageProfile, string> = {
+  brand: '(max-width: 760px) 52px, 64px',
   logo: '150px', icon: '160px', thumbnail: '90px', hero: '100vw',
   card: '(max-width: 490px) calc((100vw - 32px) / 2), (max-width: 800px) calc((100vw - 64px) / 2), 400px',
   gallery: '(max-width: 960px) calc(100vw - 32px), 760px',
@@ -123,11 +124,14 @@ export const IMAGE_SIZES: Record<ImageProfile, string> = {
 /** Width descriptors reflect actual scale-down output, deduplicated at source size. */
 export function responsiveImage(src: string, profile: ImageProfile = 'content', sizes = IMAGE_SIZES[profile]) {
   const original = getImageOriginalUrl(src);
-  const kind = profile === 'icon' ? 'logo' : profile;
+  const kind = profile === 'icon' || profile === 'brand' ? 'logo' : profile;
+  // Small brand tiles need at most 192 physical pixels at 3x DPR. Reuse the
+  // existing 240px CDN variant, including when source dimensions are unknown.
+  const widths = profile === 'brand' ? [240] : widthsByKind[kind];
   const dimensions = imageDimensions(src);
-  const quality = profile === 'logo' || profile === 'icon' ? 90 : 85;
+  const quality = profile === 'logo' || profile === 'icon' || profile === 'brand' ? 90 : 85;
   if (dimensions?.animated) return { src: original, sizes: undefined, srcSet: undefined, original };
-  const fallback = getImageDeliveryUrl({ src, width: widthsByKind[kind].at(-1) as ImageDeliveryWidth, quality, kind });
+  const fallback = getImageDeliveryUrl({ src, width: widths.at(-1) as ImageDeliveryWidth, quality, kind });
   // Unknown dimensions use one conservative variant. Never invent width descriptors.
   let pathname = '';
   try { pathname = new URL(original, 'https://local.invalid').pathname; } catch { /* Invalid sources remain unchanged. */ }
@@ -136,7 +140,7 @@ export function responsiveImage(src: string, profile: ImageProfile = 'content', 
   }
   if (dimensions.width < IMAGE_DELIVERY_WIDTHS[0]) return { src: original, sizes: undefined, srcSet: undefined, original };
   const variants: { url: string; pixels: number }[] = [];
-  for (const width of widthsByKind[kind]) {
+  for (const width of widths) {
     const pixels = Math.min(width, dimensions.width);
     if (variants.some(v => v.pixels === pixels)) break;
     variants.push({ url: getImageDeliveryUrl({ src, width: width as ImageDeliveryWidth, quality, kind }), pixels });
@@ -147,6 +151,7 @@ export function responsiveImage(src: string, profile: ImageProfile = 'content', 
 
 export function imageProfile(ancestorClasses: string): ImageProfile {
   if (/slider_slick/.test(ancestorClasses)) return 'hero';
+  if (/home-car-brands|vehicle-brands/.test(ancestorClasses)) return 'brand';
   if (/thuonghieu|vehicle-brands|brand-logo|logo|ngansach/.test(ancestorClasses)) return 'logo';
   if (/tt-home-utility|tt-(?:date|valuation|needs)-hero/.test(ancestorClasses)) return 'icon';
   if (/tt-chat|avatar|camnhan/.test(ancestorClasses)) return 'thumbnail';
