@@ -11,17 +11,20 @@ import type { PageResult, PublicCar } from '@/lib/public-api';
 import ResponsiveImage from './ResponsiveImage';
 import { getImageOriginalUrl, imageProfile } from '@/lib/image-delivery';
 import InstallationStoreCard, { type InstallationStore } from '@/components/accessories/InstallationStoreCard';
+import type { VehicleModelOptionsProps } from '@/components/car/VehicleModelOptions';
 
 // These render only on their existing detail/listing paths. Keep SSR enabled
 // so their HTML and controls remain available on the first render.
 const CarGallery = dynamic(() => import('@/components/car/CarGallery'));
 const CarListing = dynamic(() => import('@/components/car/CarListing'));
+const VehicleModelOptions = dynamic(() => import('@/components/car/VehicleModelOptions'));
 
 export default function Markup({html,cars={}}:{html:string;cars?:Record<string,Car>}) {
   const options:HTMLReactParserOptions={replace(node){
     if(!(node instanceof Element)) return;
     const cls=node.attribs.class || '';
     if(node.name==='script') return <></>;
+    if(node.name==='vehicle-model-options') return <VehicleModelOptions {...JSON.parse(node.attribs['data-state']) as VehicleModelOptionsProps} />;
     // Preserve every CSS declaration; only normalize managed inline image URLs.
     if(node.attribs.style?.includes('url(')) {
       node.attribs.style=node.attribs.style.replace(/url\((["']?)([^"')]+)\1\)/g,(_match,quote,url)=>`url(${quote}${getImageOriginalUrl(url)}${quote})`);

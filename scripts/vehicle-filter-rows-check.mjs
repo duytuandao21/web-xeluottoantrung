@@ -53,7 +53,7 @@ try {
     assert.deepEqual(await page.locator('.vehicle-filter-row').evaluateAll(rows => rows.map(row => row.dataset.vehicleRow)), ['filters', 'brands', 'models', 'versions', 'years']);
     assert.deepEqual(await row('versions').locator('a').allTextContents(), ['Tất cả', ...versions.map(item => item.name)]);
     assert.deepEqual(await row('years').locator('a').allTextContents(), ['Tất cả', ...years.map(String)]);
-    await choose(row('versions').locator('a', { hasText: versions[0].name, exact: true }), 'phien-ban', versions[0].slug);
+    await choose(row('versions').getByRole('link', { name: versions[0].name, exact: true }), 'phien-ban', versions[0].slug);
     const chosenYear = years.at(-1);
     await choose(row('years').locator('a', { hasText: String(chosenYear), exact: true }), 'nam-san-xuat', `${chosenYear}-${chosenYear}`);
     const expected = await get('/cars', { brand: 'mitsubishi', model: model.slug, version: versions[0].slug,

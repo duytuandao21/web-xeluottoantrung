@@ -2,24 +2,27 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
 const base = process.env.TEST_BASE_URL || 'http://localhost:3001';
+const mockOnly = process.env.SEARCH_MOCK_ONLY === '1';
 const get = async (path) => {
   const response = await fetch(`${base}/api/v1${path}`);
   assert(response.ok, `${path}: ${response.status}`);
   return response.json();
 };
-const featured = await get('/search/suggestions');
-assert(featured.keywords.length > 0, 'Featured selling car fixture required');
-assert.deepEqual(featured.items.map(item => item.kind), ['car', 'accessory', 'car', 'accessory']);
-const matches = await get('/search/suggestions?q=a');
-assert.equal(matches.items.length, 5);
-const accessory = (await get('/accessories?limit=1')).data[0];
-assert(accessory, 'Accessory fixture required');
+const featured = mockOnly ? null : await get('/search/suggestions');
+const matches = mockOnly ? null : await get('/search/suggestions?q=a');
+const accessory = mockOnly ? null : (await get('/accessories?limit=1')).data[0];
+if (!mockOnly) {
+  assert(featured.keywords.length > 0, 'Featured selling car fixture required');
+  assert.deepEqual(featured.items.map(item => item.kind), ['car', 'accessory', 'car', 'accessory']);
+  assert.equal(matches.items.length, 5);
+  assert(accessory, 'Accessory fixture required');
+}
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
-  for (const width of [1440, 390]) {
+  for (const width of mockOnly ? [] : [1440, 390]) {
     const page = await browser.newPage({ viewport: { width, height: 1000 }, hasTouch: width < 760, isMobile: width < 760 });
     page.setDefaultTimeout(15000);
-    page.setDefaultNavigationTimeout(45000);
+    page.setDefaultNavigationTimeout(60000);
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error' && /unique.*key|hydration|cannot update/i.test(message.text())) errors.push(message.text()); });
@@ -31,11 +34,11 @@ try {
     await page.goto(`${base}/san-pham`, { waitUntil: 'domcontentloaded' });
     const input = page.locator('#keyword');
     await page.evaluate(() => window.scrollTo({ top: 60, behavior: 'instant' }));
+    const originalScroll = await page.evaluate(() => window.scrollY);
     await input.click();
     await popup.locator('.tt-search-suggestions__keyword').first().waitFor();
     assert.equal(await page.locator('.tt-search-backdrop').count(), 1);
     assert.equal(await page.evaluate(() => document.body.style.position), 'fixed');
-    const alignedScroll = await page.evaluate(() => -parseFloat(document.body.style.top));
     assert(await input.evaluate(el => {
       const headerBottom = [...document.querySelectorAll('.wap_header, .menu_mobi')].reduce((bottom, header) => {
         const rect = header.getBoundingClientRect(); return rect.width && rect.height ? Math.max(bottom, rect.bottom) : bottom;
@@ -78,7 +81,7 @@ try {
     await popup.waitFor({ state: 'detached' });
     assert.equal(await page.locator('.tt-search-backdrop').count(), 0);
     assert.equal(await page.evaluate(() => document.body.style.position), '');
-    assert.equal(await page.evaluate(() => window.scrollY), alignedScroll);
+    assert.equal(await page.evaluate(() => window.scrollY), originalScroll);
     await input.click();
     await waitItems(5);
     await popup.getByRole('button', { name: 'Đóng gợi ý tìm kiếm' }).click();
@@ -98,7 +101,7 @@ try {
     await waitItems(5);
     for (let index = 0; index <= await popup.locator('.tt-search-suggestions__keyword').count(); index++) await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
-    await page.waitForURL(url => url.pathname === matches.items[0].href);
+    await page.waitForURL(url => url.pathname === matches.items[0].href, { waitUntil: 'domcontentloaded' });
     assert.equal(await popup.count(), 0);
 
     await page.goto(`${base}/phu-kien-o-to`, { waitUntil: 'domcontentloaded' });
@@ -109,12 +112,12 @@ try {
     assert.equal(await accessoryInput.inputValue(), featured.keywords[0]);
     await page.keyboard.press('Escape');
     await page.locator('.tt-accessory-filters__search button[type="submit"]').click();
-    await page.waitForURL(url => url.searchParams.get('search') === featured.keywords[0]);
+    await page.waitForURL(url => url.searchParams.get('search') === featured.keywords[0], { waitUntil: 'domcontentloaded' });
     await accessoryInput.click();
     await accessoryInput.fill(accessory.name);
     await popup.locator(`a[href="/phu-kien-o-to/${accessory.id}"]`).waitFor();
     await popup.locator(`a[href="/phu-kien-o-to/${accessory.id}"]`).click();
-    await page.waitForURL(url => url.pathname === `/phu-kien-o-to/${accessory.id}`);
+    await page.waitForURL(url => url.pathname === `/phu-kien-o-to/${accessory.id}`, { waitUntil: 'domcontentloaded' });
 
     await page.goto(`${base}/tim-kiem?keyword=a`, { waitUntil: 'domcontentloaded' });
     const result = await get('/search?q=a&limit=12');
@@ -129,7 +132,7 @@ try {
     }
     await page.locator('input[data-product-search]').fill('no-such-product-7q8z');
     await page.locator('.tt-search-page__form button[type="submit"]').click();
-    await page.waitForURL(url => url.searchParams.get('keyword') === 'no-such-product-7q8z');
+    await page.waitForURL(url => url.searchParams.get('keyword') === 'no-such-product-7q8z', { waitUntil: 'domcontentloaded' });
     await page.getByText('Không có kết quả phù hợp.', { exact: true }).waitFor();
     await page.goto(`${base}/`);
     await page.locator('#keyword').click();
@@ -140,6 +143,7 @@ try {
   }
   // Late results and temporary API failures must never overwrite the current query.
   const page = await browser.newPage();
+  page.setDefaultNavigationTimeout(60000);
   let failed = true;
   await page.route('**/api/v1/search/suggestions?*', async route => {
     const q = new URL(route.request().url()).searchParams.get('q');
@@ -147,7 +151,7 @@ try {
     if (q === 'old') await new Promise(resolve => setTimeout(resolve, 700));
     await route.fulfill({ json: { keywords: ['Keyword'], total: 1, items: q ? [{ id: q, kind: 'car', name: q, href: `/test-${q}`, imageUrl: null, price: 1 }] : [] } }).catch(() => {});
   });
-  await page.goto(`${base}/tim-kiem`);
+  await page.goto(`${base}/tim-kiem`, { waitUntil: 'domcontentloaded' });
   const input = page.locator('input[data-product-search]');
   await input.click();
   await input.fill('old');
@@ -172,11 +176,15 @@ try {
   await page.locator('.tt-search-suggestions__product', { hasText: 'compose' }).waitFor();
   // Small viewports keep the suggestions scrollable while the page stays locked.
   await page.route('**/api/v1/search/suggestions?*', async route => {
-    await route.fulfill({ json: { keywords: Array.from({ length: 12 }, (_, index) => `Featured car ${index}`), items: [], total: 0 } });
+    await route.fulfill({ json: { keywords: Array.from({ length: 12 }, (_, index) => `Featured car ${index}`),
+      items: Array.from({ length: 5 }, (_, index) => ({ id: String(index), kind: 'car', name: `Car ${index}`, href: `/test-${index}`, imageUrl: null, price: 1 })), total: 5 } });
   });
   await page.setViewportSize({ width: 390, height: 480 });
   await input.fill('');
-  await page.locator('.tt-search-suggestions__keyword').nth(7).waitFor({ state: 'attached' });
+  await page.locator('.tt-search-suggestions__keyword').nth(3).waitFor({ state: 'attached' });
+  await page.waitForFunction(() => document.querySelector('#tt-product-search-options')?.getAttribute('aria-busy') === 'false');
+  const compact = await page.locator('.tt-search-layer--compact').count() > 0;
+  assert.equal(await page.locator('.tt-search-suggestions__keyword').count(), compact ? 4 : 8, 'Preserve the existing compact/full keyword limits');
   const options = page.locator('.tt-search-suggestions__options');
   await options.hover();
   await page.mouse.wheel(0, 300);

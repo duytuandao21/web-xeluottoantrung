@@ -7,8 +7,9 @@ import Markup from './Markup';
 import { getPublic, submitPublic } from '@/lib/public-client';
 import { calculateInstallment } from '@/lib/installment-calculator';
 import CarComparison from '@/components/car/CarComparison';
+import ContactMethods, { type ContactMethodDetails } from './ContactMethods';
 
-type Dialog = {html?:string;className?:string;id?:string;label?:string;images?:{src:string;alt:string}[];index?:number};
+type Dialog = {html?:string;className?:string;id?:string;label?:string;images?:{src:string;alt:string}[];index?:number;contact?:ContactMethodDetails};
 
 export default function SiteInteractions() {
   const pathname=usePathname(); const query=useSearchParams();
@@ -17,19 +18,21 @@ export default function SiteInteractions() {
   useEffect(()=>{
     const filters=document.querySelector('.vehicle-filter-panel');
     filters?.setAttribute('aria-busy',String(filterPending));
+    if(!filterPending)filters?.removeAttribute('data-brand-changing');
   },[filterPending,pathname,query]);
   const [dialog,setDialog]=useState<Dialog|null>(null);
   const [showTop,setShowTop]=useState(false);
   const dialogRef=useRef<HTMLDivElement>(null);
   const sourceRef=useRef<HTMLElement|null>(null);
+  const dialogOpen=Boolean(dialog),dialogId=dialog?.id;
   useEffect(()=>{
-    if(!dialog)return;
+    if(!dialogOpen)return;
     const previous=document.activeElement as HTMLElement|null;
     const overflow=document.body.style.overflow;document.body.style.overflow='hidden';
     dialogRef.current?.focus();
     const key=(e:KeyboardEvent)=>{
       if(e.key==='Escape')setDialog(null);
-      if(dialog.images && ['ArrowLeft','ArrowRight'].includes(e.key)) setDialog(d=>d?.images?{...d,index:((d.index||0)+(e.key==='ArrowLeft'?-1:1)+d.images.length)%d.images.length}:d);
+      if(['ArrowLeft','ArrowRight'].includes(e.key)) setDialog(d=>d?.images?{...d,index:((d.index||0)+(e.key==='ArrowLeft'?-1:1)+d.images.length)%d.images.length}:d);
       if(e.key==='Tab') {
         const controls=dialogRef.current?.querySelectorAll<HTMLElement>('a[href],button,input:not([type=hidden]),select,textarea,[tabindex="0"]');
         if(!controls?.length)return;
@@ -39,12 +42,19 @@ export default function SiteInteractions() {
       }
     };
     document.addEventListener('keydown',key);
-    return()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',key);if(sourceRef.current&&dialog.id){sourceRef.current.id=dialog.id;sourceRef.current=null;}previous?.focus();};
-  },[dialog]);
+    return()=>{
+      document.body.style.overflow=overflow;document.removeEventListener('keydown',key);
+      if(sourceRef.current&&dialogId){sourceRef.current.id=dialogId;sourceRef.current=null;}
+      const returnFocus=previous?.closest('.menu_mobi_add[aria-hidden="true"]')?document.querySelector<HTMLElement>('.icon_menu_mobi'):previous;
+      returnFocus?.focus({preventScroll:true});
+    };
+  },[dialogOpen,dialogId]);
+  useEffect(()=>{if(dialogOpen)dialogRef.current?.focus({preventScroll:true});},[dialogOpen,dialog?.contact]);
 
   useEffect(()=>{
     setDialog(null);
     const cleanups:(()=>void)[]=[];
+    let selectedBrandSlug=document.querySelector<HTMLElement>('.vehicle-brands__option.is-selected')?.dataset.brandSlug||'';
     const installment=document.querySelector<HTMLElement>('.vehicle-installment .tragop[data-price]');
     if(installment){
       const price=Number(installment.dataset.price);
@@ -220,6 +230,15 @@ export default function SiteInteractions() {
     cleanups.push(()=>{document.removeEventListener('pointerover',onFilterPointerOver);document.removeEventListener('pointerout',onFilterPointerOut);});
     const onClick=(event:MouseEvent)=>{
       const target=event.target as HTMLElement;
+      const contact=target.closest<HTMLElement>('[data-contact-phone]');
+      if(contact){
+        const phone=contact.dataset.contactPhone||'';
+        if(/^\+?\d{9,12}$/.test(phone)){
+          event.preventDefault();
+          setDialog(d=>({...(d?.id==='nutgoi'?d:{}),contact:{phone,name:contact.dataset.contactName||'Toàn Trung'}}));
+          return;
+        }
+      }
       if(target.closest('[data-vehicle-search-submit]')){submitKeyword();return;}
       const scroll=target.closest<HTMLElement>('[data-filter-scroll]');
       if(scroll){const track=scroll.closest('.vehicle-brands')?.querySelector('.vehicle-brands__track');track?.scrollBy({left:Number(scroll.dataset.filterScroll)*track.clientWidth*.75,behavior:'smooth'});return;}
@@ -234,7 +253,21 @@ export default function SiteInteractions() {
       const filterLink=target.closest<HTMLAnchorElement>('a[data-filter-link]');
       if(filterLink&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey){
         event.preventDefault();
-        startFilterTransition(()=>router.push(filterLink.href,{scroll:false}));
+        let href=filterLink.href;
+        if(filterLink.classList.contains('vehicle-brands__option')){
+          const next=new URL(href),slug=filterLink.dataset.brandSlug||next.searchParams.get('hang-xe')||'';
+          selectedBrandSlug=selectedBrandSlug===slug?'':slug;
+          if(selectedBrandSlug)next.searchParams.set('hang-xe',selectedBrandSlug);else next.searchParams.delete('hang-xe');
+          href=next.href;
+          document.querySelector('.vehicle-filter-panel')?.setAttribute('data-brand-changing','true');
+          document.querySelectorAll<HTMLElement>('.vehicle-brands__option').forEach(link=>{
+            const selected=link.dataset.brandSlug===selectedBrandSlug;
+            link.classList.toggle('is-selected',selected);link.setAttribute('aria-current',String(selected));
+            link.setAttribute('aria-label',`${selected?'Bỏ chọn':'Chọn'} hãng ${link.textContent?.trim()||''}`);
+          });
+          window.dispatchEvent(new CustomEvent('tt:vehicle-brand-change',{detail:{brandSlug:next.searchParams.get('hang-xe')||'',href:`${next.pathname}${next.search}`}}));
+        }
+        startFilterTransition(()=>router.push(href,{scroll:false}));
         return;
       }
       if(!target.closest('.vehicle-filter-chip'))closeFilterPopovers();
@@ -389,14 +422,15 @@ export default function SiteInteractions() {
     return()=>{cleanups.forEach(fn=>fn());document.removeEventListener('click',onClick);document.removeEventListener('submit',submit);document.removeEventListener('change',change);document.removeEventListener('keydown',keys);window.removeEventListener('scroll',scroll);};
   },[pathname,query,router]);
   const image=dialog?.images?.[dialog.index||0];
+  const closeDialog=()=>setDialog(null);
   return <>
     <CarComparison />
     {showTop && <button type="button" className="scrollToTop" aria-label="Về đầu trang" onClick={()=>window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'})}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button>}
-    {dialog && createPortal(<div className="fancybox-container fancybox-is-open migrated-dialog" role="dialog" aria-modal="true" aria-label={dialog.label || (image?'Ảnh xe':dialog.id==='nutgoi'?'Liên hệ Toàn Trung':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin')} tabIndex={-1} ref={dialogRef}>
-      <div className="fancybox-bg"/><div className="fancybox-inner"><div className="fancybox-stage"><div className="fancybox-slide fancybox-slide--html fancybox-slide--current fancybox-slide--complete" onClick={e=>{if(e.target===e.currentTarget)setDialog(null);}}>
-        <div className={`fancybox-content ${image?'dialog-gallery':dialog.className||''}`} id={dialog.id}>
-          {image?<ResponsiveImage profile="content" className="dialog-image" src={image.src} alt={image.alt}/>:<Markup html={dialog.html||''}/>}
-          <button type="button" className="fancybox-button fancybox-close-small" aria-label="Đóng" onClick={()=>setDialog(null)}><svg viewBox="0 0 24 24"><path d="M12 10.6l6-6 1.4 1.4-6 6 6 6-1.4 1.4-6-6-6 6-1.4-1.4 6-6-6-6L6 4.6z"/></svg></button>
+    {dialog && createPortal(<div className={`fancybox-container fancybox-is-open migrated-dialog${dialog.contact?' migrated-dialog--contact-methods':''}`} role="dialog" aria-modal="true" aria-label={dialog.contact?`Liên hệ ${dialog.contact.name}`:dialog.label || (image?'Ảnh xe':dialog.id==='nutgoi'?'Liên hệ Toàn Trung':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin')} tabIndex={-1} ref={dialogRef}>
+      <div className="fancybox-bg"/><div className="fancybox-inner"><div className="fancybox-stage"><div className="fancybox-slide fancybox-slide--html fancybox-slide--current fancybox-slide--complete" onClick={e=>{if(e.target===e.currentTarget)closeDialog();}}>
+        <div className={`fancybox-content ${dialog.contact?'tt-contact-method-dialog':image?'dialog-gallery':dialog.className||''}`} id={dialog.id}>
+          {dialog.contact?<ContactMethods contact={dialog.contact} onBack={dialog.html?()=>setDialog(d=>d?{...d,contact:undefined}:null):undefined}/>:image?<ResponsiveImage profile="content" className="dialog-image" src={image.src} alt={image.alt}/>:<Markup html={dialog.html||''}/>}
+          <button type="button" className="fancybox-button fancybox-close-small" aria-label="Đóng" onClick={closeDialog}><svg viewBox="0 0 24 24"><path d="M12 10.6l6-6 1.4 1.4-6 6 6 6-1.4 1.4-6-6-6 6-1.4-1.4 6-6-6-6L6 4.6z"/></svg></button>
         </div>
         {dialog.images && dialog.images.length>1 && <>{[-1,1].map(dir=><button key={dir} className={`fancybox-button fancybox-button--arrow_${dir===-1?'left':'right'}`} aria-label={dir===-1?'Ảnh trước':'Ảnh tiếp theo'} onClick={()=>setDialog(d=>d?.images?{...d,index:((d.index||0)+dir+d.images.length)%d.images.length}:d)} style={{position:'absolute',top:'50%',left:dir===-1?0:undefined,right:dir===1?0:undefined}}>{dir===-1?'‹':'›'}</button>)}</>}
       </div></div></div>

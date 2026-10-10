@@ -44,22 +44,47 @@ export class PublicApiError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
 
+const modelPath = /^\/brands\/[a-z0-9]+(?:-[a-z0-9]+)*\/models$/;
+const modelReads = new Map<string, Promise<unknown>>();
 async function readPublicData(path: string, queryString: string): Promise<unknown> {
-  return withPublicReadSlot(async () => {
-    // Cache outside fetch so background revalidation also acquires a read slot.
-    // Fetch-level SWR would bypass this concurrency limit.
-    const response = await fetch(`${baseUrl}/api/v1${path}${queryString ? `?${queryString}` : ''}`, { cache: 'no-store' });
-    if (!response.ok) throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`);
-    return response.json();
-  });
+  const models = modelPath.test(path);
+  const key = `${path}?${queryString}`;
+  if (models && modelReads.has(key)) return modelReads.get(key)!;
+  const read = async () => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await withPublicReadSlot(async () => {
+          // Background revalidation also acquires a read slot.
+          const response = await fetch(`${baseUrl}/api/v1${path}${queryString ? `?${queryString}` : ''}`, {
+            cache: 'no-store', ...(models ? { signal: AbortSignal.timeout(5_000) } : {}),
+          });
+          if (!response.ok) throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`);
+          const data: unknown = await response.json();
+          if (models && (!Array.isArray(data) || !data.every(item => item && typeof item.id === 'string' && typeof item.name === 'string' && typeof item.slug === 'string') ||
+            new Set(data.map(item => item.id)).size !== data.length)) throw new PublicApiError(502, 'Invalid model catalog');
+          return data;
+        });
+      } catch (error) {
+        // Only retry this small, read-only catalog. Never retry other API actions.
+        if (!models || attempt >= 1 || error instanceof PublicApiError && error.status < 500 && error.status !== 429) throw error;
+        await new Promise(resolve => setTimeout(resolve, 180));
+      }
+    }
+  };
+  if (!models) return read();
+  const pending = read().finally(() => { modelReads.delete(key); });
+  modelReads.set(key, pending);
+  return pending;
 }
 
 const readCached60 = unstable_cache(readPublicData, ['public-api-v2-60', baseUrl], { revalidate: 60 });
 const readCached30 = unstable_cache(readPublicData, ['public-api-v2-30', baseUrl], { revalidate: 30 });
+const readCachedModels60 = unstable_cache(readPublicData, ['brand-models-v1', baseUrl], { revalidate: 60 });
 // Reuse parsed results within SSR, including page/layout/metadata callers.
 // Origin, path and the full query also form the persistent cache key.
 const readRequestData = cache((path: string, queryString: string, seconds: number) =>
-  seconds === 60 ? readCached60(path, queryString) : seconds === 30 ? readCached30(path, queryString) : readPublicData(path, queryString));
+  modelPath.test(path) ? readCachedModels60(path, queryString) :
+    seconds === 60 ? readCached60(path, queryString) : seconds === 30 ? readCached30(path, queryString) : readPublicData(path, queryString));
 
 export async function publicApi<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
   const query = new URLSearchParams();
@@ -88,7 +113,7 @@ export type PageResult<T> = { data: T[]; meta: { page: number; limit: number; to
 export type PublicCar = {
   slug: string; name: string; year: number; price: number; originalPrice?: number | null; mileage?: number | null;
   status: string; featured?: boolean; fuel?: string | null; cover?: string | null; transmission?: string | null;
-  color?: string | null; colorSlug?: string | null;
+  color?: string | null; colorSlug?: string | null; createdAt?: string | null; newArrival?: boolean;
   seatCount?: number | null; branch?: string | null;
   brand: { name: string; slug: string }; model: { name: string; slug: string }; bodyType?: string | null;
 };

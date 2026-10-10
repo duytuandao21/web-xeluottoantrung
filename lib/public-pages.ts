@@ -103,12 +103,15 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
     const modelCars = await publicApi<PageResult<PublicCar>>('/cars', { model: requestedModel, limit: 1 });
     effectiveSearch['hang-xe'] = modelCars.data[0]?.brand.slug;
   }
-  const models = effectiveSearch['hang-xe']
-    ? await optionalPublicApi<PublicLookup[]>(`/brands/${encodeURIComponent(String(effectiveSearch['hang-xe']))}/models`) || [] : [];
+  let models: PublicLookup[] = [], modelsError = false;
+  if (effectiveSearch['hang-xe']) {
+    try { models = await publicApi<PublicLookup[]>(`/brands/${encodeURIComponent(String(effectiveSearch['hang-xe']))}/models`); }
+    catch { modelsError = true; }
+  }
   const selectedModel = models.find(model => model.slug === requestedModel);
-  effectiveSearch['dong-xe'] = selectedModel?.slug || (!effectiveSearch['hang-xe'] ? requestedModel : undefined);
+  effectiveSearch['dong-xe'] = selectedModel?.slug || (!effectiveSearch['hang-xe'] || modelsError ? requestedModel : undefined);
   const versions = selectedModel ? await allPublicLookups('/lookups/car-versions', { modelId: selectedModel.id }) : [];
-  effectiveSearch['phien-ban'] = versions.find(version => version.slug === single(effectiveSearch['phien-ban']))?.slug;
+  if (!modelsError) effectiveSearch['phien-ban'] = versions.find(version => version.slug === single(effectiveSearch['phien-ban']))?.slug;
   $('.boloc_l ul').append('<li data-id=".chinhanh_tk">Chi nhánh</li>');
   $('.boloc_r').append('<div class="tab_bl chinhanh_tk"><div class="dang_text goiy_chinhanh"></div></div>');
   const groupMap: Array<[string, PublicLookup[]]> = [
@@ -214,6 +217,7 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
     const next = active ? null : brand.slug;
     const link = $('<a class="vehicle-brands__option" data-filter-link="true"></a>')
       .attr({ href: urlFor({ 'hang-xe': next, 'dong-xe': null, 'phien-ban': null, ...clearYear, 'mau-sac': null, 'hop-so': null }),
+        'data-brand-slug': brand.slug,
         'aria-label': `${active ? 'Bỏ chọn' : 'Chọn'} hãng ${brand.name}`, 'aria-current': active ? 'true' : 'false' });
     if (active) link.addClass('is-selected');
     if (brand.imageUrl) link.append($('<img loading="lazy">').attr({ src: brand.imageUrl, alt: '', 'data-brand-logo': 'true' }));
@@ -307,9 +311,10 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
     }
     addRow(key, title, track);
   };
+  filterPanel.append($('<vehicle-model-options></vehicle-model-options>').attr('data-state', JSON.stringify({
+    brandSlug: brandValues[0] || '', models, href: urlFor({}), error: modelsError,
+  })));
   if (brandValues.length === 1) {
-    choiceRow('models', 'Dòng xe', models.map(model => ({ name: model.name, value: model.slug })), selectedModel?.slug,
-      value => urlFor(value === (selectedModel?.slug || null) ? {} : { 'dong-xe': value, 'phien-ban': null, ...clearYear }));
     if (selectedModel) {
       choiceRow('versions', 'Phiên bản', versions.map(version => ({ name: version.name, value: version.slug })), versionSlug,
         value => urlFor(value === (versionSlug || null) ? {} : { 'phien-ban': value, ...clearYear }));
@@ -547,8 +552,20 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
     .append($('<img class="cloudzoom no_lazy">').attr({ src: media.url, alt: media.altText || `${title} ${index + 1}` })));
   $('.breadCrumbs .breadcrumb-item').eq(2).find('a').attr('href', `/${car.brand.slug}`).find('span').text(car.brand.name);
   $('.breadCrumbs .breadcrumb-item').last().find('span').text(title);
-  $('.right-pro-detail .gia_sp b').first().text(formatCarPrice(car.price));
-  $('.right-pro-detail .gia_sp a').remove();
+  const priceBar = $('.right-pro-detail .gia_sp').first().empty();
+  const currentPrice = formatCarPrice(car.price);
+  priceBar.append($('<b class="vehicle-detail-price__current"></b>')
+    .attr('aria-label', `Giá bán hiện tại ${currentPrice}`)
+    .attr('data-long-price', currentPrice.length > 9 ? 'true' : 'false').text(currentPrice));
+  if (typeof car.originalPrice === 'number' && Number.isFinite(car.originalPrice) && car.originalPrice > 0) {
+    const originalPrice = formatCarPrice(car.originalPrice);
+    priceBar.addClass('vehicle-detail-price--discount').append(
+      $('<span class="vehicle-detail-price__old"></span>')
+        .attr('data-long-price', originalPrice.length > 9 ? 'true' : 'false')
+        .append('<span class="vehicle-detail-price__old-label">Giá cũ</span>')
+        .append($('<del></del>').text(originalPrice)),
+    );
+  }
   $('.right-pro-detail .name_sp a').first().attr({ href: `/${car.slug}`, title }).text(title);
   const facts = [
     `${Number(car.mileage || 0).toLocaleString('vi-VN')} km`, car.seatCount ? `${car.seatCount} chỗ` : '—',

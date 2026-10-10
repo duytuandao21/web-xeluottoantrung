@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import shared from '@/data/shared.json';
 import { SaleLoginButton } from '@/components/sale/SaleAccess';
 import type { Service } from '@/lib/public-api';
+import MobileMenuIcon from './MobileMenuIcon';
 
 interface MenuItem { label:string;title?:string;href?:string;target?:string;className?:string;children:MenuItem[]; }
 function MenuList({items,mobile=false,close,depth=0,className,style}:{items:MenuItem[];mobile?:boolean;close:()=>void;depth?:number;className?:string;style?:CSSProperties}) {
@@ -25,16 +26,17 @@ function MenuList({items,mobile=false,close,depth=0,className,style}:{items:Menu
         className={[isExpanded?'active2':'',active===item.label.trim()||destination.href===pathname?'active':''].filter(Boolean).join(' ')}
         onClick={event=>{if(hasSubmenu&&!directHref){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}else close();}}
         onKeyDown={event=>{if(hasSubmenu&&!directHref&&(event.key===' '||event.key==='Enter')){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}}}>
-        {item.label}{hasSubmenu&&mobile&&!directHref&&<span className="mobile-menu-chevron" aria-hidden="true"/>}
+        {mobile&&depth===0&&<MobileMenuIcon name={item.label}/>}{item.label}{hasSubmenu&&mobile&&!directHref&&<span className="mobile-menu-chevron" aria-hidden="true"/>}
       </a>
       {hasSubmenu&&mobile&&directHref&&<button type="button" className={`mobile-submenu-toggle${isExpanded?' is-expanded':''}`} aria-label={`Danh sách ${item.label.toLowerCase()}`} aria-expanded={isExpanded} onClick={()=>setExpanded(isExpanded?null:item.label)}><span className="mobile-menu-chevron" aria-hidden="true"/></button>}
       {hasSubmenu&&<MenuList items={item.children} mobile={mobile} close={close} depth={depth+1} className={item.label==='Tiện ích'?'menu-utilities':undefined} style={mobile?{display:isExpanded?'block':'none'}:undefined}/>}
     </li>;
   })}</ul>;
 }
-function HeaderActions({ phone, showSaleLogin = true }: { phone?: string; showSaleLogin?: boolean }) {
+function HeaderActions({ phone, showSaleLogin = true, onContact, mobile = false }: { phone?: string; showSaleLogin?: boolean; onContact?: () => void; mobile?: boolean }) {
+  const number = (phone || '0777393913').replace(/[\s().-]/g, '');
   return <div className="header-actions">
-    <p className="hotline">{phone || '0777393913'}</p>
+    <p className="hotline" data-contact-phone={number} data-contact-name="Toàn Trung" onClick={onContact}><a href={`tel:${number}`} aria-haspopup="dialog">{mobile&&<MobileMenuIcon name="phone"/>}{phone || '0777393913'}</a></p>
     {showSaleLogin && <SaleLoginButton />}
   </div>;
 }
@@ -93,9 +95,9 @@ export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }:
         <HeaderActions phone={phone} />
       </div></div>
     </div></div>
-    <div className={`menu_mobi_add hidden_d${open?' menu_mobi_active':''}`} aria-hidden={!open}>
-      <div className="logo_m logo"><Link href="/" scroll={false} aria-label="Về đầu trang chủ" onClick={goHomeTop}>{mobileLogo}</Link><span className="close_menu" role="button" tabIndex={0} aria-label="Đóng menu" onClick={()=>setOpen(false)}/></div>
-      <MenuList items={menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} showSaleLogin={false} />
+    <div className={`menu_mobi_add tt-mobile-menu hidden_d${open?' menu_mobi_active':''}`} aria-hidden={!open}>
+      <div className="logo_m logo"><Link href="/" scroll={false} aria-label="Về đầu trang chủ" onClick={goHomeTop}><ResponsiveImage profile="logo" sizes="160px" src={mobileLogoUrl} alt="Logo Toàn Trung" data-header-logo /></Link><button type="button" className="close_menu" aria-label="Đóng menu" onClick={()=>setOpen(false)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div>
+      <MenuList items={menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} mobile showSaleLogin={false} onContact={()=>setOpen(false)} />
     </div>
     <div className="menu_mobi hidden_d">
       <p className="menu_baophu" style={{display:open?'block':'none'}} onClick={()=>setOpen(false)}/>

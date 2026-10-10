@@ -37,7 +37,9 @@ export default function ChatbotLauncher() {
       const center = anchor ? anchor.left + anchor.width / 2 : left + width - 45;
       const right = Math.min(left + width - 10, center + size / 2);
       const step = contacts.length > 1 ? contacts[1].box.top + contacts[1].box.height / 2 - (anchor!.top + anchor!.height / 2) : size + 20;
-      let buttonTop = anchor ? anchor.top + anchor.height / 2 - step - size / 2 : top + height - 120 - size;
+      const bottomInset = !anchor && launcher.current && matchMedia('(max-width:960px)').matches
+        ? parseFloat(getComputedStyle(launcher.current).bottom) || 120 : 120;
+      let buttonTop = anchor ? anchor.top + anchor.height / 2 - step - size / 2 : top + height - bottomInset - size;
       buttonTop = Math.max(top + 12, buttonTop);
       const panelWidth = mobile ? width - 16 : Math.min(500, width - size - 60);
       const panelHeight = mobile ? height - 16 : Math.min(640, height - 24);

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import CarCard from '@/components/car/CarCard';
 import type { Car } from '@/types/car';
 import { recommendationApi, type RecommendationResult } from '@/lib/car-recommendations';
+import { isNewArrival } from '@/lib/car-new-arrival';
 export default function SurveyResults({ result: initialResult, capability, event, restart, headingRef }: { result: RecommendationResult; capability?: string; event: (type: string, carId?: string) => void; restart: () => void; headingRef: RefObject<HTMLHeadingElement | null> }) {
   const router = useRouter();
   const [result, setResult] = useState(initialResult), [busy, setBusy] = useState(false), [error, setError] = useState('');
@@ -36,6 +37,8 @@ export default function SurveyResults({ result: initialResult, capability, event
     </header>
     <div className="tt-needs-results__grid">{result.results.map(item => {
       const car: Car = { id: item.car.slug, className: 'item tt-needs-car', imageClass: 'img_sp', nameClass: 'name_sp', name: item.car.name, title: item.car.name, href: `/${encodeURIComponent(item.car.slug)}`,
+        originalPrice: item.car.originalPrice,
+        createdAt: item.car.createdAt, newArrival: item.car.newArrival, isNewArrival: item.car.newArrival === true && isNewArrival(item.car.createdAt),
         images: [{ src: item.car.cover || '/thumbs/90x90x2/assets/images/noimage.png', alt: item.car.name }], priceHtml: `<b>${money(item.car.price)}</b>`, compare: true,
         specs: [{ icon: '/assets/images/km.png', alt: 'Km', text: item.car.mileage === null ? 'Chưa rõ' : `${item.car.mileage.toLocaleString('vi-VN')} km` }, ...(item.car.seatCount ? [{ icon: '/assets/images/socho.png', alt: 'Số chỗ', text: `${item.car.seatCount} chỗ` }] : []), { icon: '/assets/images/hopso.png', alt: 'Hộp số', text: item.car.transmission.name || '—' }, { icon: '/assets/images/nhienlieu.png', alt: 'Nhiên liệu', text: item.car.fuel || '—' }, { icon: '/assets/images/bienso.png', alt: 'Năm sản xuất', text: String(item.car.year) }] };
       return <article className="tt-needs-result-card" key={item.car.id} onClick={e => {

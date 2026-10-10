@@ -56,6 +56,9 @@
 .tt-search-results__arrow { flex:none; font-size:24px; color:#d00000; padding:0 10px; }
 .tt-search-results__empty { margin:25px 0; padding:24px; background:#f7f8fb; border-radius:14px; color:#657287; }
 @media(max-width:767px) {
+  .tt-search-anchor--open,.tt-search-suggestions__heading,.tt-search-suggestions__all { touch-action:pan-x pinch-zoom; }
+  .tt-search-suggestions__options { touch-action:pan-y pinch-zoom; }
+  .tt-search-suggestions,.tt-search-suggestions__options { overscroll-behavior-y:none; }
   input#keyword,input[data-product-search],input[type="search"] { font-size:16px; }
   .tt-search-suggestions { border-radius:12px; }
   .tt-search-suggestions__heading { padding:10px 12px; font-size:14px; }

@@ -135,11 +135,11 @@ export default function Footer({ showrooms, phone, address, zalo, settings, call
     </a>
     <div id="nutgoi" className="tt-call-dialog">
       <h2>Liên hệ Toàn Trung</h2>
-      <div className="tt-call-list">{callContacts.filter(contact => contact.phone && /^\+?\d{9,12}$/.test(contact.phone.replace(/[\s().-]/g, ''))).map(contact => <a className="tt-call-contact" key={contact.id} href={`tel:${contact.phone!.replace(/[\s().-]/g, '')}`}>
+      <div className="tt-call-list">{callContacts.filter(contact => contact.phone && /^\+?\d{9,12}$/.test(contact.phone.replace(/[\s().-]/g, ''))).map(contact => <a className="tt-call-contact" key={contact.id} href={`tel:${contact.phone!.replace(/[\s().-]/g, '')}`} data-contact-phone={contact.phone!.replace(/[\s().-]/g, '')} data-contact-name={contact.title} aria-haspopup="dialog">
         <span className="tt-call-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16.4v3a2 2 0 0 1-2.2 2A18.8 18.8 0 0 1 2.6 5.2 2 2 0 0 1 4.6 3h3a2 2 0 0 1 2 1.7l.4 2.7a2 2 0 0 1-.6 1.8L7.8 10.8a15.6 15.6 0 0 0 5.4 5.4l1.6-1.6a2 2 0 0 1 1.8-.6l2.7.4A2 2 0 0 1 21 16.4Z" /></svg></span>
         <span className="tt-call-info"><strong>{contact.title}</strong>{contact.body && <span>{contact.body}</span>}<b>{contact.phone}</b></span>
       </a>)}</div>
-      {!callContacts.length && <p className="tt-call-empty">Danh sách liên hệ đang được cập nhật. Vui lòng gọi <a href={`tel:${(phone || '0777393913').replace(/\D/g, '')}`}>{phone || '0777393913'}</a>.</p>}
+      {!callContacts.length && <p className="tt-call-empty">Danh sách liên hệ đang được cập nhật. Vui lòng gọi <a href={`tel:${(phone || '0777393913').replace(/\D/g, '')}`} data-contact-phone={(phone || '0777393913').replace(/\D/g, '')} data-contact-name="Toàn Trung" aria-haspopup="dialog">{phone || '0777393913'}</a>.</p>}
     </div>
   </>;
 }

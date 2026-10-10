@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
+import MobileContactBar from '@/components/layout/MobileContactBar';
 import "./globals.css";
 import '@/components/search/search.css';
 import { Suspense } from 'react';
@@ -17,6 +18,7 @@ import SearchSuggestions from '@/components/search/SearchSuggestions';
 import ChatbotLauncher from '@/components/chatbot/ChatbotLauncher';
 import '@/components/chatbot/chatbot.css';
 import { getImageOriginalUrl } from '@/lib/image-delivery';
+import { showroom10MapHref } from '@/lib/contact-links';
 
 export async function generateMetadata(): Promise<Metadata> {
   const [siteName, branding] = await Promise.all([getSiteName(), getSiteBranding()]);
@@ -60,7 +62,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const showrooms = groupShowrooms(branches, regions);
   return (
     <html lang="vi"><head>{legacyStyles.map((href) => <link key={href} rel="stylesheet" href={href} />)}</head>
-      <body><SaleAccessProvider><div className="wapper"><Header phone={info.phone} services={services} logoUrl={branding.logo} mobileLogoUrl={branding.logoMobile} />{children}<Footer showrooms={showrooms} phone={info.phone} zalo={info.zalo} settings={footerSettings} callContacts={callContacts} policies={policies} logoUrl={branding.logoDark} socialLinks={socialLinks} appLinks={appLinks} /></div><Suspense fallback={null}><SiteInteractions/><SearchSuggestions/></Suspense><ChatbotLauncher /></SaleAccessProvider></body>
+      <body><SaleAccessProvider><div className="wapper"><Header phone={info.phone} services={services} logoUrl={branding.logo} mobileLogoUrl={branding.logoMobile} />{children}<Footer showrooms={showrooms} phone={info.phone} zalo={info.zalo} settings={footerSettings} callContacts={callContacts} policies={policies} logoUrl={branding.logoDark} socialLinks={socialLinks} appLinks={appLinks} /></div><MobileContactBar zalo={info.zalo} mapHref={showroom10MapHref(branches)}/><Suspense fallback={null}><SiteInteractions/><SearchSuggestions/></Suspense><ChatbotLauncher /></SaleAccessProvider></body>
     </html>
   );
 }

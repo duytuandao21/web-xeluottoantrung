@@ -7,6 +7,7 @@ import ResponsiveImage from '@/components/common/ResponsiveImage';
 import { responsiveImage } from '@/lib/image-delivery';
 import { observeCardCover } from '@/lib/card-cover-loading';
 import { SalePlate } from '@/components/sale/SaleAccess';
+import { isNewArrival, newArrivalExpiresAt } from '@/lib/car-new-arrival';
 
 type Motion = { direction: -1 | 1; target: number; phase: 'ready' | 'go' };
 
@@ -62,6 +63,24 @@ function prepareImage(src:string,signal:AbortSignal):Promise<void> {
 }
 
 function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'}) {
+  // The mapped initial flag survives SSR/hydration without comparing two clocks.
+  const [recentArrival,setRecentArrival]=useState(car.isNewArrival || false);
+  useEffect(()=>{
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    const update=()=>{
+      clearTimeout(timer);
+      const recent=car.newArrival===true && isNewArrival(car.createdAt);
+      setRecentArrival(recent);
+      const expires=newArrivalExpiresAt(car.createdAt);
+      if(recent && expires!==null)timer=setTimeout(update,Math.max(1,expires-Date.now()));
+    };
+    const visible=()=>{if(!document.hidden)update();};
+    update();
+    if(car.newArrival!==true || !isNewArrival(car.createdAt))return ()=>clearTimeout(timer);
+    window.addEventListener('focus',update);
+    document.addEventListener('visibilitychange',visible);
+    return ()=>{clearTimeout(timer);window.removeEventListener('focus',update);document.removeEventListener('visibilitychange',visible);};
+  },[car.createdAt,car.newArrival]);
   const [images,setImages]=useState(car.images);
   const [activeIndex,setActiveIndex]=useState(0);
   const [galleryLoaded,setGalleryLoaded]=useState(false);
@@ -127,6 +146,7 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
   const previous=images[(activeIndex-1+images.length)%images.length]||current;
   const next=images[(activeIndex+1)%images.length]||current;
   const offset=motion?.phase==='go'?(motion.direction===1?-200:0):-100;
+  const discounted=typeof car.originalPrice==='number' && Number.isFinite(car.originalPrice) && car.originalPrice>0;
   const onTouchStart=(event:React.TouchEvent<HTMLDivElement>)=>{
     if(event.touches.length!==1){swipeStartRef.current=null;return;}
     swipeStartRef.current={x:event.touches[0].clientX,y:event.touches[0].clientY};
@@ -145,6 +165,10 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
   return <div className={car.className} data-car-id={car.id}>
     {car.compare && <p className="id_ss" data-id={car.id} role="button" tabIndex={0}><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4.5 4.5L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg></span>So sánh</p>}
     <div className={car.imageClass}>
+      {recentArrival && <span className={`car-card-new-arrival${car.status?' car-card-new-arrival--with-status':''}`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Xe mới về
+      </span>}
       <div className="slick_hinhthem car-card-gallery" aria-busy={loading}>
         <div className="car-card-gallery__viewport" ref={viewportRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchCancel={()=>{swipeStartRef.current=null;}}>
           <div className={`car-card-gallery__track${motion?.phase==='go'?' is-moving':''}`} style={{transform:`translateX(${offset}%)`}} onTransitionEnd={event=>{
@@ -163,7 +187,19 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
       </div>
       {car.status && <span className="tinhtrang">{car.status}</span>}
     </div>
-    <div className="mota"><div className="gia_sp">{parse(car.priceHtml || '')}</div>
+    <div className="mota"><div className={`gia_sp${discounted?' gia_sp--discount':''}`}>
+      <span className="car-card-price" data-long-price={(car.priceHtml || '').replace(/<[^>]*>/g,'').trim().length>9 || undefined}>{parse(car.priceHtml || '')}</span>
+      {discounted && <span className="car-card-discount">
+        <svg viewBox="0 0 48 48" strokeOpacity="0.7" aria-hidden="true" focusable="false">
+          <path d="m31 7 9 7-5 25a4 4 0 0 1-5 3L12 35Z" fill="#eeb323" stroke="#171717" strokeWidth="2.5" strokeLinejoin="round"/>
+          <path d="M30 3h12l3 14-27 27a4 4 0 0 1-6 0L3 35a4 4 0 0 1 0-6L27 5a4 4 0 0 1 3-2Z" fill="#ffd447" stroke="#171717" strokeWidth="2.5" strokeLinejoin="round"/>
+          <circle cx="36" cy="10" r="3" fill="#e00000" stroke="#171717" strokeWidth="2"/>
+          <path d="M36 10V1" stroke="#171717" strokeWidth="2.5" strokeLinecap="round"/>
+          <text x="23" y="29" fill="#171717" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="800" textAnchor="middle" transform="rotate(-45 23 25)">SALE</text>
+        </svg>
+        <span>Giảm giá</span>
+      </span>}
+    </div>
       <h3 className={car.nameClass}><a href={car.href} title={car.title}>{car.name}</a></h3>
       <ul>{car.specs.map((spec,index)=>{
         const text=spec.alt==='Showroom'?spec.text.replace(/^\s*showroom\s+/i,'').trim():spec.text;

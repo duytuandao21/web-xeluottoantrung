@@ -1,5 +1,6 @@
 import type { Car } from '@/types/car';
 import type { PublicCar } from './public-api';
+import { isNewArrival } from './car-new-arrival';
 
 export function formatCarPrice(price: number): string {
   const millions = Math.round(price / 1_000_000);
@@ -13,8 +14,9 @@ export function carToCard(car: PublicCar): Car {
     id: car.slug, className: 'item', imageClass: 'img_sp', name: car.name, href: `/${car.slug}`,
     title: car.name, nameClass: 'name_sp',
     images: [{ src: car.cover || '/thumbs/90x90x2/assets/images/noimage.png', alt: car.name }],
-    priceHtml: `<b>${formatCarPrice(car.price)}</b>`, compare: true,
+    priceHtml: `<b>${formatCarPrice(car.price)}</b>`, originalPrice: car.originalPrice, compare: true,
     status: car.status === 'deposit' ? 'Đã nhận cọc' : car.status === 'sold' ? 'Đã bán' : '',
+    createdAt: car.createdAt, newArrival: car.newArrival, isNewArrival: car.newArrival === true && isNewArrival(car.createdAt),
     specs: [
       { icon: '/assets/images/km.png', alt: 'Km', text: `${Number(car.mileage || 0).toLocaleString('vi-VN')} km` },
       ...(car.seatCount ? [{ icon: '/assets/images/socho.png', alt: 'Số chỗ', text: `${car.seatCount} chỗ` }] : []),
