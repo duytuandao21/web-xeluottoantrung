@@ -815,7 +815,7 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
         const query = new URLSearchParams({ 'ngan-sach': `${bounds!.min ?? ''}-${bounds!.max ?? ''}` });
         target.append($('<a></a>').attr({ href: `/san-pham?${query}`, title: item.name }).text(item.name));
       }
-      target.append('<a class="home-view-all" href="/tien-ich/mua-xe-theo-nhu-cau" title="Tìm xe theo nhu cầu">Tìm xe theo nhu cầu</a>');
+      target.append('<a class="home-budget-all" href="/san-pham">Xem tất cả xe</a>');
     });
     $('.muaxe .thuonghieu').each((index, element) => {
       const group = groups[index];

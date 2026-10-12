@@ -8,7 +8,7 @@ const homeTargets = [
   '.banxe', '.item_qt', '.wap_sanpham .td_kp', '.wap_sanpham .loadthem_sp1',
   '.wap_sanpham .xemtatca', '.tt-accessories__heading', '.tt-accessories__carousel',
   '.tt-accessories__more', '.wap_dichvu .title-main', '.wap_dichvu .cap1',
-  '.wap_dichvu .slick4321', '.wap_dichvu .xemtatca', '.wap_camnhan .title-main',
+  '.wap_dichvu .slick4321', '.tt-home-service-steps', '.wap_dichvu .xemtatca', '.wap_camnhan .title-main',
   '.wap_camnhan .camnhan', '.wap_camnhan .xemtatca2', '.tt-home-section-heading',
   '.tt-home-utility', '.tt-home-news-card', '.tt-home-news-more',
 ].join(',');
@@ -38,6 +38,9 @@ export default function HomeScrollReveal({ children, variant = 'home' }: { child
     const reveal = (element: HTMLElement) => {
       element.dataset.revealState = 'visible';
       observer.unobserve(element);
+      if (element.matches('.tt-home-service-steps')) {
+        element.dispatchEvent(new Event('tt-home-services-enter', { bubbles: true }));
+      }
     };
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => { if (entry.isIntersecting) reveal(entry.target as HTMLElement); });
@@ -50,7 +53,7 @@ export default function HomeScrollReveal({ children, variant = 'home' }: { child
         // Keep the initial viewport and any already-passed content visible immediately.
         const bounds = element.getBoundingClientRect();
         if (reducedMotion.matches || (bounds.height > 0 && bounds.top < window.innerHeight - 48)) {
-          element.dataset.revealState = 'visible';
+          reveal(element);
           return;
         }
         const staggerGroup = element.closest('.tt-home-utility-grid,.tt-home-news-grid,.quytrinh2,.lienhe_ct,.visao_l,.thongke_l');

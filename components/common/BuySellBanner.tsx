@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import ResponsiveImage from './ResponsiveImage';
 import { getImageDeliveryUrl, responsiveImage } from '@/lib/image-delivery';
 
-export type BannerSlide = { key: string; src: string; href: string; alt: string };
+export type BannerSlide = { key: string; src: string; href: string; alt: string; srcSet?:string; sizes?:string; width?:number; height?:number };
 
 export default function BuySellBanner({ slides }: { slides: BannerSlide[] }) {
   const [active, setActive] = useState(0);
@@ -15,9 +15,11 @@ export default function BuySellBanner({ slides }: { slides: BannerSlide[] }) {
     // Decode both images before autoplay, including images already in cache.
     void Promise.all(slides.map(slide => {
       const image = new Image();
-      const delivery = responsiveImage(slide.src, 'hero', '(max-width:1024px) 100vw, 1024px');
-      if (delivery.srcSet) image.srcset = delivery.srcSet;
-      if (delivery.sizes) image.sizes = delivery.sizes;
+      const delivery = responsiveImage(slide.src, 'hero', slide.sizes || '(max-width:1024px) 100vw, 1024px');
+      const sizes = delivery.sizes || slide.sizes;
+      const srcSet = delivery.srcSet || slide.srcSet;
+      if (sizes) image.sizes = sizes;
+      if (srcSet) image.srcset = srcSet;
       image.src = delivery.src;
       return image.decode();
     })).then(() => {
@@ -33,7 +35,7 @@ export default function BuySellBanner({ slides }: { slides: BannerSlide[] }) {
     <a href={current.href} aria-label={current.alt}>
       {slides.map((slide, index) => <span key={slide.key} className={`home-buy-banner__slide${index === Math.min(active, slides.length - 1) ? ' is-active' : ''}`} aria-hidden="true">
         <span className="home-buy-banner__backdrop" style={{ backgroundImage: `url(${JSON.stringify(getImageDeliveryUrl({src:slide.src,width:640,kind:'hero'}))})` }} />
-        <ResponsiveImage src={slide.src} profile="hero" sizes="(max-width:1024px) 100vw, 1024px" alt="" width="1024" height="177" decoding="async" />
+        <ResponsiveImage src={slide.src} srcSet={slide.srcSet} profile="hero" sizes={slide.sizes || '(max-width:1024px) 100vw, 1024px'} alt="" width={slide.width || 1024} height={slide.height || 177} decoding="async" />
       </span>)}
     </a>
   </div>;

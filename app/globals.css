@@ -1036,9 +1036,25 @@ body .wap_item { justify-content:flex-start; column-gap:2%; }
 .item[data-car-id] .car-card-discount svg { position:absolute; left:-9px; top:50%; width:var(--sale-tag-size); height:var(--sale-tag-size); transform:translateY(calc(-50% - 3px)); overflow:visible; }
 .item[data-car-id] .car-card-new-arrival {
   position:absolute; top:12px; left:12px; z-index:21; display:inline-flex; align-items:center; gap:6px;
+  overflow:hidden;
   max-width:calc(100% - 24px); padding:7px 12px; border-radius:999px;
   background:linear-gradient(120deg,#ff3030,#d00000); color:#fff; box-shadow:0 3px 10px #a0000030;
   font-size:14px; font-weight:600; line-height:1.25; white-space:nowrap; pointer-events:none;
+}
+.item[data-car-id] .car-card-new-arrival::after {
+  content:''; position:absolute; top:-30%; bottom:-30%; left:0; width:22%; pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
+  opacity:0; transform:translateX(-150%) skewX(-18deg);
+  animation:car-new-arrival-shimmer 4s ease-in-out infinite;
+}
+@keyframes car-new-arrival-shimmer {
+  0%, 3% { opacity:0; transform:translateX(-150%) skewX(-18deg); }
+  6% { opacity:1; }
+  22% { opacity:1; transform:translateX(600%) skewX(-18deg); }
+  24%, 100% { opacity:0; transform:translateX(600%) skewX(-18deg); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .item[data-car-id] .car-card-new-arrival::after { animation:none; }
 }
 .item[data-car-id] .car-card-new-arrival svg { flex:none; width:18px; height:18px; }
 .item[data-car-id] .car-card-new-arrival--with-status { top:40px; }
