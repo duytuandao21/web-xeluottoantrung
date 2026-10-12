@@ -9,13 +9,6 @@ export type VehicleModelOptionsProps = {
 };
 type State = VehicleModelOptionsProps & { loading: boolean };
 type BrandChange = { brandSlug: string; href: string };
-const catalogs = new Map<string, { models: PublicLookup[]; expiresAt: number }>();
-function remember(brand: string, models: PublicLookup[]) {
-  if (!brand) return;
-  catalogs.delete(brand);
-  catalogs.set(brand, { models, expiresAt: Date.now() + 60_000 });
-  if (catalogs.size > 32) catalogs.delete(catalogs.keys().next().value!);
-}
 
 export default function VehicleModelOptions(initial: VehicleModelOptionsProps) {
   const router = useRouter(), initialRef = useRef(initial);
@@ -31,7 +24,6 @@ export default function VehicleModelOptions(initial: VehicleModelOptionsProps) {
     requestedBrand.current = null;
     sequence.current++;
     abort.current?.abort();
-    if (!initial.error) remember(initial.brandSlug, initial.models);
     setState({ ...initial, loading: false });
   }, [initial.brandSlug, initial.models, initial.href, initial.error]);
 
@@ -40,22 +32,21 @@ export default function VehicleModelOptions(initial: VehicleModelOptionsProps) {
       const requestId = ++sequence.current;
       abort.current?.abort();
       requestedBrand.current = change.brandSlug;
-      const cached = catalogs.get(change.brandSlug);
-      if (!change.brandSlug || !force && cached && Date.now() < cached.expiresAt) {
-        setState({ ...change, models: cached?.models || [], loading: false, error: false });
+      if (!change.brandSlug) {
+        setState({ ...change, models: [], loading: false, error: false });
         return;
       }
       const controller = new AbortController();
       abort.current = controller;
       setState({ ...change, models: [], loading: true, error: false });
       void fetch(`/api/catalog/models?brand=${encodeURIComponent(change.brandSlug)}`, {
+        cache: 'no-store',
         signal: AbortSignal.any([controller.signal, AbortSignal.timeout(12_000)]),
       }).then(async response => {
         if (!response.ok) throw new Error('MODEL_LOAD_FAILED');
         const result = await response.json() as { models: PublicLookup[] };
         if (!Array.isArray(result.models)) throw new Error('INVALID_MODELS');
         if (requestId !== sequence.current) return;
-        remember(change.brandSlug, result.models);
         setState({ ...change, models: result.models, loading: false, error: false });
         if (force && initialRef.current.error && initialRef.current.brandSlug === change.brandSlug) router.refresh();
       }).catch(() => {

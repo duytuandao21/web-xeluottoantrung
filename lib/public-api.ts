@@ -1,27 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
-import { unstable_cache } from 'next/cache';
 
 const baseUrl = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '');
-
-// Public presentation data can tolerate a short revalidation window. Keep this
-// allowlist narrow: stock counts, prices, policies and API actions stay live.
-const presentationContentGroups = new Set([
-  'thiet-lap-quy-trinh-ban-xe',
-  'thiet-lap-cac-buoc-mua-xe',
-  'thiet-lap-cac-buoc-ban-xe',
-  'thiet-lap-cac-buoc-len-doi',
-  'thiet-lap-banner-dong-xe',
-  'thiet-lap-mang-xa-hoi',
-  'thiet-lap-ung-dung',
-]);
-const presentationSettings = new Set([
-  '/site-settings/thiet-lap-thong-tin',
-  '/site-settings/thiet-lap-logo',
-  '/site-settings/thiet-lap-favicon',
-  '/site-settings/thiet-lap-footer',
-]);
-const presentationCatalogs = new Set(['/lookups/branches', '/lookups/branch-regions', '/services']);
 
 // A cold homepage needs many independent reads. Bound the burst per server
 // process to avoid sending the whole cold render to the public API at once.
@@ -45,16 +25,14 @@ export class PublicApiError extends Error {
 }
 
 const modelPath = /^\/brands\/[a-z0-9]+(?:-[a-z0-9]+)*\/models$/;
-const modelReads = new Map<string, Promise<unknown>>();
 async function readPublicData(path: string, queryString: string): Promise<unknown> {
   const models = modelPath.test(path);
-  const key = `${path}?${queryString}`;
-  if (models && modelReads.has(key)) return modelReads.get(key)!;
   const read = async () => {
     for (let attempt = 0; ; attempt++) {
       try {
         return await withPublicReadSlot(async () => {
-          // Background revalidation also acquires a read slot.
+          // Persistent public-data caching belongs to the API, which also owns
+          // admin invalidation. This read must not retain a second TTL in Next.
           const response = await fetch(`${baseUrl}/api/v1${path}${queryString ? `?${queryString}` : ''}`, {
             cache: 'no-store', ...(models ? { signal: AbortSignal.timeout(5_000) } : {}),
           });
@@ -71,42 +49,20 @@ async function readPublicData(path: string, queryString: string): Promise<unknow
       }
     }
   };
-  if (!models) return read();
-  const pending = read().finally(() => { modelReads.delete(key); });
-  modelReads.set(key, pending);
-  return pending;
+  return read();
 }
 
-const readCached60 = unstable_cache(readPublicData, ['public-api-v2-60', baseUrl], { revalidate: 60 });
-const readCached30 = unstable_cache(readPublicData, ['public-api-v2-30', baseUrl], { revalidate: 30 });
-const readCachedModels60 = unstable_cache(readPublicData, ['brand-models-v1', baseUrl], { revalidate: 60 });
 // Reuse parsed results within SSR, including page/layout/metadata callers.
-// Origin, path and the full query also form the persistent cache key.
-const readRequestData = cache((path: string, queryString: string, seconds: number) =>
-  modelPath.test(path) ? readCachedModels60(path, queryString) :
-    seconds === 60 ? readCached60(path, queryString) : seconds === 30 ? readCached30(path, queryString) : readPublicData(path, queryString));
+// React memoization lasts one render; it cannot conceal API invalidation across
+// requests. Cross-request coalescing belongs to the API so that admin mutations
+// can detach old reads. Keep the existing read-slot limit and model retry.
+const readRequestData = cache(readPublicData);
 
 export async function publicApi<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
   const query = new URLSearchParams();
-  for (const [key, value] of Object.entries(params ?? {})) if (value !== undefined && value !== '') query.set(key, String(value));
-  const presentation = presentationSettings.has(path) || presentationCatalogs.has(path) ||
-    (path === '/content' && presentationContentGroups.has(query.get('group') || ''));
-  // Keep inventory, user-specific data, policies and contact-action content fresh.
-  // A revalidated response may remain stale for one request after its TTL expires.
-  const immediate = path === '/search' || path.startsWith('/search/') || path === '/seo' || path.startsWith('/auspicious-dates/') ||
-    path === '/driving-experiences' || path.startsWith('/driving-experiences/') ||
-    path === '/cars' || path.startsWith('/cars/') || path === '/brands' ||
-    path === '/accessories' || path.startsWith('/accessories/') ||
-    path === '/services' || path.startsWith('/services/') ||
-    path === '/lookups/branches' || path === '/lookups/branch-regions' ||
-    path.startsWith('/site-settings/') || path === '/content';
-  const stable = path.startsWith('/brands/') ||
-    path.startsWith('/lookups/') || path === '/slides' || path === '/testimonials' ||
-    path === '/accessory-brands' || path === '/accessory-categories' ||
-    path === '/faqs' || path.startsWith('/faqs/') ||
-    path === '/recruitments' || path.startsWith('/recruitments/');
-  const seconds = presentation ? 60 : immediate ? 0 : stable ? 60 : 30;
-  return readRequestData(path, query.toString(), seconds) as Promise<T>;
+  for (const [key, value] of Object.entries(params ?? {}).sort(([a], [b]) => a.localeCompare(b)))
+    if (value !== undefined && value !== '') query.set(key, String(value));
+  return readRequestData(path, query.toString()) as Promise<T>;
 }
 
 export type PageResult<T> = { data: T[]; meta: { page: number; limit: number; total: number; totalPages: number } };

@@ -11,7 +11,7 @@ const models = [{ id: 'spark', name: 'Spark', slug: 'spark' }];
 function setup(fetch) {
   const exports = {};
   vm.runInNewContext(js, { exports, fetch, process: { env: {} }, URLSearchParams, AbortSignal, setTimeout, Map, Set,
-    require: name => name === 'react' ? { cache: fn => fn } : name === 'next/cache' ? { unstable_cache: fn => fn } : {},
+    require: name => name === 'react' ? { cache: fn => fn } : {},
   });
   return exports.publicApi;
 }
@@ -39,11 +39,11 @@ assert.equal(calls, 2, 'Persistent outage has a bounded retry');
 calls = 0;
 const concurrent = setup(async () => { calls++; await new Promise(resolve => setTimeout(resolve, 40)); return response(200); });
 await Promise.all(Array.from({ length: 10 }, () => concurrent('/brands/chevrolet/models')));
-assert.equal(calls, 1, 'SSR and catalog route share an in-flight origin request');
+assert.equal(calls, 10, 'Independent renders reach the API owner, which coalesces with mutation epochs');
 for (const invalid of [{ data: models }, [...models, ...models], [{ id: '1', name: 'A' }]]) {
   await assert.rejects(setup(async () => response(200, invalid))('/brands/chevrolet/models'));
 }
 calls = 0;
 await assert.rejects(setup(async () => { calls++; return response(503); })('/cars'));
 assert.equal(calls, 1, 'Inventory reads retain their original request policy');
-console.log('Passed: transient failures, bounded retries, 404, deduplication, invalid catalogs, inventory isolation.');
+console.log('Passed: transient failures, bounded retries, 404, API cache ownership, invalid catalogs, inventory isolation.');

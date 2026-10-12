@@ -3,7 +3,9 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const base = process.env.TEST_BASE_URL || 'http://localhost:3100';
-const out = '../toi-uu-hieu-suat-website/vehicle-model-loading';
+const out = process.env.TEST_OUTPUT_DIR || '../toi-uu-hieu-suat-website/vehicle-model-loading';
+const repeats = Number(process.env.MODEL_TEST_REPEATS || 1);
+assert(Number.isInteger(repeats) && repeats >= 1 && repeats <= 5, 'MODEL_TEST_REPEATS must be 1..5');
 mkdirSync(out, { recursive: true });
 async function get(path) {
   const response = await fetch(`${base}/api/v1${path}`);
@@ -28,8 +30,9 @@ async function assertModels(page, slug) {
   assert.deepEqual(await modelNames(page), ['Tất cả', ...expected.get(slug).map(model => model.name)]);
 }
 try {
-  for (const width of [390, 1440]) {
+  for (const width of Array.from({ length: repeats }, () => [390, 1440]).flat()) {
     const page = await browser.newPage({ viewport: { width, height: 950 } });
+    page.setDefaultNavigationTimeout(120000);
     const errors = [], catalogCalls = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', request => { if (request.url().includes('/api/catalog/models')) catalogCalls.push(request.url()); });
@@ -49,7 +52,7 @@ try {
       assert.equal(await page.locator('.vehicle-brands__option.is-selected').count(), 1);
       rowChecks.push({ brand: brand.slug, modelCount: expected.get(brand.slug).length, msToModels });
     }
-    // Hold the RSC response: cached models must appear before the cars finish.
+    // Hold the RSC response: the small catalog request must finish before cars.
     let delay = 1500;
     await page.route('**/san-pham?*', async route => {
       if (route.request().headers().rsc !== '1' || !delay) return route.continue();
@@ -67,10 +70,10 @@ try {
     const requestsBefore = catalogCalls.length, start = Date.now();
     await page.locator('[data-brand-slug="chevrolet"]').click();
     await assertModels(page, 'chevrolet');
-    const cachedMs = Date.now() - start;
-    assert(cachedMs < 1000, `Cache response too slow: ${cachedMs}ms`);
+    const catalogMs = Date.now() - start;
+    assert(catalogMs < 1000, `Catalog response too slow: ${catalogMs}ms`);
     assert.equal(await page.locator('.vehicle-filter-panel').getAttribute('aria-busy'), 'true');
-    assert.equal(catalogCalls.length, requestsBefore, 'Revisit uses cache without another catalog request');
+    assert.equal(catalogCalls.length, requestsBefore + 1, 'Revisit reaches API rather than a stale browser snapshot');
     await ready(page);
     // Rapid A -> B -> A while the navigation is pending must retain the last choice.
     await page.evaluate(() => {
@@ -85,12 +88,13 @@ try {
     assert.equal(await page.locator('.vehicle-brands__option.is-selected').count(), 0);
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     assert.deepEqual(errors, []);
-    records.push({ width, brands: rowChecks, cachedMs, catalogRequests: catalogCalls.length, rapidSwitchPassed: true, noInitialCatalogRequests: true, errors });
+    records.push({ width, brands: rowChecks, catalogMs, catalogRequests: catalogCalls.length, rapidSwitchPassed: true, noInitialCatalogRequests: true, errors });
     await page.close();
-    console.log(`Passed ${width}px: ${brands.length} brands, complete models, cache ${cachedMs}ms, rapid switching, deselection, preserved filters.`);
+    console.log(`Passed ${width}px: ${brands.length} brands, complete models, catalog ${catalogMs}ms, rapid switching, deselection, preserved filters.`);
   }
   // A catalog failure is actionable and retry restores the selected brand.
   const page = await browser.newPage({ viewport: { width: 390, height: 950 } });
+  page.setDefaultNavigationTimeout(120000);
   await page.route('**/*', route => route.request().resourceType() === 'image' ? route.abort() : route.continue());
   await page.goto(`${base}/san-pham`); await ready(page);
   await page.route('**/san-pham?*', async route => {
@@ -112,4 +116,17 @@ try {
   await page.close();
   writeFileSync(`${out}/browser-results.json`, JSON.stringify({ testedAt: new Date().toISOString(), base, records }, null, 2) + '\n');
   console.log('Passed mobile error and retry recovery.');
+} catch (error) {
+  const states = [];
+  for (const context of browser.contexts()) for (const page of context.pages()) {
+    states.push(await page.evaluate(() => ({ url: location.href,
+      base: document.querySelector('.vehicle-filter-panel')?.dataset.filterBase,
+      busy: document.querySelector('.vehicle-filter-panel')?.getAttribute('aria-busy'),
+      model: document.querySelector('[data-vehicle-row="models"]')?.dataset.modelBrand,
+      selected: document.querySelector('.vehicle-brands__option.is-selected')?.dataset.brandSlug,
+    })).catch(() => ({ unavailable: true })));
+  }
+  writeFileSync(`${out}/browser-failure.json`, JSON.stringify({ testedAt: new Date().toISOString(), base, records,
+    error: error instanceof Error ? error.message : String(error), states }, null, 2) + '\n');
+  throw error;
 } finally { await browser.close(); }

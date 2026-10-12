@@ -39,17 +39,8 @@ async function fetchFilterLookups() {
   return { styles, transmissions, colors, branches, ranges: [...budgets, ...mileages], yearSuggestions };
 }
 
-type FilterLookups = Awaited<ReturnType<typeof fetchFilterLookups>>;
-let filterLookupsSnapshot: { value: FilterLookups; expiresAt: number } | undefined;
-let filterLookupsPending: Promise<FilterLookups> | undefined;
-async function filterLookups(): Promise<FilterLookups> {
-  if (filterLookupsSnapshot && Date.now() < filterLookupsSnapshot.expiresAt) return filterLookupsSnapshot.value;
-  filterLookupsPending ??= fetchFilterLookups().then(value => {
-    filterLookupsSnapshot = { value, expiresAt: Date.now() + 15_000 };
-    return value;
-  }).finally(() => { filterLookupsPending = undefined; });
-  return filterLookupsPending;
-}
+// Only reuse within one SSR render; the API owns persistent lookup caching.
+const filterLookups = cache(fetchFilterLookups);
 
 async function populateCarFormBrands($: ReturnType<typeof load>, existingBrands?: PublicBrand[]) {
   const brands = existingBrands ?? await publicApi<PublicBrand[]>('/brands');
@@ -63,7 +54,7 @@ async function populateCarFormBrands($: ReturnType<typeof load>, existingBrands?
 
 async function listingPage(page: LegacyPageData, pathname: string, searchParams: SearchParams): Promise<LegacyPageData> {
   const $ = load(page.content, {}, false);
-  // Brand order follows live stock; the other lookup lists can keep their short cache.
+  // Brand order follows live stock; stable lookups use the API cache policy.
   const [brands, lookups] = await Promise.all([publicApi<PublicBrand[]>('/brands'), filterLookups()]);
   const filters = { ...lookups, brands };
   const sortValue = ['gia asc', 'gia desc'].includes(single(searchParams.gia) || '') ? single(searchParams.gia)! : 'newest';
