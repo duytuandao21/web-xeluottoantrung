@@ -9,12 +9,18 @@ export function formatCarPrice(price: number): string {
   return `${billions ? `${billions} Tỷ` : ''}${billions && rest ? ' ' : ''}${rest ? `${rest} Triệu` : ''}` || 'Liên hệ';
 }
 
+export function formatCarDiscount(price?: number, originalPrice?: number | null): string | null {
+  if(typeof price !== 'number' || typeof originalPrice !== 'number' || !Number.isFinite(price) || !Number.isFinite(originalPrice) || price <= 0 || originalPrice <= price) return null;
+  const savings = originalPrice - price;
+  return `-${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 6 }).format(savings / 1_000_000)} triệu`;
+}
+
 export function carToCard(car: PublicCar): Car {
   return {
     id: car.slug, className: 'item', imageClass: 'img_sp', name: car.name, href: `/${car.slug}`,
     title: car.name, nameClass: 'name_sp',
     images: [{ src: car.cover || '/thumbs/90x90x2/assets/images/noimage.png', alt: car.name }],
-    priceHtml: `<b>${formatCarPrice(car.price)}</b>`, originalPrice: car.originalPrice, compare: true,
+    priceHtml: `<b>${formatCarPrice(car.price)}</b>`, price: car.price, originalPrice: car.originalPrice, compare: true,
     status: car.status === 'deposit' ? 'Đã nhận cọc' : car.status === 'sold' ? 'Đã bán' : '',
     createdAt: car.createdAt, newArrival: car.newArrival, isNewArrival: car.newArrival === true && isNewArrival(car.createdAt),
     specs: [

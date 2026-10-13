@@ -8,6 +8,7 @@ export interface Car {
   nameClass: string;
   images: {src:string;alt:string}[];
   priceHtml: string;
+  price?: number;
   originalPrice?: number | null;
   specs: {icon?:string;alt?:string;text:string}[];
   compare: boolean;
