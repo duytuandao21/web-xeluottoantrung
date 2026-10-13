@@ -87,6 +87,7 @@ function CarListingResults({ query, initialResult, searchCars }: { query: string
   }, [total]);
 
   const hasMore = Boolean(result && result.meta.page < result.meta.totalPages);
+  const remaining = Math.max(0, (total ?? 0) - (result?.data.length ?? 0));
   return <div className="wap_item vehicle-results" aria-busy={state.loading}>
     {result?.data.map((car,index) => <CarCard key={car.slug} car={carToCard(car)} imageLoading={index>=3?'lazy':undefined} />)}
     {!result && state.loading && <p className="vehicle-results__message" role="status">Đang tìm xe...</p>}
@@ -95,7 +96,7 @@ function CarListingResults({ query, initialResult, searchCars }: { query: string
       {state.error && <p className="car-load-more__error" role="alert">{state.error}</p>}
       <button type="button" className="car-load-more__button" disabled={state.loading}
         onClick={() => void loadPage((result?.meta.page || 0) + 1, Boolean(result))}>
-        {state.loading ? <><span className="car-load-more__spinner" aria-hidden="true" />Đang tải...</> : state.error ? 'Thử lại' : 'Xem thêm'}
+        {state.loading ? <><span className="car-load-more__spinner" aria-hidden="true" />Đang tải...</> : state.error ? 'Thử lại' : `Xem thêm ${remaining.toLocaleString('vi-VN')} xe`}
       </button>
     </div>}
     <span className="car-load-more__status" role="status" aria-live="polite" aria-atomic="true">

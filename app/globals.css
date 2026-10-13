@@ -682,6 +682,16 @@ body.ss .id_ss { display:inline-flex; align-items:center; gap:8px; min-height:44
 .slick-slider { min-width:0; }
 .carousel-hydrating { visibility:hidden; }
 .slider_slick .slick-slide > div { line-height:0; }
+.slider_slick .hero-dots { position:absolute; z-index:2; bottom:10px; left:50%; transform:translateX(-50%); display:flex !important; align-items:center; justify-content:center; width:max-content; max-width:calc(100% - 24px); margin:0; padding:0; border:0; background:transparent; }
+.slider_slick .hero-dots li { flex:none; width:44px; height:44px; margin:0; }
+.slider_slick .hero-dots li button { position:relative; width:44px; height:44px; padding:0; border:0; border-radius:7px; background:transparent; touch-action:manipulation; }
+.slider_slick .hero-dots li button::before { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:22px; height:4px; border-radius:999px; background:rgba(255,255,255,.8); opacity:1; box-shadow:0 1px 3px #0003; transition:width .3s ease,background-color .3s ease; }
+.slider_slick .hero-dots li.slick-active button::before { width:32px; background:var(--color-red-hover,#f2de84); opacity:1; }
+.slider_slick .hero-dots li button:hover::before { background:#fff; }
+.slider_slick .hero-dots li.slick-active button:hover::before { background:var(--color-red-hover,#f2de84); }
+.slider_slick .hero-dots li button:focus-visible { outline:2px solid #f2de84; outline-offset:1px; }
+@media(max-width:960px) { .slider_slick .hero-dots { display:none !important; } }
+@media(prefers-reduced-motion:reduce) { .slider_slick .hero-dots li button::before { transition:none; } }
 .album_pro .slick-slide > div { line-height:0; }
 .album_pro2 .slick-slide > div { line-height:0; }
 .car-gallery__thumbnail { display:block; width:100%; padding:0; border:0; background:transparent; cursor:pointer; }
@@ -866,7 +876,7 @@ body .wap_item { justify-content:flex-start; column-gap:2%; }
 .vehicle-filter-chip__clear:hover { background:rgba(255,255,255,.18); color:#fff; text-decoration:none; }
 .vehicle-filter-popover[hidden] { display:none !important; }
 .vehicle-filter-popover {
-  position:fixed; z-index:10050; width:min(310px,calc(100vw - 24px)); max-height:min(420px,70vh);
+  position:fixed; z-index:99; width:min(310px,calc(100vw - 24px)); max-height:min(420px,70vh);
   overflow-y:auto; padding:17px; border:1px solid #e5e7eb; border-radius:14px;
   background:#fff; color:#202531; box-shadow:0 16px 36px rgba(20,28,45,.16);
   animation:vehicle-popover-in .18s ease-out;

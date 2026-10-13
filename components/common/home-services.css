@@ -110,7 +110,8 @@
   top: calc(var(--service-icon-size) * .36);
   left: calc(50% + var(--service-icon-size) / 2);
   width: calc(100% - var(--service-icon-size) + var(--service-gap));
-  height: 56px;
+  /* Keep the whole curve above the white backgrounds of both adjacent steps. */
+  height: calc(var(--service-icon-size) * .4);
   overflow: visible;
   pointer-events: none;
 }

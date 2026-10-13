@@ -12,6 +12,7 @@ export default function ChatbotLauncher() {
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
   const layer = useRef<HTMLDivElement>(null);
   const launcher = useRef<HTMLButtonElement>(null);
@@ -76,10 +77,13 @@ export default function ChatbotLauncher() {
   }, [ready, open]);
   if (!ready) return null;
   const close = () => { setOpen(false); requestAnimationFrame(() => launcher.current?.focus({ preventScroll: true })); };
-  return createPortal(<div ref={layer} className={`tt-chat-layer${open ? ' is-open' : ''}${position?.mobile ? ' is-mobile' : ''}${position?.compact ? ' is-compact' : ''}`}>
+  return createPortal(<div ref={layer} className={`tt-chat-layer${open ? ' is-open' : ''}${position?.mobile ? ' is-mobile' : ''}${position?.compact ? ' is-compact' : ''}${dismissed ? ' is-dismissed' : ''}`}>
     <button ref={launcher} type="button" className="tt-chat-launcher" style={position?.launcher} aria-label={open ? 'Đóng trợ lý AI' : 'Mở trợ lý AI'} aria-expanded={open} aria-controls="tt-chat-panel" onClick={() => { setLoaded(true); setOpen(value => !value); }}>
       <ResponsiveImage profile="icon" sizes="70px" src={CHATBOT_ICON} alt="" width="70" height="70" /><span className="tt-chat-launcher__label">Hỏi trợ lý AI</span>
     </button>
+    {position && !open && !dismissed && <button type="button" className="tt-chat-dismiss" aria-label="Ẩn nút trợ lý AI" title="Ẩn nút chat" style={{ left: Number(position.launcher.left) + Number(position.launcher.width) - 24, top: Number(position.launcher.top) - 12 }} onClick={() => setDismissed(true)}>
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 8 8 8m0-8-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+    </button>}
     {loaded && position && <ChatbotPanel open={open} mobile={position.mobile} onClose={close} style={position.panel} />}
   </div>, document.body);
 }

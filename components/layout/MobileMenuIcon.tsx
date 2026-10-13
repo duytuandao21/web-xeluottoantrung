@@ -8,6 +8,7 @@ const carFront = <>
 </>;
 
 const icons: Record<string, ReactNode> = {
+  'Khuyến mãi/Sự kiện': <><path d="M20 13 13 20a2 2 0 0 1-2.8 0L3 12.8V3h9.8l7.2 7.2a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.2"/><path d="m10 14 4-4"/></>,
   'Mua xe': carFront,
   'Bán xe': <>
     {carFront}

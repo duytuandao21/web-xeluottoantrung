@@ -74,6 +74,7 @@ export type PublicCar = {
   brand: { name: string; slug: string }; model: { name: string; slug: string }; bodyType?: string | null;
 };
 export type CarDetail = Omit<PublicCar, 'cover' | 'transmission' | 'branch'> & {
+  id: string;
   description?: string | null; condition?: string | null; seatCount?: number | null;
   version?: string | null; transmission?: string | null; color?: string | null;
   branch?: { name: string; slug: string; address?: string; phone?: string; mapUrl?: string | null; imageUrl?: string | null } | null;

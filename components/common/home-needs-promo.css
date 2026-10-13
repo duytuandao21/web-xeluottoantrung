@@ -1,4 +1,5 @@
 /* Homepage only. The existing banner gives up space to the new introduction. */
+.wap_muaxe.tt-home-buy-sell:not(.home-no-slides) { margin-top:20px; }
 /* Keep the complete labels inside their pills; narrow rows scroll horizontally. */
 .tt-home-needs .muaxe > .cuonngang:has(.ngansach) { overflow-x:auto; }
 .tt-home-needs .ngansach { flex:1 0 100%; min-width:0; gap:8px; }

@@ -46,6 +46,7 @@ export default async function HomePage() {
   if (!page) return null;
   const $ = load(page.content, {}, false);
   const buyPanel = $('.wap_muaxe .muaxe').first();
+  buyPanel.closest('.wap_muaxe').addClass('tt-home-buy-sell');
   const budgetRow = buyPanel.children('.cuonngang').has('.ngansach').first();
   if (budgetRow.length) {
     buyPanel.closest('.wap_muaxe').addClass('tt-home-needs');

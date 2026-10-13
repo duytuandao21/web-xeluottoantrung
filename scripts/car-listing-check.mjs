@@ -50,7 +50,7 @@ try {
     assert.deepEqual((await ids(page)).slice(0, 6), firstIds);
     assert.equal(await page.locator('.vehicle-results > .item').first().getAttribute('data-test-marker'), marker);
     for (let currentPage = 3; currentPage <= publicResult.meta.totalPages; currentPage++) {
-      await page.getByRole('button', { name: 'Xem thêm', exact: true }).click();
+      await page.getByRole('button', { name: `Xem thêm ${(publicResult.meta.total - (currentPage - 1) * 6).toLocaleString('vi-VN')} xe`, exact: true }).click();
       await waitCount(page, Math.min(currentPage * 6, publicResult.meta.total));
       assert.equal(requests.at(-1).get('page'), String(currentPage));
     }
@@ -78,7 +78,7 @@ try {
       await held;
       try { await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [{ ...ascending.data[0], slug: 'stale-result' }], meta: { page: 2, limit: 6, total: 7, totalPages: 2 } }) }); } catch { /* Navigation aborted this request. */ }
     });
-    await sorted.getByRole('button', { name: 'Xem thêm', exact: true }).click();
+    await sorted.getByRole('button', { name: `Xem thêm ${(ascending.meta.total - ascending.data.length).toLocaleString('vi-VN')} xe`, exact: true }).click();
     await sorted.waitForFunction(() => document.querySelector('.vehicle-results').getAttribute('aria-busy') === 'true');
     assert.equal(requested.get('sort'), 'price_asc');
     assert.equal(requested.get('page'), '2');
@@ -97,7 +97,7 @@ try {
   if (branded.meta.totalPages > 1) {
     let request;
     await sorted.route(/\/api\/v1\/cars\?/, async route => { request = new URL(route.request().url()).searchParams; await route.continue(); });
-    await sorted.getByRole('button', { name: 'Xem thêm', exact: true }).click();
+    await sorted.getByRole('button', { name: `Xem thêm ${(branded.meta.total - branded.data.length).toLocaleString('vi-VN')} xe`, exact: true }).click();
     await waitCount(sorted, Math.min(12, branded.meta.total));
     assert.equal(request.get('brand'), publicResult.data[0].brand.slug);
   }
@@ -146,7 +146,7 @@ try {
   await waitCount(sale, 6);
   assert.equal(await sale.locator('.td_dem span').innerText(), '13');
   for (const count of [12, 13]) {
-    await sale.getByRole('button', { name: 'Xem thêm', exact: true }).click();
+    await sale.getByRole('button', { name: `Xem thêm ${(saleCars.length - (await ids(sale)).length).toLocaleString('vi-VN')} xe`, exact: true }).click();
     await waitCount(sale, count);
   }
   assert.deepEqual(await ids(sale), saleCars.map(car => car.slug));

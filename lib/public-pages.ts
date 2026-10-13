@@ -699,7 +699,9 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
   callbackDialog.find('input[name="dienthoai"]').before('<label for="dienthoai">Số điện thoại</label>');
   callbackDialog.find('input[type="submit"]').attr('value', 'Gửi');
   callbackDialog.find('input[type="reset"]').attr('value', 'Xóa thông tin');
-  $('.right-pro-detail a[href$="#spec"]').attr('href', `/${car.slug}#mo-ta-chi-tiet`).text('Xem mô tả chi tiết');
+  $('.right-pro-detail a[href$="#spec"]').each((_, element) => {
+    $(element).replaceWith($('<ownership-trigger></ownership-trigger>').attr({ 'data-car-id': car.id, 'data-class': $(element).attr('class') || '' }));
+  });
   if (car.branch?.phone) $('.right-pro-detail .lienhe_ct a[href^="tel:"]')
     .attr('href', `tel:${car.branch.phone}`).find('span').text(car.branch.phone);
   const [siteInfo, branding] = await Promise.all([getSiteInfo(), getSiteBranding()]);

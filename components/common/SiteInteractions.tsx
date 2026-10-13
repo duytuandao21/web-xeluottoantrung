@@ -24,6 +24,7 @@ export default function SiteInteractions() {
   const [showTop,setShowTop]=useState(false);
   const dialogRef=useRef<HTMLDivElement>(null);
   const sourceRef=useRef<HTMLElement|null>(null);
+  const pinnedFilterRef=useRef<{id:string}|null>(null);
   const dialogOpen=Boolean(dialog),dialogId=dialog?.id;
   useEffect(()=>{
     if(!dialogOpen)return;
@@ -157,9 +158,11 @@ export default function SiteInteractions() {
     let activeFilterTrigger:HTMLButtonElement|null=null;
     let filterPositionFrame=0;
     let filterHoverCloseTimer=0;
+    let revealFilterTrigger=false;
     const closeFilterPopovers=()=>{
       window.clearTimeout(filterHoverCloseTimer);
       activeFilterTrigger=null;
+      pinnedFilterRef.current=null;
       document.querySelectorAll<HTMLElement>('.vehicle-filter-popover').forEach(el=>{el.hidden=true;});
       document.querySelectorAll<HTMLElement>('[data-filter-popover-trigger]').forEach(el=>el.setAttribute('aria-expanded','false'));
     };
@@ -168,17 +171,31 @@ export default function SiteInteractions() {
       const trigger=activeFilterTrigger;
       const popover=trigger&&document.getElementById(trigger.getAttribute('aria-controls')||'');
       if(!trigger?.isConnected||!popover||popover.hidden){closeFilterPopovers();return;}
+      const pinned=pinnedFilterRef.current;
+      const viewportHeight=window.visualViewport?.height||innerHeight;
+      if(pinned?.id===popover.id){
+        if(revealFilterTrigger){
+          const track=trigger.closest<HTMLElement>('.vehicle-filter-bar__track');
+          if(track){
+            const bounds=track.getBoundingClientRect(),choice=trigger.getBoundingClientRect();
+            if(choice.left<bounds.left)track.scrollLeft+=choice.left-bounds.left-8;
+            else if(choice.right>bounds.right)track.scrollLeft+=choice.right-bounds.right+8;
+          }
+          revealFilterTrigger=false;
+        }
+      }
       const rect=trigger.getBoundingClientRect();
       const trackRect=trigger.closest('.vehicle-filter-bar__track')?.getBoundingClientRect();
-      if(rect.right<=0||rect.left>=innerWidth||rect.bottom<=0||rect.top>=innerHeight||
-        (trackRect&&(rect.right<=trackRect.left||rect.left>=trackRect.right))){closeFilterPopovers();return;}
+      if(!pinned&&(rect.right<=0||rect.left>=innerWidth||rect.bottom<=0||rect.top>=innerHeight||
+        (trackRect&&(rect.right<=trackRect.left||rect.left>=trackRect.right)))){closeFilterPopovers();return;}
       popover.style.left=`${Math.max(12,Math.min(rect.left,innerWidth-popover.offsetWidth-12))}px`;
       popover.style.top=`${rect.bottom+8}px`;
-      popover.style.maxHeight=`${Math.max(40,Math.min(420,innerHeight*.7,innerHeight-rect.bottom-20))}px`;
+      popover.style.maxHeight=`${Math.max(40,Math.min(420,viewportHeight*.7,viewportHeight-rect.bottom-20))}px`;
     };
     const scheduleFilterPopoverPosition=()=>{
       if(activeFilterTrigger&&!filterPositionFrame)filterPositionFrame=requestAnimationFrame(positionFilterPopover);
     };
+    const resizeFilterPopover=()=>{revealFilterTrigger=true;scheduleFilterPopoverPosition();};
     const openFilterPopover=(trigger:HTMLButtonElement)=>{
       const popover=document.getElementById(trigger.getAttribute('aria-controls')||'');
       if(!popover)return;
@@ -189,9 +206,15 @@ export default function SiteInteractions() {
       activeFilterTrigger=trigger;
       positionFilterPopover();
     };
+    const pinFilterPopover=(popover:HTMLElement)=>{
+      window.clearTimeout(filterHoverCloseTimer);
+      pinnedFilterRef.current={id:popover.id};
+      revealFilterTrigger=true;
+      positionFilterPopover();
+    };
     const hoverableFilters=window.matchMedia('(hover: hover) and (pointer: fine)');
     const onFilterPointerOver=(event:PointerEvent)=>{
-      if(!hoverableFilters.matches||event.pointerType!=='mouse')return;
+      if(pinnedFilterRef.current||!hoverableFilters.matches||event.pointerType!=='mouse')return;
       const target=event.target;
       if(!(target instanceof Element))return;
       if(target.closest('.vehicle-filter-popover')){window.clearTimeout(filterHoverCloseTimer);return;}
@@ -199,7 +222,7 @@ export default function SiteInteractions() {
       if(trigger)openFilterPopover(trigger);
     };
     const onFilterPointerOut=(event:PointerEvent)=>{
-      if(!hoverableFilters.matches||event.pointerType!=='mouse'||!activeFilterTrigger)return;
+      if(pinnedFilterRef.current||!hoverableFilters.matches||event.pointerType!=='mouse'||!activeFilterTrigger)return;
       const chip=activeFilterTrigger.closest('.vehicle-filter-chip');
       const popover=document.getElementById(activeFilterTrigger.getAttribute('aria-controls')||'');
       const from=event.target,to=event.relatedTarget;
@@ -217,19 +240,32 @@ export default function SiteInteractions() {
     const filterTrack=document.querySelector<HTMLElement>('.vehicle-filter-bar__track');
     filterTrack?.addEventListener('scroll',scheduleFilterPopoverPosition,{passive:true});
     window.addEventListener('scroll',scheduleFilterPopoverPosition,{passive:true});
-    window.addEventListener('resize',scheduleFilterPopoverPosition);
+    window.addEventListener('resize',resizeFilterPopover);
+    window.visualViewport?.addEventListener('resize',resizeFilterPopover);
     cleanups.push(()=>{
       filterTrack?.removeEventListener('scroll',scheduleFilterPopoverPosition);
       window.removeEventListener('scroll',scheduleFilterPopoverPosition);
-      window.removeEventListener('resize',scheduleFilterPopoverPosition);
+      window.removeEventListener('resize',resizeFilterPopover);
+      window.visualViewport?.removeEventListener('resize',resizeFilterPopover);
       cancelAnimationFrame(filterPositionFrame);
       window.clearTimeout(filterHoverCloseTimer);
     });
     document.addEventListener('pointerover',onFilterPointerOver);
     document.addEventListener('pointerout',onFilterPointerOut);
     cleanups.push(()=>{document.removeEventListener('pointerover',onFilterPointerOver);document.removeEventListener('pointerout',onFilterPointerOut);});
+    const pinned=pinnedFilterRef.current;
+    if(pinned){
+      const trigger=document.querySelector<HTMLButtonElement>(`[data-filter-popover-trigger][aria-controls="${CSS.escape(pinned.id)}"]`);
+      const popover=trigger&&document.getElementById(pinned.id);
+      if(trigger&&popover){
+        activeFilterTrigger=trigger;popover.hidden=false;trigger.setAttribute('aria-expanded','true');revealFilterTrigger=true;positionFilterPopover();
+      }else pinnedFilterRef.current=null;
+    }
     const onClick=(event:MouseEvent)=>{
       const target=event.target as HTMLElement;
+      if(!target.closest('[data-filter-popover-trigger],.vehicle-filter-popover'))closeFilterPopovers();
+      const clickedPopover=target.closest<HTMLElement>('.vehicle-filter-popover');
+      if(clickedPopover&&!pinnedFilterRef.current)pinFilterPopover(clickedPopover);
       const contact=target.closest<HTMLElement>('[data-contact-phone]');
       if(contact){
         const phone=contact.dataset.contactPhone||'';
@@ -244,10 +280,10 @@ export default function SiteInteractions() {
       if(scroll){const track=scroll.closest('.vehicle-brands')?.querySelector('.vehicle-brands__track');track?.scrollBy({left:Number(scroll.dataset.filterScroll)*track.clientWidth*.75,behavior:'smooth'});return;}
       const popoverTrigger=target.closest<HTMLButtonElement>('[data-filter-popover-trigger]');
       if(popoverTrigger){
+        if(pinnedFilterRef.current?.id===popoverTrigger.getAttribute('aria-controls')){closeFilterPopovers();return;}
+        openFilterPopover(popoverTrigger);
         const popover=document.getElementById(popoverTrigger.getAttribute('aria-controls')||'');
-        const wasOpen=popover && !popover.hidden;
-        if(wasOpen&&(event.detail===0||!hoverableFilters.matches))closeFilterPopovers();
-        else openFilterPopover(popoverTrigger);
+        if(popover)pinFilterPopover(popover);
         return;
       }
       const filterLink=target.closest<HTMLAnchorElement>('a[data-filter-link]');
@@ -270,7 +306,6 @@ export default function SiteInteractions() {
         startFilterTransition(()=>router.push(href,{scroll:false}));
         return;
       }
-      if(!target.closest('.vehicle-filter-chip'))closeFilterPopovers();
       if(target.closest('.fancybox-container'))return;
       const trigger=target.closest<HTMLElement>('[data-src^="#"]');
       if(trigger){const modal=document.querySelector<HTMLElement>(trigger.dataset.src!);if(modal){event.preventDefault();const id=modal.id;sourceRef.current=modal;modal.id=`${id}-source`;modal.style.display='none';setDialog({html:modal.innerHTML,className:modal.className,id,label:modal.classList.contains('tt-faq-dialog')?modal.querySelector('h2')?.textContent||'Câu hỏi thường gặp':undefined});return;}}

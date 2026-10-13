@@ -8,6 +8,7 @@
     "lint": "next lint",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test:ownership": "node scripts/ownership-web-check.mjs",
     "validate": "node scripts/validate-assets.mjs"
   },
   "dependencies": {

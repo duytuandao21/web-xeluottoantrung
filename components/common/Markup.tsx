@@ -12,6 +12,7 @@ import ResponsiveImage from './ResponsiveImage';
 import { getImageOriginalUrl, imageProfile } from '@/lib/image-delivery';
 import InstallationStoreCard, { type InstallationStore } from '@/components/accessories/InstallationStoreCard';
 import type { VehicleModelOptionsProps } from '@/components/car/VehicleModelOptions';
+import OwnershipTrigger from '@/components/ownership/OwnershipTrigger';
 
 // These render only on their existing detail/listing paths. Keep SSR enabled
 // so their HTML and controls remain available on the first render.
@@ -24,6 +25,7 @@ export default function Markup({html,cars={}}:{html:string;cars?:Record<string,C
     if(!(node instanceof Element)) return;
     const cls=node.attribs.class || '';
     if(node.name==='script') return <></>;
+    if(node.name==='ownership-trigger') return <OwnershipTrigger carId={node.attribs['data-car-id']} className={node.attribs['data-class']} />;
     if(node.name==='vehicle-model-options') return <VehicleModelOptions {...JSON.parse(node.attribs['data-state']) as VehicleModelOptionsProps} />;
     // Preserve every CSS declaration; only normalize managed inline image URLs.
     if(node.attribs.style?.includes('url(')) {
