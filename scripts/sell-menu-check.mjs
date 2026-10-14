@@ -34,7 +34,7 @@ try {
     page.on('pageerror',error=>errors.push(error.message));
     await page.route('**/*',async route=>{const url=new URL(route.request().url());if(url.pathname.startsWith('/api/v1/')){const response=await fetch(apiUrl+url.pathname+url.search);return route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});}return ['127.0.0.1','localhost'].includes(url.hostname)?route.continue():route.abort();});
     const root=page.locator(mobile?'.tt-mobile-menu .menu-selling':'.hidden_m .menu-selling'),panel=root.locator('.menu-selling-panel');
-    const open=async()=>{if(mobile){if(!await page.locator('.tt-mobile-menu').evaluate(el=>el.classList.contains('menu_mobi_active')))await page.locator('.icon_menu_mobi').tap();const toggle=root.locator('.mobile-submenu-toggle');if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.tap();}else await root.locator(':scope > a').hover();await panel.waitFor({state:'visible'});await page.waitForTimeout(250);};
+    const open=async()=>{if(mobile){if(!await page.locator('.tt-mobile-menu').evaluate(el=>el.classList.contains('menu_mobi_active'))){await page.locator('.icon_menu_mobi').tap();await page.locator('.tt-mobile-menu.menu_mobi_active').waitFor();await page.waitForTimeout(300);}const toggle=root.locator('.mobile-submenu-toggle');if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.tap();}else {await page.mouse.move(4,400);await root.locator(':scope > a').hover();}await panel.waitFor({state:'visible'});await page.waitForTimeout(250);};
     await page.goto(base+'/khuyen-mai',{waitUntil:'networkidle'});await open();
     const links=panel.locator(':scope > li > a');assert.equal(await links.count(),2);assert.deepEqual(await links.evaluateAll(nodes=>nodes.map(el=>el.getAttribute('href'))),['/ban-xe','/len-doi']);
     assert.equal(await panel.locator('img, svg').count(),0);assert.equal(await panel.locator('.menu-simple-arrow').count(),2);
@@ -46,15 +46,29 @@ try {
     assert.equal(await links.nth(1).evaluate(el=>getComputedStyle(el).borderBottomWidth),'0px');
     if(!mobile){await links.nth(1).hover();await page.waitForTimeout(250);assert.equal(await links.nth(1).evaluate(el=>getComputedStyle(el).color),'rgb(224, 0, 0)');assert.equal(await links.nth(1).evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 240, 240)');assert.equal(await links.nth(1).evaluate(el=>getComputedStyle(el,'::before').opacity),'1');}
     await panel.screenshot({path:'artifacts/sell-menu/'+width+'.png'});
-    for(const href of ['/ban-xe','/len-doi']){
+    for(const href of ['/ban-xe','/len-doi','/len-doi']){
       await open();const target=panel.locator('a[href="'+href+'"]');const box=await target.boundingBox();
       if(mobile)await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);else await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
       await page.waitForURL(base+href);await page.locator('.vehicle-service-landing').waitFor();await page.waitForFunction(()=>scrollY<2);
+      assert.equal(await panel.isVisible(),false,'Sell dropdown closes after navigation even while its link retains focus/hover');
+      if(mobile){assert.equal(await page.locator('.tt-mobile-menu').evaluate(el=>el.classList.contains('menu_mobi_active')),false);assert.equal(await root.locator('.mobile-submenu-toggle').getAttribute('aria-expanded'),'false');}
       // Reopen on the destination: only its row is highlighted.
       await open();assert.equal(await panel.locator('a.active').count(),1);assert.equal(await panel.locator('a.active').getAttribute('href'),href);
       assert.equal(await panel.locator('a.active').evaluate(el=>getComputedStyle(el).color),'rgb(224, 0, 0)');
       assert.equal(await panel.locator('a.active').evaluate(el=>getComputedStyle(el,'::before').opacity),'1');
     }
-    assert.deepEqual(errors,[]);console.log(width,'simple vertical rows, separators/hover/current page, single activation and top-of-page navigation passed');await page.close();
+    // The direct header link must also dismiss while the pointer stays over it.
+    for(let click=0;click<2;click++){
+      await open();const trigger=root.locator(':scope > a'),box=await trigger.boundingBox();
+      if(mobile)await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);else await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
+      await page.waitForURL(base+'/ban-xe');await page.waitForFunction(()=>scrollY<2);await panel.waitFor({state:'hidden'});
+      if(mobile)assert.equal(await root.locator('.mobile-submenu-toggle').getAttribute('aria-expanded'),'false');
+    }
+    if(!mobile){
+      await page.locator('.hidden_m .hotline a').focus();await root.locator(':scope > a').focus();await panel.waitFor({state:'visible'});
+      await panel.locator('a[href="/len-doi"]').focus();await page.keyboard.press('Enter');await page.waitForURL(base+'/len-doi');await panel.waitFor({state:'hidden'});
+      await open();await panel.waitFor({state:'visible'});
+    }
+    assert.deepEqual(errors,[]);console.log(width,'vertical rows, single navigation, dropdown dismissal after cross-route/same-route/header clicks, reopening and keyboard passed');await page.close();
   }
 }finally{await browser?.close();child?.kill();await new Promise(done=>api.close(done));}

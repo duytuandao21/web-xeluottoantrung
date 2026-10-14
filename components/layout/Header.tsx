@@ -13,8 +13,10 @@ import './sell-menu.css';
 interface MenuItem { label:string;title?:string;href?:string;target?:string;className?:string;children:MenuItem[]; }
 function MenuList({items,mobile=false,close,depth=0,className,style,simple=false}:{items:MenuItem[];mobile?:boolean;close:()=>void;depth?:number;className?:string;style?:CSSProperties;simple?:boolean}) {
   const [expanded,setExpanded]=useState<string|null>(null);
+  const [sellDismissed,setSellDismissed]=useState(false);
   const pathname=usePathname();
   const router=useRouter();
+  useEffect(()=>setExpanded(null),[pathname]);
   const legacyActive=(shared.activeMenus as Record<string,string>)[pathname];
   const active=pathname.startsWith('/khuyen-mai') ? 'Khuyến mãi/Sự kiện' : pathname === '/tien-ich/tra-cuu-phat-nguoi' ? 'Phạt nguội' : pathname.startsWith('/tien-ich/') || pathname === '/bai-viet' || pathname === '/tin-tuc' || pathname.startsWith('/cau-hoi') || pathname.startsWith('/kinh-nghiem-su-dung-xe/') || legacyActive === 'Tin tức' || pathname.startsWith('/dich-vu') || pathname.startsWith('/phu-kien-o-to') || pathname.startsWith('/tuyen-dung') ? 'Khám phá' : legacyActive;
   return <ul className={[className,simple?'menu-simple-panel':''].filter(Boolean).join(' ')||undefined} style={style}>{items.map(item=>{
@@ -23,13 +25,17 @@ function MenuList({items,mobile=false,close,depth=0,className,style,simple=false
     const destination=item.children.length===1?item.children[0]:item;
     const directHref=depth===0?(item.label==='Mua xe'?'/san-pham':item.label==='Bán xe'?'/ban-xe':undefined):undefined;
     const isExpanded=mobile&&expanded===item.label;
-    return <li className={[item.className,depth===0&&item.label==='Bán xe'?'menu-selling':'',hasSubmenu?'has-submenu':'',directHref?'has-direct-link':''].filter(Boolean).join(' ')} key={item.label}>
+    const isSelling=depth===0&&item.label==='Bán xe';
+    const closeMenu=()=>{setExpanded(null);if(isSelling)setSellDismissed(true);close();};
+    return <li className={[item.className,isSelling?'menu-selling':'',isSelling&&sellDismissed?'is-dismissed':'',hasSubmenu?'has-submenu':'',directHref?'has-direct-link':''].filter(Boolean).join(' ')} key={item.label}
+      onPointerEnter={event=>{if(isSelling&&!mobile&&event.pointerType==='mouse')setSellDismissed(false);}}
+      onFocus={event=>{if(isSelling&&!mobile&&event.target===event.currentTarget.firstElementChild)setSellDismissed(false);}}>
       <a href={directHref||(hasSubmenu?undefined:destination.href)} target={destination.target} rel={destination.target?'noreferrer':undefined} title={item.title||item.label}
         role={hasSubmenu&&!directHref?'button':undefined} tabIndex={hasSubmenu&&!directHref?0:undefined}
         aria-haspopup={hasSubmenu&&!directHref?'menu':undefined} aria-expanded={hasSubmenu&&mobile&&!directHref?isExpanded:undefined}
         className={[isExpanded?'active2':'',(simple?destination.href===pathname:active===item.label.trim()||destination.href===pathname)?'active':''].filter(Boolean).join(' ')}
         onClick={event=>{if(hasSubmenu&&!directHref){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}else {
-          close();
+          closeMenu();
           const href=directHref||destination.href;
           if(href?.startsWith('/')&&!destination.target&&event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey){
             event.preventDefault();
@@ -41,7 +47,7 @@ function MenuList({items,mobile=false,close,depth=0,className,style,simple=false
         {simple?<><span>{item.label}</span><span className={`menu-simple-arrow${hasSubmenu&&mobile?' is-expandable':''}`} aria-hidden="true">›</span></>:<>{mobile&&depth===0&&<MobileMenuIcon name={item.label}/>}{item.label}</>}{hasSubmenu&&mobile&&!directHref&&!simple&&<span className="mobile-menu-chevron" aria-hidden="true"/>}
       </a>
       {hasSubmenu&&mobile&&directHref&&<button type="button" className={`mobile-submenu-toggle${isExpanded?' is-expanded':''}`} aria-label={`Danh sách ${item.label.toLowerCase()}`} aria-expanded={isExpanded} onClick={()=>setExpanded(isExpanded?null:item.label)}><span className="mobile-menu-chevron" aria-hidden="true"/></button>}
-      {hasSubmenu&&<MenuList items={item.children} mobile={mobile} close={close} depth={depth+1} simple={simple||depth===0&&(item.label==='Bán xe'||item.label==='Khám phá')} className={depth===0&&item.label==='Bán xe'?'menu-selling-panel':item.label==='Tiện ích'||item.label==='Dịch vụ'?'menu-utilities':undefined} style={mobile?{display:isExpanded?(depth===0&&item.label==='Bán xe'?'grid':'block'):'none'}:undefined}/>}
+      {hasSubmenu&&<MenuList items={item.children} mobile={mobile} close={closeMenu} depth={depth+1} simple={simple||depth===0&&(item.label==='Bán xe'||item.label==='Khám phá')} className={depth===0&&item.label==='Bán xe'?'menu-selling-panel':item.label==='Tiện ích'||item.label==='Dịch vụ'?'menu-utilities':undefined} style={mobile?{display:isExpanded?(depth===0&&item.label==='Bán xe'?'grid':'block'):'none'}:undefined}/>}
     </li>;
   })}</ul>;
 }

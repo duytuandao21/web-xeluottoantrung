@@ -9,6 +9,8 @@
 .menu .menu-selling:focus-within > ul.menu-selling-panel {
   display:grid; animation:menu-selling-reveal .2s ease-out;
 }
+.menu > ul > .menu-selling.is-dismissed > ul.menu-selling-panel { display:none; visibility:hidden; animation:none; }
+.menu > ul > .menu-selling.has-submenu.is-dismissed > a::after { transform:translateY(-2px) rotate(45deg); }
 :is(.menu-selling,.menu-discovery) .menu-simple-panel > li { float:none; min-width:0; }
 :is(.menu-selling,.menu-discovery) .menu-simple-panel > li > a {
   position:relative; display:flex; align-items:center; justify-content:space-between; gap:10px;
