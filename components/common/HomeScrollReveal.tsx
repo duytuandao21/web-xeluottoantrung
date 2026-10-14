@@ -17,7 +17,7 @@ const serviceTargets = [
   '.vehicle-service-landing .lendoi_l > .ten', '.vehicle-service-landing .service-landing-copy',
   '.vehicle-service-landing .trade-in-contact-label', '.vehicle-service-landing .lienhe_ct > a',
   '.vehicle-service-landing .lendoi_l > .img', '.vehicle-service-landing .lendoi_r',
-  '.wap_dichvu2 .title-main', '.wap_dichvu2 .slick4321', '.wap_dichvu2 .selling-process-empty',
+  '.wap_dichvu2 .title-main', '.wap_dichvu2 .tt-home-service-steps', '.wap_dichvu2 .selling-process-empty',
   '.wap_visao .title-main', '.wap_visao .item_vs', '.wap_visao .visao_r',
   '.wap_thongke .item_tk', '.wap_thongke .thongke_r',
   '.wap_camnhan .title-main', '.wap_camnhan .camnhan', '.wap_camnhan .xemtatca2',
@@ -85,5 +85,5 @@ export default function HomeScrollReveal({ children, variant = 'home' }: { child
       registered.forEach(element => { delete element.dataset.revealState; element.style.removeProperty('--reveal-delay'); });
     };
   }, [variant]);
-  return <div className="tt-home-motion" ref={rootRef}>{children}</div>;
+  return <div className={`tt-home-motion${variant === 'vehicle-service' ? ' tt-home-motion--vehicle-service' : ''}`} ref={rootRef}>{children}</div>;
 }

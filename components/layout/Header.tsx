@@ -7,34 +7,41 @@ import shared from '@/data/shared.json';
 import { SaleLoginButton } from '@/components/sale/SaleAccess';
 import type { Service } from '@/lib/public-api';
 import MobileMenuIcon from './MobileMenuIcon';
+import BuyMenu from './BuyMenu';
+import './sell-menu.css';
 
 interface MenuItem { label:string;title?:string;href?:string;target?:string;className?:string;children:MenuItem[]; }
-function MenuList({items,mobile=false,close,depth=0,className,style}:{items:MenuItem[];mobile?:boolean;close:()=>void;depth?:number;className?:string;style?:CSSProperties}) {
+function MenuList({items,mobile=false,close,depth=0,className,style,simple=false}:{items:MenuItem[];mobile?:boolean;close:()=>void;depth?:number;className?:string;style?:CSSProperties;simple?:boolean}) {
   const [expanded,setExpanded]=useState<string|null>(null);
   const pathname=usePathname();
   const router=useRouter();
   const legacyActive=(shared.activeMenus as Record<string,string>)[pathname];
   const active=pathname.startsWith('/khuyen-mai') ? 'Khuyến mãi/Sự kiện' : pathname === '/tien-ich/tra-cuu-phat-nguoi' ? 'Phạt nguội' : pathname.startsWith('/tien-ich/') || pathname === '/bai-viet' || pathname === '/tin-tuc' || pathname.startsWith('/cau-hoi') || pathname.startsWith('/kinh-nghiem-su-dung-xe/') || legacyActive === 'Tin tức' || pathname.startsWith('/dich-vu') || pathname.startsWith('/phu-kien-o-to') || pathname.startsWith('/tuyen-dung') ? 'Khám phá' : legacyActive;
-  return <ul className={className} style={style}>{items.map(item=>{
+  return <ul className={[className,simple?'menu-simple-panel':''].filter(Boolean).join(' ')||undefined} style={style}>{items.map(item=>{
+    if (depth === 0 && item.label === 'Mua xe') return <BuyMenu key={item.label} mobile={mobile} active={active === item.label} close={close} onOpen={() => setExpanded(null)} brands={item.children.filter(brand => brand.href !== '/san-pham')} />;
     const hasSubmenu=(depth > 0 || item.label === 'Dịch vụ') ? item.children.length > 0 : item.children.length > 1;
     const destination=item.children.length===1?item.children[0]:item;
     const directHref=depth===0?(item.label==='Mua xe'?'/san-pham':item.label==='Bán xe'?'/ban-xe':undefined):undefined;
     const isExpanded=mobile&&expanded===item.label;
-    return <li className={[item.className,hasSubmenu?'has-submenu':'',directHref?'has-direct-link':''].filter(Boolean).join(' ')} key={item.label}>
+    return <li className={[item.className,depth===0&&item.label==='Bán xe'?'menu-selling':'',hasSubmenu?'has-submenu':'',directHref?'has-direct-link':''].filter(Boolean).join(' ')} key={item.label}>
       <a href={directHref||(hasSubmenu?undefined:destination.href)} target={destination.target} rel={destination.target?'noreferrer':undefined} title={item.title||item.label}
         role={hasSubmenu&&!directHref?'button':undefined} tabIndex={hasSubmenu&&!directHref?0:undefined}
         aria-haspopup={hasSubmenu&&!directHref?'menu':undefined} aria-expanded={hasSubmenu&&mobile&&!directHref?isExpanded:undefined}
-        className={[isExpanded?'active2':'',active===item.label.trim()||destination.href===pathname?'active':''].filter(Boolean).join(' ')}
+        className={[isExpanded?'active2':'',(simple?destination.href===pathname:active===item.label.trim()||destination.href===pathname)?'active':''].filter(Boolean).join(' ')}
         onClick={event=>{if(hasSubmenu&&!directHref){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}else {
           close();
           const href=directHref||destination.href;
-          if(href?.startsWith('/')&&!destination.target&&event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey){event.preventDefault();router.push(href);}
+          if(href?.startsWith('/')&&!destination.target&&event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey){
+            event.preventDefault();
+            if(href === pathname && (href === '/ban-xe' || href === '/len-doi')) window.scrollTo({ top: 0, behavior: 'instant' });
+            else router.push(href);
+          }
         }}}
         onKeyDown={event=>{if(hasSubmenu&&!directHref&&(event.key===' '||event.key==='Enter')){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}}}>
-        {mobile&&depth===0&&<MobileMenuIcon name={item.label}/>}{item.label}{hasSubmenu&&mobile&&!directHref&&<span className="mobile-menu-chevron" aria-hidden="true"/>}
+        {simple?<><span>{item.label}</span><span className={`menu-simple-arrow${hasSubmenu&&mobile?' is-expandable':''}`} aria-hidden="true">›</span></>:<>{mobile&&depth===0&&<MobileMenuIcon name={item.label}/>}{item.label}</>}{hasSubmenu&&mobile&&!directHref&&!simple&&<span className="mobile-menu-chevron" aria-hidden="true"/>}
       </a>
       {hasSubmenu&&mobile&&directHref&&<button type="button" className={`mobile-submenu-toggle${isExpanded?' is-expanded':''}`} aria-label={`Danh sách ${item.label.toLowerCase()}`} aria-expanded={isExpanded} onClick={()=>setExpanded(isExpanded?null:item.label)}><span className="mobile-menu-chevron" aria-hidden="true"/></button>}
-      {hasSubmenu&&<MenuList items={item.children} mobile={mobile} close={close} depth={depth+1} className={item.label==='Tiện ích'||item.label==='Dịch vụ'?'menu-utilities':undefined} style={mobile?{display:isExpanded?'block':'none'}:undefined}/>}
+      {hasSubmenu&&<MenuList items={item.children} mobile={mobile} close={close} depth={depth+1} simple={simple||depth===0&&(item.label==='Bán xe'||item.label==='Khám phá')} className={depth===0&&item.label==='Bán xe'?'menu-selling-panel':item.label==='Tiện ích'||item.label==='Dịch vụ'?'menu-utilities':undefined} style={mobile?{display:isExpanded?(depth===0&&item.label==='Bán xe'?'grid':'block'):'none'}:undefined}/>}
     </li>;
   })}</ul>;
 }

@@ -1,0 +1,163 @@
+/* Shared form presentation for selling and trade-in, including their own header icons. */
+.tt-trade-in-form.lendoi_r {
+  box-sizing:border-box;
+  padding:28px 30px 22px;
+  border:1px solid #edc263;
+  border-top:2px solid #edb53c;
+  border-radius:20px;
+  background:linear-gradient(155deg,#fff 60%,#fffdf8);
+  color:#14213a;
+  box-shadow:0 18px 48px rgba(15,24,40,.18);
+}
+.tt-trade-in-form .tt-trade-in-form__eyebrow {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  margin:0 0 16px;
+  color:var(--color-red,#e00000);
+  font:700 20px/1.3 'tieude',Arial,sans-serif;
+}
+.tt-trade-in-form__eyebrow > span:last-child::after {
+  display:block;
+  width:38px;
+  height:2px;
+  margin-top:8px;
+  background:linear-gradient(90deg,#e9a722,#ffda8d);
+  content:'';
+}
+.tt-trade-in-form .tt-trade-in-form__symbol {
+  display:grid;
+  place-items:center;
+  width:52px;
+  height:52px;
+  flex:none;
+  border-radius:50%;
+  background:#fff3df;
+}
+.tt-trade-in-form__symbol svg {
+  width:32px;
+  height:32px;
+  color:var(--color-red,#e00000);
+}
+.tt-trade-in-form > .title-main { margin:0 0 24px; padding:0; text-align:center; }
+.tt-trade-in-form > .title-main::before { content:none; }
+.tt-trade-in-form > .title-main h2 {
+  margin:0;
+  color:#14213a;
+  font:700 28px/1.3 'tieude',Arial,sans-serif;
+}
+.tt-trade-in-form form.validation-laithu { margin:0; padding:0; }
+.tt-trade-in-form form > .row {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  margin:0 0 16px;
+}
+.tt-trade-in-form .input-contact.col-sm-6 { width:100%; max-width:none; min-width:0; margin:0; padding:0; }
+.tt-trade-in-form .input-contact label {
+  display:block;
+  margin:0 0 7px;
+  color:#14213a;
+  font-size:15px;
+  line-height:1.4;
+}
+.tt-trade-in-form .tt-trade-in-form__control { position:relative; }
+.tt-trade-in-form .tt-trade-in-form__field-icon {
+  position:absolute;
+  z-index:1;
+  top:50%;
+  left:14px;
+  display:flex;
+  width:20px;
+  height:20px;
+  transform:translateY(-50%);
+  color:#66748b;
+  pointer-events:none;
+}
+.tt-trade-in-form__field-icon img,.tt-trade-in-form__field-icon svg { display:block; width:100%; height:100% !important; object-fit:contain; opacity:.72; }
+.tt-trade-in-form .input-contact .form-control {
+  display:block;
+  box-sizing:border-box;
+  width:100%;
+  height:50px;
+  margin:0;
+  padding:0 12px 0 44px;
+  border:1px solid #d4dce8;
+  border-radius:9px;
+  background-color:#fff;
+  color:#14213a;
+  font:15px/1.4 'body',Arial,sans-serif;
+  text-indent:0;
+  box-shadow:0 1px 3px rgba(20,33,58,.025);
+  transition:border-color .2s,box-shadow .2s;
+}
+.tt-trade-in-form .input-contact select.form-control {
+  appearance:none;
+  padding-right:36px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2354657e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:16px;
+}
+.tt-trade-in-form .input-contact .form-control::placeholder { color:#78869c; opacity:1; }
+.tt-trade-in-form .input-contact select:has(option:checked[value=""]) { color:#78869c; }
+.tt-trade-in-form .input-contact select option { color:#14213a; }
+.tt-trade-in-form .input-contact .form-control:focus { border-color:#e7b957; outline:none; box-shadow:0 0 0 3px rgba(231,185,87,.16); }
+.tt-trade-in-form .was-validated .form-control:invalid { border-color:#dc3545; }
+.tt-trade-in-form .tt-trade-in-form__submit.btn {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  width:100%;
+  min-height:54px;
+  margin:4px 0 0;
+  padding:12px 18px;
+  border:1px solid #e60000;
+  border-radius:12px;
+  background:linear-gradient(180deg,#ff1027 0%,#ee0014 35%,#cf0000 100%);
+  color:#fff;
+  font:700 19px/1.4 'tieude',Arial,sans-serif;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 7px 16px rgba(224,0,0,.14);
+  transition:transform .2s,box-shadow .2s,filter .2s;
+}
+.tt-trade-in-form__submit .tt-trade-in-form__send { width:26px; height:26px; }
+.tt-trade-in-form .tt-trade-in-form__submit.btn:hover:not(:disabled) { filter:brightness(.95); transform:translateY(-1px); box-shadow:0 9px 20px rgba(224,0,0,.2); }
+.tt-trade-in-form .tt-trade-in-form__submit.btn:focus-visible { outline:3px solid #e9ba58; outline-offset:3px; }
+.tt-trade-in-form .tt-trade-in-form__submit.btn:disabled { opacity:.65; cursor:wait; transform:none; }
+.tt-trade-in-form .chinhsach { margin:16px 0 0; color:#758196; font-size:12px; line-height:1.65; }
+.tt-trade-in-form .chinhsach a { padding-left:3px; color:#54657e; font-size:12px; }
+@media(max-width:960px) {
+  .vehicle-service-landing .tt-trade-in-form.lendoi_r { max-width:720px; margin:28px auto 0; }
+}
+@media(max-width:600px) {
+  .tt-trade-in-form.lendoi_r { padding:22px 18px 18px; border-radius:16px; }
+  .tt-trade-in-form .tt-trade-in-form__eyebrow { gap:12px; margin-bottom:14px; font-size:18px; }
+  .tt-trade-in-form .tt-trade-in-form__symbol { width:46px; height:46px; }
+  .tt-trade-in-form > .title-main { margin-bottom:20px; }
+  .tt-trade-in-form > .title-main h2 { font-size:clamp(20px,5vw,24px); }
+  .tt-trade-in-form form > .row { gap:12px; margin-bottom:14px; }
+  .tt-trade-in-form .input-contact label { margin-bottom:6px; font-size:13px; }
+  .tt-trade-in-form .input-contact .form-control { height:46px; padding-left:34px; padding-right:8px; font-size:16px; }
+  .tt-trade-in-form .input-contact input::placeholder { font-size:12px; }
+  .tt-trade-in-form .input-contact select.form-control { padding-right:25px; background-position:right 7px center; background-size:14px; font-size:12px; }
+  .tt-trade-in-form .tt-trade-in-form__field-icon { left:10px; width:17px; height:17px; }
+  .tt-trade-in-form .tt-trade-in-form__submit.btn { min-height:50px; gap:12px; padding:10px 14px; font-size:18px; }
+}
+@media(max-width:430px) {
+  .tt-trade-in-form.lendoi_r { padding-inline:14px; }
+  .tt-trade-in-form form > .row { gap:10px; }
+  .tt-trade-in-form .input-contact .form-control { padding-left:30px; }
+  .tt-trade-in-form .tt-trade-in-form__field-icon { left:9px; width:16px; height:16px; }
+}
+@media(max-width:375px) {
+  .tt-trade-in-form form > .row { grid-template-columns:minmax(0,1fr); }
+  .tt-trade-in-form .input-contact label { font-size:14px; }
+  .tt-trade-in-form .input-contact select.form-control { font-size:16px; }
+  .tt-trade-in-form .input-contact input::placeholder { font-size:16px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .tt-trade-in-form .input-contact .form-control,.tt-trade-in-form .tt-trade-in-form__submit.btn { transition:none; }
+  .tt-trade-in-form .tt-trade-in-form__submit.btn:hover:not(:disabled) { transform:none; }
+}

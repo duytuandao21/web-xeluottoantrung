@@ -1,5 +1,6 @@
-/* Scoped to the homepage; the selling/trade-in landing pages keep their layout. */
-.tt-home-services {
+/* Shared service design for homepage, selling and trade-in processes. */
+.tt-home-services,
+.tt-home-services.tt-service-process {
   --service-gold: #f3bd40;
   --service-icon-size: 104px;
   --service-gap: 18px;
@@ -221,7 +222,8 @@
   .tt-home-services .tt-home-service-step:nth-child(2n) > .tt-home-service-step__connector { display: none; }
 }
 @media (max-width: 640px) {
-  .tt-home-services { --service-icon-size: 96px; padding: 28px 0 32px; }
+  .tt-home-services,
+  .tt-home-services.tt-service-process { --service-icon-size: 96px; padding: 28px 0 32px; }
   .tt-home-services .title-main { padding-top: 23px; margin-bottom: 22px; }
   .tt-home-services ul.cap1 { margin-bottom: 28px; }
   .tt-home-services ul.cap1 li { padding: 9px 6px; font-size: 16px; }

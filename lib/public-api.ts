@@ -34,7 +34,7 @@ async function readPublicData(path: string, queryString: string): Promise<unknow
           // Persistent public-data caching belongs to the API, which also owns
           // admin invalidation. This read must not retain a second TTL in Next.
           const response = await fetch(`${baseUrl}/api/v1${path}${queryString ? `?${queryString}` : ''}`, {
-            cache: 'no-store', ...(models ? { signal: AbortSignal.timeout(5_000) } : {}),
+            cache: 'no-store', ...(models || path === '/cars/menu' ? { signal: AbortSignal.timeout(models ? 5_000 : 7_000) } : {}),
           });
           if (!response.ok) throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`);
           const data: unknown = await response.json();

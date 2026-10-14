@@ -2,14 +2,15 @@
 
 import { useEffect } from 'react';
 
-/** Controls only the existing homepage markup; no requests or carousel clones. */
-export default function HomeServicesMotion() {
+/** Controls shared service markup; no requests or carousel clones. */
+export default function HomeServicesMotion({ selector = '.tt-home-services' }: { selector?: string }) {
   useEffect(() => {
-    const section = document.querySelector<HTMLElement>('.tt-home-services');
+    const section = document.querySelector<HTMLElement>(selector);
     if (!section) return;
     const tabs = [...section.querySelectorAll<HTMLElement>('.cap1 [role="tab"]')];
     const panels = [...section.querySelectorAll<HTMLElement>(':scope > .dichvu[data-service]')];
-    if (!tabs.length || panels.length !== tabs.length) return;
+    if (!panels.length || (tabs.length && panels.length !== tabs.length)) return;
+    if (!tabs.length && !panels[0].querySelector('.tt-home-service-steps')) return;
     const mobile = window.matchMedia('(max-width: 640px)');
     const desktop = window.matchMedia('(min-width: 1025px)');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -58,7 +59,7 @@ export default function HomeServicesMotion() {
     };
     const schedule = () => {
       window.clearTimeout(timer);
-      if (!visible || document.hidden || reducedMotion.matches || touching || focusInContent) return;
+      if (!visible || document.hidden || reducedMotion.matches || touching || focusInContent || (!tabs.length && !mobile.matches)) return;
       timer = window.setTimeout(advance, Math.max(0, deadline - performance.now()));
     };
     const pause = () => {
@@ -98,7 +99,11 @@ export default function HomeServicesMotion() {
         viewport.scrollTo({ left: items[step + 1].offsetLeft - items[0].offsetLeft, behavior: 'smooth' });
         deadline = performance.now() + interval();
         schedule();
-      } else select((active + 1) % tabs.length, false);
+      } else if (!tabs.length && mobile.matches && viewport && items.length > 1) {
+        viewport.scrollTo({ left: 0, behavior: 'smooth' });
+        deadline = performance.now() + interval();
+        schedule();
+      } else select(tabs.length ? (active + 1) % tabs.length : 0, false);
     }
     const onClick = (event: MouseEvent) => {
       const tab = event.target instanceof Element ? event.target.closest<HTMLElement>('.cap1 [role="tab"]') : null;
@@ -229,6 +234,6 @@ export default function HomeServicesMotion() {
       document.removeEventListener('visibilitychange', onVisibility);
       delete section.dataset.activeStep;
     };
-  }, []);
+  }, [selector]);
   return null;
 }

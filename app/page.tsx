@@ -7,7 +7,7 @@ import { replaceHomeBottom } from "@/lib/home-bottom";
 import { homeNeedsPromo } from "@/lib/home-needs-promo";
 import { homeBannerArtwork } from "@/lib/home-banner-artwork";
 import type { BannerSlide } from "@/components/common/BuySellBanner";
-import { safeHtml } from "@/lib/safe-html";
+import { serviceStepList, type ServiceStep } from '@/lib/service-step-markup';
 import { getRequestPublicPage } from "@/lib/public-pages";
 import { pageMetadata } from "@/lib/page-metadata";
 import { load } from "cheerio";
@@ -27,14 +27,13 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata(page, '/', seo);
 }
 
-type ServiceStep = { title: string; body?: string | null; imageUrl?: string | null };
 // Set false to restore the separate heading and car list before this preview.
 const HOME_CARS_FRAMED_PREVIEW = true;
 const services = [
   { key: 'mua-xe', label: 'Mua xe', href: '/san-pham' },
   { key: 'ban-xe', label: 'Bán xe', href: '/ban-xe' },
   { key: 'len-doi', label: 'Lên đời', href: '/len-doi' },
-];
+] as const;
 
 export default async function HomePage() {
   const [page, steps, articles, accessories] = await Promise.all([
@@ -70,23 +69,7 @@ export default async function HomePage() {
       'data-service': `buoc-${service.key}`, id: `service-${service.key}`, 'aria-labelledby': `tab-${service.key}`,
     });
     if (index) panel.attr('hidden', 'hidden');
-    const cards = $('<ol class="main_fix tt-home-service-steps"></ol>');
-    steps[index].forEach((step, stepIndex) => {
-      const card = $('<li class="tt-home-service-step"></li>');
-      const gradientId = `service-path-${service.key}-${stepIndex}`;
-      card.append(`<svg class="tt-home-service-step__connector" viewBox="0 0 200 64" fill="none" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gradientId}" x1="0" y1="0" x2="200" y2="0" gradientUnits="userSpaceOnUse"><stop stop-color="#ffda78"/><stop offset=".5" stop-color="#dfa21b"/><stop offset="1" stop-color="#ffca50"/></linearGradient></defs><path d="M0 16C40 16 50 56 100 56S160 16 200 16" stroke="url(#${gradientId})" stroke-width="3.5"/><path d="m94 2 8 8-8 8m12-16 8 8-8 8" stroke="#ffc54b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
-      const icon = $('<div class="tt-home-service-step__icon item_qt"></div>');
-      if (step.imageUrl && (/exchange5565998-3028\.png(?:\?|$)/.test(step.imageUrl) || service.key === 'mua-xe' && /thử xe.*đàm phán/iu.test(step.title))) icon.addClass('tt-home-service-step__icon--exchange');
-      if (step.imageUrl) icon.append($('<img>').attr({ src: step.imageUrl, alt: '', loading: 'lazy', decoding: 'async', width: '90', height: '90', sizes: '(max-width: 640px) 80px, 88px' }));
-      else icon.append('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m6 12 4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/></svg>');
-      icon.append($('<span class="tt-home-service-step__number" aria-hidden="true"></span>').text(String(stepIndex + 1).padStart(2, '0')));
-      card.append(icon);
-      card.append($('<div class="tt-home-service-step__content"></div>')
-        .append($('<h3 class="tt-home-service-step__title"></h3>').text(step.title))
-        .append($('<div class="tt-home-service-step__description"></div>').html(safeHtml(step.body || ''))));
-      cards.append(card);
-    });
-    if (steps[index].length) panel.append(cards);
+    if (steps[index].length) panel.append(serviceStepList(steps[index], service.key));
     else panel.append('<p class="main_fix">Nội dung đang được cập nhật.</p>');
     panel.append($('<p class="xemtatca"></p>').append($('<a></a>').attr('href', service.href).text(`${service.label} ngay`)));
     section.append(panel);

@@ -8,8 +8,16 @@ const carFront = <>
 </>;
 
 const icons: Record<string, ReactNode> = {
+  'Tất cả sản phẩm': <><rect x="3" y="3" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="14" y="14" width="7" height="7" rx="1.5" fill="currentColor"/></>,
+  'Đang giảm giá': <><path d="m21 12-9 9-10-10V2h9l10 10Z"/><circle cx="7" cy="7" r="1.3"/></>,
+  'Mua xe theo nhu cầu': <><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h2M8 11h8M8 15h8M8 19h5"/></>,
   'Khuyến mãi/Sự kiện': <><path d="M20 13 13 20a2 2 0 0 1-2.8 0L3 12.8V3h9.8l7.2 7.2a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.2"/><path d="m10 14 4-4"/></>,
   'Mua xe': carFront,
+  'Lên đời': <>
+    {carFront}
+    <circle cx="34" cy="34" r="11" fill="#fbf8f4" stroke="none"/>
+    <path d="M28 31a7 7 0 0 1 12-2l2 2M42 26v5h-5M40 37a7 7 0 0 1-12 2l-2-2M26 42v-5h5"/>
+  </>,
   'Bán xe': <>
     {carFront}
     <path d="M28 24.5H35.2L43 32.3C43.8 33.1 43.8 34.3 43 35.1L35.1 43C34.3 43.8 33.1 43.8 32.3 43L24.5 35.2V28C24.5 26.1 26.1 24.5 28 24.5Z" fill="#fff"/>
@@ -31,8 +39,8 @@ const icons: Record<string, ReactNode> = {
   phone: <><path d="M21 16.4v3a2 2 0 0 1-2.2 2A18.8 18.8 0 0 1 2.6 5.2 2 2 0 0 1 4.6 3h3a2 2 0 0 1 2 1.7l.4 2.7a2 2 0 0 1-.6 1.8L7.8 10.8a15.6 15.6 0 0 0 5.4 5.4l1.6-1.6a2 2 0 0 1 1.8-.6l2.7.4A2 2 0 0 1 21 16.4Z"/><path d="M14 3a7 7 0 0 1 7 7m-7-3a3 3 0 0 1 3 3"/></>,
 };
 
-export default function MobileMenuIcon({ name }: { name: string }) {
+export default function MobileMenuIcon({ name, inheritColor = false }: { name: string; inheritColor?: boolean }) {
   const icon = icons[name.trim()];
-  const isCar = name.trim() === 'Mua xe' || name.trim() === 'Bán xe';
-  return icon ? <svg className="mobile-menu-icon" viewBox={isCar ? '0 0 48 48' : '0 0 24 24'} fill="none" stroke={isCar ? '#183567' : 'currentColor'} strokeWidth={isCar ? 2.5 : 1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{icon}</svg> : null;
+  const isCar = ['Mua xe','Bán xe','Lên đời'].includes(name.trim());
+  return icon ? <svg className="mobile-menu-icon" viewBox={isCar ? '0 0 48 48' : '0 0 24 24'} fill="none" stroke={isCar && !inheritColor ? '#183567' : 'currentColor'} strokeWidth={isCar ? 2.5 : 1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{icon}</svg> : null;
 }

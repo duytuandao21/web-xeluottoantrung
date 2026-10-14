@@ -8,6 +8,8 @@ import { carToCard, formatCarPrice } from './car-view';
 import { getLegacyPage } from './pages';
 import { replaceHomeBottom } from './home-bottom';
 import { safeHtml } from './safe-html';
+import { serviceStepList } from './service-step-markup';
+import { styleServiceForm } from './trade-in-form';
 import { assetUrl, getSiteBranding } from './site-branding';
 import { getSiteInfo } from './site-info';
 import { zaloHref } from './contact-links';
@@ -160,6 +162,8 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
   }
   const params: Record<string, string | number | undefined> = {
     page: 1, limit: 6, search: single(searchParams.keyword),
+    new_arrival: single(searchParams['xe-moi-ve']) === 'true' ? 'true' : undefined,
+    discounted: single(searchParams['dang-giam-gia']) === 'true' ? 'true' : undefined,
     brand: selected('hang-xe'), body_type: selected('kieu-dang'), transmission: selected('hop-so'), color: selected('mau-sac'),
     branch: selected('chi-nhanh'), model: selected('dong-xe'), version: selected('phien-ban'),
     price_min: price?.min !== undefined ? Math.round(price.min * 1_000_000) : undefined,
@@ -291,6 +295,16 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
   addRow('filters', 'Bộ lọc', filterBar).find('h2').empty().append(
     '<button type="button" class="vehicle-filter-panel__open" data-id=".hangxe_tk" title="Xem tất cả bộ lọc">Bộ lọc</button>');
   addRow('brands', 'Hãng xe', brandRow);
+  if (params.new_arrival || params.discounted) {
+    const badges = $('<div class="vehicle-filter-bar__track" role="group" aria-label="Nhóm xe đang xem"></div>');
+    for (const [key, label, enabled] of [['xe-moi-ve', 'Xe mới về', params.new_arrival], ['dang-giam-gia', 'Đang giảm giá', params.discounted]] as const) {
+      if (enabled) badges.append($('<a data-filter-link="true" class="vehicle-filter-chip is-selected vehicle-filter-selection"></a>')
+        .attr({ href: urlFor({ [key]: null }), 'aria-label': `Bỏ lọc ${label}` })
+        .append($('<span class="vehicle-filter-chip__main"></span>').append($('<span></span>').text(label)),
+          '<span class="vehicle-filter-chip__clear" aria-hidden="true">×</span>'));
+    }
+    addRow('selection', 'Đang xem', badges);
+  }
   const choiceRow = (key: string, title: string, choices: Array<{ name: string; value: string }>, active: string | undefined,
     href: (value: string | null) => string) => {
     const track = $('<div class="vehicle-filter-options"></div>');
@@ -452,7 +466,8 @@ async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len
   ]);
   const $ = load(base.content, {}, false);
   $('.lendoi').addClass('vehicle-service-landing');
-  const section = $('.wap_dichvu2').first();
+  styleServiceForm($, route);
+  const section = $('.wap_dichvu2').first().addClass('tt-home-services tt-service-process');
   const panel = section.children('.dichvu').first();
   let contacts = $('.lendoi_l .lienhe_ct').first();
   if (route === '/len-doi') {
@@ -471,15 +486,21 @@ async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len
     contacts.before('<p class="trade-in-contact-label">Liên hệ lên đời xe nhanh</p>');
   }
   contacts.append('<a class="sell-car-valuation" href="/tien-ich/dinh-gia-xe">Định giá xe của tôi</a>');
-  renderServiceSteps($, panel, route === '/ban-xe' ? 'buoc-ban-xe' : 'buoc-len-doi', steps);
-  if (route === '/ban-xe') {
-    section.find('.cap1').replaceWith('<div class="title-main title-main2"><span>Quy trình bán xe</span></div>');
-  } else {
-    section.children('.main_fix').first().find('.title-main span').first().text('Quy trình lên đời');
-  }
+  const serviceKey = route === '/ban-xe' ? 'ban-xe' : 'len-doi';
+  const title = route === '/ban-xe' ? 'Quy trình bán xe' : 'Quy trình lên đời';
+  const headingId = `process-${serviceKey}-title`;
+  section.attr({ role: 'region', 'aria-labelledby': headingId });
+  section.children('.main_fix').first().empty().append($('<div class="title-main title-main2"></div>').append($('<h2></h2>').attr('id', headingId).text(title)));
+  panel.attr('data-service', `buoc-${serviceKey}`).empty();
+  if(steps.length) panel.append(serviceStepList(steps, serviceKey));
+  else panel.append('<p class="main_fix selling-process-empty">Các bước đang được cập nhật.</p>');
   renderTestimonials($, '.wap_camnhan .camnhan', testimonials, true);
   replaceHomeBottom($, [], { showNews: false });
-  renderWhyChoose($, whyChoose, whyChooseImages.find(row => row.key === 'image')?.value);
+  renderWhyChoose($, whyChoose, whyChooseImages.find(row => row.key === 'image')?.value,
+    ['image-secondary', 'image-tertiary'].map(key => whyChooseImages.find(row => row.key === key)?.value));
+  const statistics = $('.wap_thongke').addClass('tt-service-stats');
+  statistics.find('.desc_post').removeClass('catchuoi4');
+  statistics.find('.thongke_r img').attr({ alt: 'Showroom ô tô Toàn Trung', loading: 'lazy', decoding: 'async' });
   return { ...base, content: $.html() };
 }
 
@@ -494,6 +515,15 @@ async function settingsPage(page: LegacyPageData, group: string): Promise<Legacy
     const image = assetUrl(settings.image);
     if (image) $('.lendoi_l .img img').first().attr({ src: image, alt: settings.title || '' });
     else $('.lendoi_l .img').remove();
+  }
+  // Both service banners use the same blurred backdrop, with independent settings.
+  if (group === 'thiet-lap-text-len-doi' || group === 'thiet-lap-text-ban-xe') {
+    const background = assetUrl(settings['background-image']);
+    if (background) {
+      $('.lendoi').closest('.wap_lendoi').addClass('tt-trade-in-background').prepend(
+        $('<img class="tt-trade-in-background__image" alt="" aria-hidden="true" decoding="async">').attr('src', background),
+      );
+    }
   }
   if (settings.content !== undefined) {
     // Contact buttons are part of the layout; the editor manages only the introduction.

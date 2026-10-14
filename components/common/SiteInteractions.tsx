@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import Markup from './Markup';
 import { getPublic, submitPublic } from '@/lib/public-client';
 import { calculateInstallment } from '@/lib/installment-calculator';
+import { formatKmInput } from '@/lib/valuation';
 import CarComparison from '@/components/car/CarComparison';
 import ContactMethods, { type ContactMethodDetails } from './ContactMethods';
 
@@ -55,6 +56,17 @@ export default function SiteInteractions() {
   useEffect(()=>{
     setDialog(null);
     const cleanups:(()=>void)[]=[];
+    const previousMileage = new WeakMap<HTMLInputElement, string>();
+    const formatMileage = (event: Event) => {
+      const input = event.target;
+      if (!(input instanceof HTMLInputElement) || !input.matches('.tt-trade-in-form input[name="km"]') || (event as InputEvent).isComposing) return;
+      const edit = event as InputEvent;
+      const result = formatKmInput(previousMileage.get(input) ?? input.defaultValue, input.value,
+        input.selectionStart ?? input.value.length, edit.inputType || '', edit.data ?? null);
+      input.value = result.value;
+      previousMileage.set(input, result.value);
+      if (document.activeElement === input) input.setSelectionRange(result.caret, result.caret);
+    };
     let selectedBrandSlug=document.querySelector<HTMLElement>('.vehicle-brands__option.is-selected')?.dataset.brandSlug||'';
     const installment=document.querySelector<HTMLElement>('.vehicle-installment .tragop[data-price]');
     if(installment){
@@ -329,6 +341,8 @@ export default function SiteInteractions() {
       }
       if(target.closest('.apdung')){
         const params=new URLSearchParams();
+          const existing=new URL(document.querySelector<HTMLElement>('.vehicle-filter-panel')?.dataset.filterBase||location.href,location.origin).searchParams;
+          for(const key of ['xe-moi-ve','dang-giam-gia'])if(existing.get(key)==='true')params.set(key,'true');
         for(const [name,key] of [['hangxe','hang-xe'],['kieudang','kieu-dang'],['hopso','hop-so'],['mausac','mau-sac'],['mucgia','gia'],['chinhanh','chi-nhanh']]) {const values=[...document.querySelectorAll<HTMLElement>(`.goiy_${name} .active_tk`)].map(el=>el.dataset.id);if(values.length)params.set(key,name==='hangxe'?values[0]!:values.join(','));}
         for(const [name,key] of [['ngansach','ngan-sach'],['nam','nam-san-xuat'],['sokm','so-km']]) {
           const track=document.getElementById(`${name}-range`);
@@ -406,6 +420,7 @@ export default function SiteInteractions() {
       notify('Hiện chưa thể gửi yêu cầu trực tuyến. Vui lòng liên hệ 0777393913 để được hỗ trợ.');
     };
     const change=(event:Event)=>{
+      formatMileage(event);
       const select=event.target;
       if(!(select instanceof HTMLSelectElement))return;
       if(select.id==='vehicle-sort'){
@@ -453,8 +468,8 @@ export default function SiteInteractions() {
       }
     };
     const scroll=()=>setShowTop(scrollY>100);scroll();
-    document.addEventListener('click',onClick);document.addEventListener('submit',submit);document.addEventListener('change',change);document.addEventListener('keydown',keys);window.addEventListener('scroll',scroll,{passive:true});
-    return()=>{cleanups.forEach(fn=>fn());document.removeEventListener('click',onClick);document.removeEventListener('submit',submit);document.removeEventListener('change',change);document.removeEventListener('keydown',keys);window.removeEventListener('scroll',scroll);};
+    document.addEventListener('input',formatMileage);document.addEventListener('click',onClick);document.addEventListener('submit',submit);document.addEventListener('change',change);document.addEventListener('keydown',keys);window.addEventListener('scroll',scroll,{passive:true});
+    return()=>{cleanups.forEach(fn=>fn());document.removeEventListener('input',formatMileage);document.removeEventListener('click',onClick);document.removeEventListener('submit',submit);document.removeEventListener('change',change);document.removeEventListener('keydown',keys);window.removeEventListener('scroll',scroll);};
   },[pathname,query,router]);
   const image=dialog?.images?.[dialog.index||0];
   const closeDialog=()=>setDialog(null);

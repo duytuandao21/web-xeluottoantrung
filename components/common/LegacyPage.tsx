@@ -2,6 +2,11 @@ import LegacyContent from "@/components/common/LegacyContent";
 import type { LegacyPageData } from "@/types/legacy";
 import { load } from 'cheerio';
 import HomeScrollReveal from './HomeScrollReveal';
+import HomeServicesMotion from './HomeServicesMotion';
+import './home-services.css';
+import './trade-in-form.css';
+import './service-statistics.css';
+import './why-choose-media.css';
 
 export default function LegacyPage({ page }: { page: LegacyPageData }) {
   const $ = load(page.content, {}, false);
@@ -25,7 +30,7 @@ export default function LegacyPage({ page }: { page: LegacyPageData }) {
   });
   const content = <LegacyContent key={page.route} html={$.html()} cars={page.cars || {}} />;
   if (page.route === '/ban-xe' || page.route === '/len-doi') {
-    return <HomeScrollReveal key={page.route} variant="vehicle-service">{content}</HomeScrollReveal>;
+    return <HomeScrollReveal key={page.route} variant="vehicle-service">{content}<HomeServicesMotion selector=".tt-service-process" /></HomeScrollReveal>;
   }
   return content;
 }
