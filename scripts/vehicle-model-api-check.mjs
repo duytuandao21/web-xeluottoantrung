@@ -11,7 +11,7 @@ const models = [{ id: 'spark', name: 'Spark', slug: 'spark' }];
 function setup(fetch) {
   const exports = {};
   vm.runInNewContext(js, { exports, fetch, process: { env: {} }, URLSearchParams, AbortSignal, setTimeout, Map, Set,
-    require: name => name === 'react' ? { cache: fn => fn } : {},
+    require: name => { if (name === './perf-observer') return { perfAsync: (_metric,_label,work) => work(), perfApiLabel: () => 'read-other', perfGauge: () => {}, perfStart: () => () => {} }; return name === 'react' ? { cache: fn => fn } : {}; },
   });
   return exports.publicApi;
 }

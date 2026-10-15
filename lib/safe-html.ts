@@ -1,4 +1,5 @@
-import { load } from 'cheerio';
+import { measuredCheerio } from './measured-cheerio';
+const { load } = measuredCheerio('safe-html');
 
 const allowed = new Set(['p', 'div', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'h2', 'h3', 'blockquote', 'ul', 'ol', 'li', 'a', 'img']);
 const blocked = new Set(['script', 'style', 'iframe', 'object', 'embed', 'svg', 'form', 'input', 'button']);

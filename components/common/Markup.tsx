@@ -1,6 +1,7 @@
 "use client";
 import parse, { attributesToProps, domToReact, Element, type DOMNode, type HTMLReactParserOptions } from 'html-react-parser';
 import { createElement } from 'react';
+import { perfSync } from '@/lib/perf-observer';
 import dynamic from 'next/dynamic';
 import Carousel from './Carousel';
 import BuySellBanner, { type BannerSlide } from './BuySellBanner';
@@ -74,5 +75,5 @@ export default function Markup({html,cars={}}:{html:string;cars?:Record<string,C
     }
     if(node.name==='input' || node.name==='textarea') {const {value,checked,...props}=attributesToProps(node.attribs);return createElement(node.name,{...props,defaultValue:value,defaultChecked:checked},node.name==='textarea'?domToReact(node.children as DOMNode[],options):undefined);}
   }};
-  return <>{parse(html,options)}</>;
+  return <>{perfSync('html.react_parse', 'markup', () => parse(html,options))}</>;
 }

@@ -1,6 +1,8 @@
 import LegacyContent from "@/components/common/LegacyContent";
 import type { LegacyPageData } from "@/types/legacy";
-import { load } from 'cheerio';
+import { measuredCheerio } from '@/lib/measured-cheerio';
+import { perfSync } from '@/lib/perf-observer';
+const { load } = measuredCheerio('legacy-page');
 import HomeScrollReveal from './HomeScrollReveal';
 import HomeServicesMotion from './HomeServicesMotion';
 import './home-services.css';
@@ -9,6 +11,7 @@ import './service-statistics.css';
 import './why-choose-media.css';
 
 export default function LegacyPage({ page }: { page: LegacyPageData }) {
+  return perfSync('cheerio.transform', 'legacy-page', () => {
   const $ = load(page.content, {}, false);
   $('.boloc_l li.cuoi').filter((_, element) => $(element).text().trim() === 'Bộ lọc').remove();
   $('.breadCrumbs .main_fix').each((_, container) => {
@@ -33,4 +36,5 @@ export default function LegacyPage({ page }: { page: LegacyPageData }) {
     return <HomeScrollReveal key={page.route} variant="vehicle-service">{content}<HomeServicesMotion selector=".tt-service-process" /></HomeScrollReveal>;
   }
   return content;
+  });
 }

@@ -18,6 +18,7 @@ function fixture(read) {
     setTimeout: (callback, delay) => { waits.push(delay); now += delay; queueMicrotask(callback); },
     console: { warn: value => logs.push(JSON.parse(value)) },
     require: name => {
+    if (name === './perf-observer') return { perfAsync: (_metric,_label,work) => work(), perfApiLabel: () => 'read-other', perfGauge: () => {}, perfStart: () => () => {} };
       if (name === 'server-only') return {};
       assert.equal(name, 'react');
       return { cache: fn => (...args) => {

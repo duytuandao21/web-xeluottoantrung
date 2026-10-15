@@ -6,6 +6,7 @@ import manifestJson from "@/data/route-manifest.json";
 import routesJson from "@/data/routes.json";
 import type { LegacyPageData, SearchParams } from "@/types/legacy";
 import {searchSnapshot} from './search';
+import { perfAsync, perfRoute } from './perf-observer';
 
 const manifest = manifestJson as Record<string, string>;
 
@@ -26,7 +27,7 @@ export async function getLegacyPage(pathname: string, searchParams: SearchParams
   const localSearch=(normalizedPath==='/san-pham' && Boolean(searchParams.keyword)) || (normalizedPath==='/tim-kiem-nang-cao' && !manifest[exactKey]);
   const file = localSearch ? manifest['/san-pham'] : manifest[exactKey] ?? manifest[normalizedPath];
   if (!file) return null;
-  const raw = await readFile(path.join(process.cwd(), "data", "pages", file), "utf8");
+  const raw = await perfAsync('legacy.read', perfRoute(normalizedPath), () => readFile(path.join(process.cwd(), "data", "pages", file), "utf8"));
   const page=JSON.parse(raw) as LegacyPageData;
   if (normalizedPath === "/ban-xe") {
     page.content = page.content.replaceAll("Tìm xe của bạn liên hệ và thỏa thuận", "Liên hệ và thỏa thuận");

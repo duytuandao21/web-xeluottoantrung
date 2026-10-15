@@ -10,7 +10,9 @@ import type { BannerSlide } from "@/components/common/BuySellBanner";
 import { serviceStepList, type ServiceStep } from '@/lib/service-step-markup';
 import { getRequestPublicPage } from "@/lib/public-pages";
 import { pageMetadata } from "@/lib/page-metadata";
-import { load } from "cheerio";
+import { measuredCheerio } from '@/lib/measured-cheerio';
+import { perfAsync, perfSync } from '@/lib/perf-observer';
+const { load } = measuredCheerio('home-component');
 import HomeScrollReveal from '@/components/common/HomeScrollReveal';
 import HomeServicesMotion from '@/components/common/HomeServicesMotion';
 import '@/components/common/home-services.css';
@@ -36,6 +38,7 @@ const services = [
 ] as const;
 
 export default async function HomePage() {
+  return perfAsync('ssr.component', 'home', async () => {
   const [page, steps, articles, accessories] = await Promise.all([
     getRequestPublicPage('/'),
     Promise.all(services.map(service => publicApi<ServiceStep[]>('/content', { group: `thiet-lap-cac-buoc-${service.key}` }))),
@@ -43,6 +46,7 @@ export default async function HomePage() {
     publicApi<PageResult<Accessory>>('/accessories', { limit: 100 }).catch(() => null),
   ]);
   if (!page) return null;
+  return perfSync('cheerio.transform', 'home-component', () => {
   const $ = load(page.content, {}, false);
   const buyPanel = $('.wap_muaxe .muaxe').first();
   buyPanel.closest('.wap_muaxe').addClass('tt-home-buy-sell');
@@ -89,5 +93,7 @@ export default async function HomePage() {
   return <HomeScrollReveal><LegacyPage page={{ ...page, content: $.html() }} />
     <HomeServicesMotion />
     <AccessoryCarousel items={accessories?.data ?? []} /></HomeScrollReveal>;
+  });
+  });
 }
 

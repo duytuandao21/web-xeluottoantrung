@@ -1,6 +1,8 @@
 import 'server-only';
 
-import { load } from 'cheerio';
+import { measuredCheerio } from './measured-cheerio';
+import { perfAsync, perfRoute, perfSync } from './perf-observer';
+const { load } = measuredCheerio('public-page');
 import { cache } from 'react';
 import type { Car } from '@/types/car';
 import type { LegacyPageData, SearchParams } from '@/types/legacy';
@@ -826,7 +828,9 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
   if (pathname === '/') {
     if (!page) return null;
     const [result, slides, brands, styles, budgets, testimonials, sellingProcess, buyingSteps, sellingSteps, tradeInSteps, banners] = homeData!;
-    const $ = load(page.content, {}, false);
+    const sourceContent = page.content;
+    const { $, cards } = perfSync('cheerio.transform', 'public-home', () => {
+    const $ = load(sourceContent, {}, false);
     const cards = cardMarkup(result.data);
     $('.wap_sanpham .loadthem_sp1').html(cards.html);
     const slider = $('.slider_slick').first().empty();
@@ -896,6 +900,8 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
     }
     prepareServiceTabs($, serviceSection);
     renderTestimonials($, '.wap_camnhan .camnhan', testimonials, true);
+    return { $, cards };
+    });
     await populateCarFormBrands($, brands);
     return { ...page, content: $.html(), cars: cards.mapped };
   }
@@ -960,7 +966,7 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
 
 // Metadata and page rendering share the same parsed page within one request.
 const cachedPublicPage = cache((pathname: string, key: string) =>
-  getPublicPage(pathname, JSON.parse(key) as SearchParams));
+  perfAsync('ssr.prepare', perfRoute(pathname), () => getPublicPage(pathname, JSON.parse(key) as SearchParams)));
 
 export function getRequestPublicPage(pathname: string, searchParams: SearchParams = {}) {
   const ordered = Object.fromEntries(Object.entries(searchParams).sort(([a], [b]) => a.localeCompare(b)));

@@ -1,6 +1,6 @@
 import 'server-only';
 import { cache } from 'react';
-import { load } from 'cheerio';
+import type { load } from 'cheerio';
 import { publicApi, type ContentEntry } from './public-api';
 import { safeHtml } from './safe-html';
 import { assetUrl } from './site-branding';

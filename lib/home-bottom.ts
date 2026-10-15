@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { load } from 'cheerio';
+import type { load } from 'cheerio';
 import shared from '@/data/shared.json';
 import type { Article } from './public-api';
 

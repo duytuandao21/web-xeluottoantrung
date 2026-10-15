@@ -1,5 +1,6 @@
 import 'server-only';
 import { cache } from 'react';
+import { perfAsync, perfApiLabel, perfGauge, perfStart } from './perf-observer';
 
 const baseUrl = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '');
 
@@ -8,15 +9,18 @@ const baseUrl = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http
 const maxConcurrentReads = 8;
 let activeReads = 0;
 const waitingReads: Array<() => void> = [];
-async function withPublicReadSlot<T>(read: () => Promise<T>): Promise<T> {
-  if (activeReads >= maxConcurrentReads) await new Promise<void>(resolve => waitingReads.push(resolve));
+async function withPublicReadSlot<T>(read: () => Promise<T>, label: string): Promise<T> {
+  const finishQueue = perfStart('api.queue', label);
+  if (activeReads >= maxConcurrentReads) await new Promise<void>(resolve => { waitingReads.push(resolve); perfGauge('api.waiting', waitingReads.length); });
   else activeReads++;
+  finishQueue(); perfGauge('api.active', activeReads);
   try {
     return await read();
   } finally {
     const next = waitingReads.shift();
     if (next) next(); // Transfer the slot to the next waiting read.
     else activeReads--;
+    perfGauge('api.active', activeReads); perfGauge('api.waiting', waitingReads.length);
   }
 }
 
@@ -57,14 +61,19 @@ async function readPublicData(path: string, queryString: string): Promise<unknow
   const models = modelPath.test(path);
   const budgetMs = path === '/cars/menu' ? 7_000 : 5_000;
   const started = Date.now();
+  const label = perfApiLabel(path);
+  return perfAsync('api.read', label, async () => {
   for (let attempt = 0; ; attempt++) {
     try {
       return await withPublicReadSlot(async () => {
+        const finishFetch = perfStart('api.fetch', label);
+        try {
         // The API owns persistent caching and synchronous admin invalidation.
         // Keep React's per-render memoization; never cache stock or private data here.
         const response = await fetch(`${baseUrl}/api/v1${path}${queryString ? `?${queryString}` : ''}`, {
           cache: 'no-store', signal: AbortSignal.timeout(Math.max(1, budgetMs - (Date.now() - started))),
         });
+        finishFetch(response.status === 429 ? '429' : response.status === 503 ? '503' : response.ok ? 'ok' : 'error');
         if (!response.ok) {
           const wait = retryAfterMs(response.headers?.get('retry-after'));
           // Release the failed response before retrying; do not leave undici
@@ -73,11 +82,12 @@ async function readPublicData(path: string, queryString: string): Promise<unknow
           throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`, wait,
             response.status === 429 ? 'rate_limit_exceeded' : response.status === 503 ? 'service_unavailable' : 'http_error');
         }
-        const data: unknown = await response.json();
+        const data: unknown = await perfAsync('api.body', label, () => response.json());
         if (models && (!Array.isArray(data) || !data.every(item => item && typeof item.id === 'string' && typeof item.name === 'string' && typeof item.slug === 'string') ||
           new Set(data.map(item => item.id)).size !== data.length)) throw new PublicApiError(502, 'Invalid model catalog', undefined, 'invalid_payload');
         return data;
-      });
+        } catch (error) { finishFetch('error'); throw error; }
+      }, label);
     } catch (cause) {
       // Next uses thrown control-flow errors for dynamic rendering/redirects.
       // Preserve those and programming errors; classify only native I/O errors.
@@ -97,6 +107,7 @@ async function readPublicData(path: string, queryString: string): Promise<unknow
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
+  });
 }
 
 // Reuse parsed results within SSR, including page/layout/metadata callers.

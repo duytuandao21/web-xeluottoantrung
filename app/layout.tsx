@@ -20,6 +20,7 @@ import PromotionAdvertisement from '@/components/promotions/PromotionAdvertiseme
 import '@/components/chatbot/chatbot.css';
 import { getImageOriginalUrl } from '@/lib/image-delivery';
 import { showroom10MapHref } from '@/lib/contact-links';
+import { perfAsync } from '@/lib/perf-observer';
 
 export async function generateMetadata(): Promise<Metadata> {
   const [siteName, branding] = await Promise.all([getSiteName(), getSiteBranding()]);
@@ -37,6 +38,7 @@ const legacyStyles = [
 ];
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  return perfAsync('ssr.component', 'layout', async () => {
   const results = await Promise.allSettled([
     getSiteInfo(),
     allPublicLookups<Branch>('/lookups/branches'),
@@ -66,4 +68,5 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body><SaleAccessProvider><div className="wapper"><Header phone={info.phone} services={services} logoUrl={branding.logo} mobileLogoUrl={branding.logoMobile} />{children}<Footer showrooms={showrooms} phone={info.phone} zalo={info.zalo} settings={footerSettings} callContacts={callContacts} policies={policies} logoUrl={branding.logoDark} socialLinks={socialLinks} appLinks={appLinks} /></div><MobileContactBar zalo={info.zalo} mapHref={showroom10MapHref(branches)}/><Suspense fallback={null}><SiteInteractions/><SearchSuggestions/></Suspense><ChatbotLauncher /><PromotionAdvertisement /></SaleAccessProvider></body>
     </html>
   );
+  });
 }

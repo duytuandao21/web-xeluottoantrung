@@ -1,5 +1,6 @@
 import 'server-only';
-import { load } from 'cheerio';
+import { measuredCheerio } from './measured-cheerio';
+const { load } = measuredCheerio('steps');
 import { safeHtml } from './safe-html';
 
 export type ServiceStep = { title: string; body?: string | null; imageUrl?: string | null };

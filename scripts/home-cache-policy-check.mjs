@@ -13,6 +13,7 @@ const exports = {};
 vm.runInNewContext(source, {
   exports, process: { env: { API_URL: 'http://public-api.test' } }, URLSearchParams, AbortSignal, setTimeout,
   require: name => {
+    if (name === './perf-observer') return { perfAsync: (_metric,_label,work) => work(), perfApiLabel: () => 'read-other', perfGauge: () => {}, perfStart: () => () => {} };
     if (name === 'server-only') return {};
     assert.equal(name, 'react', 'No persistent Next wrapper may hide API invalidation');
     return { cache: callback => (...args) => {

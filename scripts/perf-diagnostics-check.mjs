@@ -1,0 +1,48 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import ts from 'typescript';
+const nativeRequire = createRequire(import.meta.url);
+const context = vm.createContext({ process, performance, console, setInterval, clearInterval, Date });
+const loaded = new Map();
+function load(file) {
+  file = path.resolve(file);
+  if (loaded.has(file)) return loaded.get(file);
+  const module = { exports: {} }; loaded.set(file, module.exports);
+  const js = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  vm.runInContext(`(function(exports, require, module) {${js}\n})`, context)(module.exports,
+    name => name.startsWith('.') ? load(path.resolve(path.dirname(file), name + '.ts')) : nativeRequire(name), module);
+  return module.exports;
+}
+const { PerfMetrics } = load('lib/perf-metrics.ts');
+const observer = load('lib/perf-observer.ts');
+const { measuredCheerio } = load('lib/measured-cheerio.ts');
+const lines = [], off = new PerfMetrics(false, 'web', line => lines.push(line));
+off.start(); off.record('ssr.http', 'home', 10); off.flush(); off.stop(); assert.equal(lines.length, 0);
+assert.equal(observer.perfSync('ssr.http', 'home', () => 42), 42);
+const originalError = new Error('secret-token');
+await assert.rejects(observer.perfAsync('ssr.http', 'home', async () => { throw originalError; }), error => error === originalError);
+const html = '<div><h2>Same content</h2><p data-token="secret-token">No mutation</p></div>';
+const plain = measuredCheerio('legacy-page').load(html, {}, false).html();
+const recorder = new PerfMetrics(true, 'web', line => lines.push(line));
+context.__ttPerfObserver = recorder;
+assert.equal(measuredCheerio('legacy-page').load(html, {}, false).html(), plain, 'Cheerio arguments, context and output stay unchanged');
+const originalApi = nativeRequire('cheerio').load(html, {}, false);
+const measuredApi = measuredCheerio('legacy-page').load(html, {}, false);
+assert.equal(measuredApi.html(measuredApi('p')), originalApi.html(originalApi('p')));
+assert.equal(measuredApi.html(undefined, { xmlMode: true }), originalApi.html(undefined, { xmlMode: true }));
+assert.equal(await observer.perfAsync('ssr.prepare', 'home', async () => 123), 123);
+await assert.rejects(observer.perfAsync('ssr.http', 'home', async () => { throw originalError; }), error => error === originalError);
+for (let i=0;i<5000;i++) recorder.record('ssr.http', '/customer/secret-token?phone=0900000000', 1);
+recorder.record('ssr.http', 'home', 100); recorder.gauge('api.active', 8); recorder.gauge('api.active', 1);
+const snapshot = recorder.flush(); assert.equal(lines.length, 1); assert(snapshot.rows.length <= 96);
+assert.equal(snapshot.peaks['api.active'], 8);
+assert(snapshot.rows.some(row => row.metric === 'cheerio.parse'));
+assert(snapshot.rows.some(row => row.metric === 'cheerio.serialize'));
+assert(!/secret-token|0900000000|customer/.test(lines[0]));
+assert.equal(observer.perfApiLabel('/brands/private-customer/models?secret-token=1'), 'brand-models');
+assert.equal(observer.perfRoute('/customer/0900000000'), 'other-page');
+delete context.__ttPerfObserver;
+console.log('PASS: disabled no logs/timers, exact values/errors/Cheerio HTML, bounded labels/histograms, peak gauges and privacy.');
