@@ -95,4 +95,21 @@ const dynamicError = Object.assign(new Error('Next dynamic render bailout'), { d
 const framework = fixture(() => { throw dynamicError; });
 await assert.rejects(framework.api.publicApi('/lookups/branches'), error => error === dynamicError);
 assert.equal(framework.calls.length, 1); assert.equal(framework.logs.length, 0, 'Do not log/retry framework control flow as an API failure');
+
+for (const status of [429, 503]) {
+  const f = fixture(() => response(status, null, '60'));
+  for (let i = 0; i < 20; i++) await assert.rejects(f.api.publicApi('/content', { group: 'thiet-lap-chinh-sach-dieu-kien' }), error => error.status === status);
+  assert.equal(f.calls.length, 20, 'One attempt per render, no retry loop when Nest sends Retry-After 60');
+  assert.equal(f.logs.length, 1, 'Repeated content failures are rate limited in logs');
+  assert.equal(f.logs[0].group, 'thiet-lap-chinh-sach-dieu-kien');
+  await assert.rejects(f.api.publicApi('/content', { group: 'private@example.test', token: 'secret' }));
+  assert.equal(f.logs.at(-1).group, 'other');
+  assert(!/private@example|secret|token/.test(JSON.stringify(f.logs)));
+}
+const contentMemo = fixture(() => response(200, []));
+for (let i = 0; i < 3; i++) {
+  contentMemo.render();
+  await Promise.all(Array.from({ length: 6 }, () => contentMemo.api.publicApi('/content', { group: 'thiet-lap-chinh-sach-dieu-kien' })));
+}
+assert.equal(contentMemo.calls.length, 3, 'Policy readers in layout/page/metadata coalesce once per render and stay fresh across renders');
 console.log('Passed: 429/503 retry budget, Retry-After, timeout/network fallback, pagination integrity, privacy, request memoization, invalidation and no fake empty inventory.');

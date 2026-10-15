@@ -37,15 +37,26 @@ try{
       if(url.pathname.startsWith('/api/v1/')){const response=await fetch(`${apiUrl}${url.pathname}${url.search}`);return route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});}
       return ['127.0.0.1','localhost'].includes(url.hostname)?route.continue():route.abort();});
     await page.goto(`${base}/san-pham`,{waitUntil:'networkidle'});await page.getByRole('button',{name:'Xem thêm 5 xe',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('.vehicle-results>.item').length===11);
-    for(const [slug,,,label] of examples){
+    for(const [slug,,originalPrice,label] of examples){
       const card=page.locator(`.vehicle-results>[data-car-id="${slug}"]`),badge=card.locator('.car-card-discount');
       if(!label){assert.equal(await badge.count(),0,`No false discount: ${slug}`);continue;}
-      assert.equal(await badge.textContent(),label);assert.equal(await badge.locator('svg').count(),0);
-      const geometry=await card.evaluate(el=>{const bar=el.querySelector('.gia_sp'),price=el.querySelector('.car-card-price'),badge=el.querySelector('.car-card-discount');
+      const mobile=width<=700,oldLabel=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:6}).format(originalPrice/1e6);
+      assert.equal(await badge.locator('del').innerText(),oldLabel+(mobile?'tr':' triệu'));
+      assert.equal(await badge.locator('.car-card-discount__saving').innerText(),mobile?'−'+label.slice(1).replace(' triệu','tr'):'Giảm '+label.slice(1));
+      assert.equal(await badge.locator('del').evaluate(el=>getComputedStyle(el).textDecorationLine),'line-through');
+      assert.equal(await badge.locator('svg').count(),0);
+      const geometry=await card.evaluate(el=>{const bar=el.querySelector('.gia_sp'),price=el.querySelector('.car-card-price'),badge=el.querySelector('.car-card-discount__content');
         const bounds=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom};};
-        return {bar:bounds(bar),price:bounds(price),badge:bounds(badge),clipped:price.scrollWidth>price.clientWidth||badge.scrollWidth>badge.clientWidth||bar.scrollWidth>bar.clientWidth,color:getComputedStyle(badge).color,background:getComputedStyle(badge).backgroundColor};});
+        return {bar:bounds(bar),price:bounds(price),badge:bounds(badge),clipped:price.scrollWidth>price.clientWidth||badge.scrollWidth>badge.clientWidth||badge.scrollHeight>badge.clientHeight+1||bar.scrollWidth>bar.clientWidth,color:getComputedStyle(badge).color,background:getComputedStyle(badge).backgroundColor};});
       const a=geometry.price,b=geometry.badge;assert(!(a.x<b.right&&a.right>b.x&&a.y<b.bottom&&a.bottom>b.y),`Overlap ${width}px: ${slug}`);
       assert(!geometry.clipped,`Clipped price/discount ${width}px: ${slug}`);assert(b.right<=geometry.bar.right,`Badge outside bar ${width}px: ${slug}`);
+      assert(b.y>=geometry.bar.y&&b.bottom<=geometry.bar.bottom,`Badge exceeds original price bar height ${width}px: ${slug}`);
+      const padding=await badge.locator('.car-card-discount__content').evaluate(el=>{
+        const outer=el.getBoundingClientRect(),old=el.querySelector('del').getBoundingClientRect(),saving=el.querySelector('.car-card-discount__saving').getBoundingClientRect();
+        return {horizontal:Math.min(old.left-outer.left,outer.right-old.right,saving.left-outer.left,outer.right-saving.right),vertical:Math.min(old.top-outer.top,outer.bottom-saving.bottom)};
+      });
+      assert(padding.horizontal>=(mobile?3:9),`Insufficient horizontal padding ${width}px: ${slug}`);
+      assert(padding.vertical>=(mobile?2.5:4.5),`Insufficient vertical padding ${width}px: ${slug}`);
       assert.equal(geometry.color,'rgb(226, 0, 0)');assert.equal(geometry.background,'rgb(255, 229, 139)');
     }
     assert.equal(await page.locator('[data-car-id="vios-discount"] .car-card-new-arrival').count(),1);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));assert.deepEqual(errors,[]);

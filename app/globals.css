@@ -1071,11 +1071,23 @@ body .wap_item { justify-content:flex-start; column-gap:2%; }
 .item[data-car-id] .car-card-price { min-width:0; }
 .item[data-car-id] .gia_sp--discount .car-card-price b { white-space:normal; }
 .item[data-car-id] .car-card-discount {
-  display:inline-flex; flex:none; align-items:center; justify-content:center;
-  margin-left:auto; padding:7px 14px; border-radius:16px;
+  position:relative; display:inline-flex; flex:none; align-items:center; justify-content:center;
+  margin-left:auto; padding:7px 14px; border-radius:12px;
   background:#ffe58b; color:#e20000;
   font:700 16px/1.25 'tieude',Arial,sans-serif; white-space:nowrap; pointer-events:none;
 }
+.item[data-car-id] .car-card-discount__sizer { visibility:hidden; }
+.item[data-car-id] .car-card-discount__content {
+  position:absolute; inset:-5px 0 -5px auto; width:max-content; min-width:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; padding:5px 10px; border-radius:inherit; background:inherit; line-height:1.1;
+}
+.item[data-car-id] .car-card-discount__content del {
+  color:#261f0c; font:400 14px/1.1 'body',Arial,sans-serif;
+  text-decoration:line-through; text-decoration-thickness:1px;
+}
+.item[data-car-id] .car-card-discount__saving { font-size:14px; line-height:1.1; }
+.item[data-car-id] :is(.car-card-discount__short-unit,.car-card-discount__minus) { display:none; }
 .item[data-car-id] .car-card-new-arrival {
   position:absolute; top:12px; left:12px; z-index:21; display:inline-flex; align-items:center; gap:6px;
   overflow:hidden;
@@ -1120,6 +1132,11 @@ body.ss .item[data-car-id] .car-card-new-arrival { top:auto; bottom:10px; }
   .item[data-car-id] .gia_sp--discount .car-card-price b { white-space:nowrap; }
   .item[data-car-id] .gia_sp--discount .car-card-price[data-long-price="true"] b { font-size:clamp(10px,7.4cqw,18px); }
   .item[data-car-id] .car-card-discount { padding:4px 7px; border-radius:9px; font-size:11px; }
+  .item[data-car-id] .car-card-discount__content { inset:-5px 0; width:100%; min-width:0; gap:0; padding:3px 4px; }
+  .item[data-car-id] .car-card-discount__content del { font-size:10px; line-height:1.05; }
+  .item[data-car-id] .car-card-discount__saving { font-size:11px; line-height:1.05; }
+  .item[data-car-id] :is(.car-card-discount__full-unit,.car-card-discount__word) { display:none; }
+  .item[data-car-id] :is(.car-card-discount__short-unit,.car-card-discount__minus) { display:inline; }
   .item[data-car-id] .name_sp { margin:0; }
   .item[data-car-id] .name_sp a { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; height:42px; font-size:15px; font-weight:600; line-height:21px; }
   .item[data-car-id] ul { grid-template-columns:minmax(0,1fr) minmax(82px,1.25fr); align-items:center; gap:5px 4px; padding:6px 4px; margin:8px 0 0; border-radius:7px; font-size:12.5px; line-height:18px; }
@@ -1151,6 +1168,7 @@ body.ss .item[data-car-id] .car-card-new-arrival { top:auto; bottom:10px; }
 @container car-card-info (max-width:150px) {
   .item[data-car-id] .gia_sp--discount .car-card-price:not([data-long-price="true"]) b { font-size:16px; }
   .item[data-car-id] .car-card-discount { padding:3px 5px; font-size:9px; }
+  .item[data-car-id] .car-card-discount__saving { font-size:10px; }
 }
 @media(max-width:380px) {
   .item[data-car-id] .mota { padding-inline:6px; }

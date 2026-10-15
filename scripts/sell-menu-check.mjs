@@ -10,6 +10,7 @@ const api = createServer((request, response) => {
   const path = new URL(request.url, 'http://fixture.test').pathname;
   let data = result, status = 200;
   if(path === '/api/v1/content' || path === '/api/v1/brands' || path.startsWith('/api/v1/site-settings/')) data = [];
+  else if(path === '/api/v1/car-recommendations/config') data = { enabled:false, questions:[], minBudget:0, maxBudget:500000000, budgetPresets:[], technicalOptions:{brand:[],bodyStyle:[],transmission:[],fuel:[]}, updatedAt:new Date().toISOString() };
   else if(path === '/api/v1/promotions/popup') data = null;
   else if(path === '/api/v1/seo' || /^\/api\/v1\/(pages|articles|services|faqs)\//.test(path)) { status = 404; data = {}; }
   response.writeHead(status, { 'Content-Type': 'application/json' }); response.end(JSON.stringify(data));
@@ -69,6 +70,32 @@ try {
       await panel.locator('a[href="/len-doi"]').focus();await page.keyboard.press('Enter');await page.waitForURL(base+'/len-doi');await panel.waitFor({state:'hidden'});
       await open();await panel.waitFor({state:'visible'});
     }
-    assert.deepEqual(errors,[]);console.log(width,'vertical rows, single navigation, dropdown dismissal after cross-route/same-route/header clicks, reopening and keyboard passed');await page.close();
+    const discovery=page.locator(mobile?'.tt-mobile-menu .menu-discovery':'.hidden_m .menu-discovery');
+    const discoveryTrigger=discovery.locator(':scope > a'),discoveryPanel=discovery.locator(':scope > ul');
+    const openDiscovery=async()=>{
+      if(mobile){
+        if(!await page.locator('.tt-mobile-menu').evaluate(el=>el.classList.contains('menu_mobi_active'))){await page.locator('.icon_menu_mobi').tap();await page.locator('.tt-mobile-menu.menu_mobi_active').waitFor();await page.waitForTimeout(300);}
+        if(await discoveryTrigger.getAttribute('aria-expanded')!=='true')await discoveryTrigger.tap();
+      }else{await page.mouse.move(4,400);await discoveryTrigger.hover();}
+      await discoveryPanel.waitFor({state:'visible'});
+    };
+    for(const href of ['/bai-viet','/tuyen-dung','/tuyen-dung','/phu-kien-o-to','/tien-ich/mua-xe-theo-nhu-cau']){
+      await openDiscovery();
+      const target=discoveryPanel.locator('a[href="'+href+'"]');
+      if(href==='/phu-kien-o-to'||href.startsWith('/tien-ich/')){
+        const serviceTrigger=discoveryPanel.locator(':scope > li > a').filter({hasText:href.startsWith('/tien-ich/')?'Tiện ích':'Dịch vụ'});
+        if(mobile)await serviceTrigger.tap();else await serviceTrigger.hover();
+      }
+      await target.waitFor({state:'visible'});const box=await target.boundingBox();
+      if(mobile)await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);else await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
+      await page.waitForURL(base+href);await discoveryPanel.waitFor({state:'hidden'});
+      if(mobile)assert.equal(await page.locator('.tt-mobile-menu').evaluate(el=>el.classList.contains('menu_mobi_active')),false);
+    }
+    if(!mobile){
+      await page.locator('.hidden_m .hotline a').focus();await discoveryTrigger.focus();await discoveryPanel.waitFor({state:'visible'});
+      await discoveryPanel.locator('a[href="/bai-viet"]').focus();await page.keyboard.press('Enter');await page.waitForURL(base+'/bai-viet');await discoveryPanel.waitFor({state:'hidden'});
+    }
+    await openDiscovery();await discoveryPanel.waitFor({state:'visible'});
+    assert.deepEqual(errors,[]);console.log(width,'sell and discovery menus: direct/nested/same-route navigation closes, reopening and keyboard passed');await page.close();
   }
 }finally{await browser?.close();child?.kill();await new Promise(done=>api.close(done));}

@@ -13,7 +13,7 @@ import './sell-menu.css';
 interface MenuItem { label:string;title?:string;href?:string;target?:string;className?:string;children:MenuItem[]; }
 function MenuList({items,mobile=false,close,depth=0,className,style,simple=false}:{items:MenuItem[];mobile?:boolean;close:()=>void;depth?:number;className?:string;style?:CSSProperties;simple?:boolean}) {
   const [expanded,setExpanded]=useState<string|null>(null);
-  const [sellDismissed,setSellDismissed]=useState(false);
+  const [dismissedMenu,setDismissedMenu]=useState<string|null>(null);
   const pathname=usePathname();
   const router=useRouter();
   useEffect(()=>setExpanded(null),[pathname]);
@@ -26,10 +26,11 @@ function MenuList({items,mobile=false,close,depth=0,className,style,simple=false
     const directHref=depth===0?(item.label==='Mua xe'?'/san-pham':item.label==='Bán xe'?'/ban-xe':undefined):undefined;
     const isExpanded=mobile&&expanded===item.label;
     const isSelling=depth===0&&item.label==='Bán xe';
-    const closeMenu=()=>{setExpanded(null);if(isSelling)setSellDismissed(true);close();};
-    return <li className={[item.className,isSelling?'menu-selling':'',isSelling&&sellDismissed?'is-dismissed':'',hasSubmenu?'has-submenu':'',directHref?'has-direct-link':''].filter(Boolean).join(' ')} key={item.label}
-      onPointerEnter={event=>{if(isSelling&&!mobile&&event.pointerType==='mouse')setSellDismissed(false);}}
-      onFocus={event=>{if(isSelling&&!mobile&&event.target===event.currentTarget.firstElementChild)setSellDismissed(false);}}>
+    const canDismiss=depth===0&&(isSelling||item.label==='Khám phá');
+    const closeMenu=()=>{setExpanded(null);if(canDismiss)setDismissedMenu(item.label);close();};
+    return <li className={[item.className,isSelling?'menu-selling':'',canDismiss&&dismissedMenu===item.label?'is-dismissed':'',hasSubmenu?'has-submenu':'',directHref?'has-direct-link':''].filter(Boolean).join(' ')} key={item.label}
+      onPointerEnter={event=>{if(canDismiss&&!mobile&&event.pointerType==='mouse')setDismissedMenu(null);}}
+      onFocus={event=>{if(canDismiss&&!mobile&&event.target===event.currentTarget.firstElementChild)setDismissedMenu(null);}}>
       <a href={directHref||(hasSubmenu?undefined:destination.href)} target={destination.target} rel={destination.target?'noreferrer':undefined} title={item.title||item.label}
         role={hasSubmenu&&!directHref?'button':undefined} tabIndex={hasSubmenu&&!directHref?0:undefined}
         aria-haspopup={hasSubmenu&&!directHref?'menu':undefined} aria-expanded={hasSubmenu&&mobile&&!directHref?isExpanded:undefined}

@@ -11,6 +11,7 @@ import { isNewArrival, newArrivalExpiresAt } from '@/lib/car-new-arrival';
 import { formatCarDiscount } from '@/lib/car-view';
 
 type Motion = { direction: -1 | 1; target: number; phase: 'ready' | 'go' };
+const millions = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 6 });
 
 export default function CarCard({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'}) {
   return <CarCardState key={JSON.stringify([car.id,car.images])} car={car} imageLoading={imageLoading}/>;
@@ -149,6 +150,8 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
   const offset=motion?.phase==='go'?(motion.direction===1?-200:0):-100;
   const discountLabel=formatCarDiscount(car.price, car.originalPrice);
   const discounted=discountLabel !== null;
+  const originalPriceLabel=discounted?millions.format(car.originalPrice! / 1_000_000):'';
+  const savingsLabel=discountLabel?.slice(1,-' triệu'.length);
   const onTouchStart=(event:React.TouchEvent<HTMLDivElement>)=>{
     if(event.touches.length!==1){swipeStartRef.current=null;return;}
     swipeStartRef.current={x:event.touches[0].clientX,y:event.touches[0].clientY};
@@ -191,7 +194,14 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
     </div>
     <div className="mota"><div className={`gia_sp${discounted?' gia_sp--discount':''}`}>
       <span className="car-card-price" data-long-price={(car.priceHtml || '').replace(/<[^>]*>/g,'').trim().length>9 || undefined}>{parse(car.priceHtml || '')}</span>
-      {discounted && <span className="car-card-discount" aria-label={`Giảm ${discountLabel.slice(1)}`}>{discountLabel}</span>}
+      {discounted && <span className="car-card-discount" role="note" aria-label={`Giá gốc ${originalPriceLabel} triệu. Giảm ${discountLabel.slice(1)}`}>
+        {/* Keep the existing badge's layout footprint so card geometry stays unchanged. */}
+        <span className="car-card-discount__sizer" aria-hidden="true">{discountLabel}</span>
+        <span className="car-card-discount__content" aria-hidden="true">
+          <del>{originalPriceLabel}<span className="car-card-discount__full-unit"> triệu</span><span className="car-card-discount__short-unit">tr</span></del>
+          <span className="car-card-discount__saving"><span className="car-card-discount__word">Giảm </span><span className="car-card-discount__minus">−</span>{savingsLabel}<span className="car-card-discount__full-unit"> triệu</span><span className="car-card-discount__short-unit">tr</span></span>
+        </span>
+      </span>}
     </div>
       <h3 className={car.nameClass}><a href={car.href} title={car.title}>{car.name}</a></h3>
       <ul>{car.specs.map((spec,index)=>{

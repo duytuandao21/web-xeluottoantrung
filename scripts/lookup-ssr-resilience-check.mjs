@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
 
-let lookupFailure = 0, inventoryFailure = false;
+let lookupFailure = 0, inventoryFailure = false, contentFailure = 0;
 const reads = [], logs = [];
 const car = { id: 'fixture-car', slug: 'fixture-car', name: 'SSR fixture Toyota', price: 433000000, year: 2025,
   mileage: 20000, status: 'active', cover: '/fixture-car.svg', fuel: 'Xang', transmission: 'Automatic',
@@ -23,7 +23,10 @@ const api = createServer((request, response) => {
   else if (path.startsWith('/api/v1/lookups/')) {
     if (lookupFailure && /\/(branches|body-styles|car-versions)$/.test(path)) { status = lookupFailure; data = { message: 'Fixture unavailable' }; retryAfter = lookupFailure === 429 ? '60' : '0'; }
     else if (path.endsWith('/body-styles')) data = result([{ id: 'style', slug: 'sedan', name: 'Sedan' }]);
-  } else if (path === '/api/v1/content' || path.startsWith('/api/v1/site-settings/')) data = [];
+  } else if (path === '/api/v1/content') {
+    if (contentFailure) { status = contentFailure; data = { message: 'Fixture unavailable' }; retryAfter = '60'; }
+    else data = [];
+  } else if (path.startsWith('/api/v1/site-settings/')) data = [];
   else if (path === '/api/v1/promotions/popup') data = null;
   else if (path === '/api/v1/seo' || /^\/api\/v1\/(cars|pages|articles|services|faqs)\//.test(path)) { status = 404; data = {}; }
   response.writeHead(status, { 'Content-Type': 'application/json', ...(retryAfter ? { 'Retry-After': retryAfter } : {}) });
@@ -44,6 +47,26 @@ try {
     try { if ((await fetch(base + '/tuyen-dung', { signal: AbortSignal.timeout(2000) })).ok) break; } catch {}
     if (attempt >= 60) throw Error('Next unavailable'); await new Promise(done => setTimeout(done, 250));
   }
+  const layoutGroups = ['thiet-lap-nut-goi', 'thiet-lap-chinh-sach-dieu-kien', 'thiet-lap-mang-xa-hoi', 'thiet-lap-ung-dung'];
+  const routeGroups = [
+    ['/', ['thiet-lap-quy-trinh-ban-xe', 'thiet-lap-cac-buoc-mua-xe', 'thiet-lap-cac-buoc-ban-xe', 'thiet-lap-cac-buoc-len-doi', 'thiet-lap-banner-dong-xe']],
+    ['/san-pham', ['thiet-lap-goi-y-nam-san-xuat']],
+    ['/ban-xe', ['thiet-lap-cac-buoc-ban-xe', 'thiet-lap-tai-sao-chon']],
+    ['/len-doi', ['thiet-lap-cac-buoc-len-doi', 'thiet-lap-tai-sao-chon']],
+    ['/ve-chung-toi', ['quan-ly-gioi-thieu']],
+  ];
+  // Real production SSR, including metadata/layout/page, without browser
+  // prefetch or client requests. Count upstream calls rather than call sites.
+  for (const [path, extraGroups] of routeGroups) for (let render = 0; render < 2; render++) {
+    const before = reads.length;
+    const response = await fetch(base + path);
+    const html = await response.text();
+    assert.equal(response.status, 200, path);
+    assert(!/Application error|Tạm thời chưa tải được dữ liệu/.test(html), path);
+    const actual = reads.slice(before).filter(read => read.path === '/api/v1/content').map(read => read.query.group).sort();
+    assert.deepEqual(actual, [...layoutGroups, ...extraGroups].sort(), `${path}: exactly one read per content group per render`);
+  }
+  console.log('Production SSR content reads: home 9, listing 5, sell/trade-in 6, about 5; no layout/page/metadata duplicates or cross-render stale cache.');
   browser = await chromium.launch({ channel: 'chrome', headless: true });
   const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
   await page.route('**/*', route => {
@@ -89,6 +112,30 @@ try {
   assert.equal(await failure.count(), 0);
   assert(logs.join('').includes('public_api_read_failure') && logs.join('').includes('/lookups/branches'), 'Structured endpoint failure logs exist');
   console.log('Required inventory failure is isolated from header/footer, never shown as zero cars, and recovers on a fresh render.');
+  for (const status of [429, 503]) {
+    contentFailure = status;
+    const directBefore = reads.length;
+    const directFailure = await fetch(base + '/san-pham');
+    await directFailure.text();
+    const directCount = reads.slice(directBefore).filter(read => read.path === '/api/v1/content' && read.query.group === 'thiet-lap-chinh-sach-dieu-kien').length;
+    // Next 15 can render metadata again in its separate error RSC stream
+    // (getErrorRSCPayload). React memoization does not span those renders.
+    // This is bounded framework recovery, not a publicApi retry or polling.
+    assert(directCount >= 1 && directCount <= 2, 'Failed SSR has at most the original and error-metadata policy read');
+    const before = reads.length;
+    await page.goto(base + '/san-pham', { waitUntil: 'networkidle' });
+    const alert = page.locator('main[role="alert"]');
+    await alert.waitFor();
+    assert(await page.locator('.wap_header').count());
+    assert(!/Application error|Có\s*0\s*xe/.test(await page.locator('body').innerText()), 'Required CMS outage uses the error boundary, never an invented empty inventory');
+    const policyReads = reads.slice(before).filter(read => read.path === '/api/v1/content' && read.query.group === 'thiet-lap-chinh-sach-dieu-kien');
+    assert(policyReads.length >= 1 && policyReads.length <= 2, 'No retry amplification beyond Next error metadata render');
+    contentFailure = 0;
+    await alert.getByRole('button', { name: 'Thử lại' }).click();
+    await page.locator('.vehicle-results > .item').first().waitFor();
+    assert.equal(await alert.count(), 0);
+    console.log(status, `content failure: ${directCount} policy reads in failed SSR, ${policyReads.length} in browser navigation; bounded recovery with header, no fake empty result`);
+  }
 } finally {
   await browser?.close(); child?.kill(); await new Promise(done => api.close(done));
 }

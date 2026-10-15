@@ -27,16 +27,23 @@ export class PublicApiError extends Error {
 const modelPath = /^\/brands\/[a-z0-9]+(?:-[a-z0-9]+)*\/models$/;
 const lookupPath = /^\/lookups\/(?:car-versions|body-styles|transmissions|car-colors|branch-regions|branches|filter-options)$/;
 const readLogTimes = new Map<string, number>();
-function logReadFailure(path: string, error: PublicApiError, attempt: number, outcome: 'retry' | 'failed' | 'lookup_unavailable') {
+const diagnosticContentGroups = new Set([
+  'thiet-lap-chinh-sach-dieu-kien', 'thiet-lap-nut-goi', 'thiet-lap-mang-xa-hoi', 'thiet-lap-ung-dung',
+  'thiet-lap-quy-trinh-ban-xe', 'thiet-lap-cac-buoc-mua-xe', 'thiet-lap-cac-buoc-ban-xe', 'thiet-lap-cac-buoc-len-doi',
+  'thiet-lap-banner-dong-xe', 'thiet-lap-goi-y-nam-san-xuat', 'thiet-lap-tai-sao-chon', 'quan-ly-gioi-thieu',
+]);
+function logReadFailure(path: string, error: PublicApiError, attempt: number, outcome: 'retry' | 'failed' | 'lookup_unavailable', queryString = '') {
   // Never log queries, response bodies, credentials or user-supplied search text.
   const endpoint = path.split('?')[0];
-  const key = `${endpoint}:${error.status}:${outcome}`;
+  const query = new URLSearchParams(queryString);
+  const group = endpoint === '/content' ? query.size === 1 && diagnosticContentGroups.has(query.get('group') ?? '') ? query.get('group') : 'other' : undefined;
+  const key = `${endpoint}:${group ?? ''}:${error.status}:${outcome}`;
   const now = Date.now();
   if (now - (readLogTimes.get(key) ?? 0) < 10_000) return;
   if (readLogTimes.size >= 64) readLogTimes.delete(readLogTimes.keys().next().value!);
   readLogTimes.set(key, now);
   console.warn(JSON.stringify({ event: 'public_api_read_failure', endpoint, status: error.status,
-    reason: error.reason, attempt: attempt + 1, outcome }));
+    ...(group ? { group } : {}), reason: error.reason, attempt: attempt + 1, outcome }));
 }
 
 function retryAfterMs(value: string | null | undefined): number | undefined {
@@ -83,10 +90,10 @@ async function readPublicData(path: string, queryString: string): Promise<unknow
       // GET only, at most one retry. Long Retry-After values are not shortened:
       // fail safely instead of blocking SSR for a minute or retrying too early.
       if (!transient || attempt >= 1 || delay > 750 || Date.now() - started + delay + 250 >= budgetMs) {
-        logReadFailure(path, error, attempt, 'failed');
+        logReadFailure(path, error, attempt, 'failed', queryString);
         throw error;
       }
-      logReadFailure(path, error, attempt, 'retry');
+      logReadFailure(path, error, attempt, 'retry', queryString);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
