@@ -21,41 +21,81 @@ async function withPublicReadSlot<T>(read: () => Promise<T>): Promise<T> {
 }
 
 export class PublicApiError extends Error {
-  constructor(public status: number, message: string) { super(message); }
+  constructor(public status: number, message: string, public retryAfterMs?: number, public reason = 'http_error') { super(message); }
 }
 
 const modelPath = /^\/brands\/[a-z0-9]+(?:-[a-z0-9]+)*\/models$/;
+const lookupPath = /^\/lookups\/(?:car-versions|body-styles|transmissions|car-colors|branch-regions|branches|filter-options)$/;
+const readLogTimes = new Map<string, number>();
+function logReadFailure(path: string, error: PublicApiError, attempt: number, outcome: 'retry' | 'failed' | 'lookup_unavailable') {
+  // Never log queries, response bodies, credentials or user-supplied search text.
+  const endpoint = path.split('?')[0];
+  const key = `${endpoint}:${error.status}:${outcome}`;
+  const now = Date.now();
+  if (now - (readLogTimes.get(key) ?? 0) < 10_000) return;
+  if (readLogTimes.size >= 64) readLogTimes.delete(readLogTimes.keys().next().value!);
+  readLogTimes.set(key, now);
+  console.warn(JSON.stringify({ event: 'public_api_read_failure', endpoint, status: error.status,
+    reason: error.reason, attempt: attempt + 1, outcome }));
+}
+
+function retryAfterMs(value: string | null | undefined): number | undefined {
+  if (!value?.trim()) return;
+  if (/^\d+(?:\.\d+)?$/.test(value.trim())) return Number(value) * 1000;
+  const date = Date.parse(value);
+  return Number.isNaN(date) ? undefined : Math.max(0, date - Date.now());
+}
+
 async function readPublicData(path: string, queryString: string): Promise<unknown> {
   const models = modelPath.test(path);
-  const read = async () => {
-    for (let attempt = 0; ; attempt++) {
-      try {
-        return await withPublicReadSlot(async () => {
-          // Persistent public-data caching belongs to the API, which also owns
-          // admin invalidation. This read must not retain a second TTL in Next.
-          const response = await fetch(`${baseUrl}/api/v1${path}${queryString ? `?${queryString}` : ''}`, {
-            cache: 'no-store', ...(models || path === '/cars/menu' ? { signal: AbortSignal.timeout(models ? 5_000 : 7_000) } : {}),
-          });
-          if (!response.ok) throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`);
-          const data: unknown = await response.json();
-          if (models && (!Array.isArray(data) || !data.every(item => item && typeof item.id === 'string' && typeof item.name === 'string' && typeof item.slug === 'string') ||
-            new Set(data.map(item => item.id)).size !== data.length)) throw new PublicApiError(502, 'Invalid model catalog');
-          return data;
+  const budgetMs = path === '/cars/menu' ? 7_000 : 5_000;
+  const started = Date.now();
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await withPublicReadSlot(async () => {
+        // The API owns persistent caching and synchronous admin invalidation.
+        // Keep React's per-render memoization; never cache stock or private data here.
+        const response = await fetch(`${baseUrl}/api/v1${path}${queryString ? `?${queryString}` : ''}`, {
+          cache: 'no-store', signal: AbortSignal.timeout(Math.max(1, budgetMs - (Date.now() - started))),
         });
-      } catch (error) {
-        // Only retry this small, read-only catalog. Never retry other API actions.
-        if (!models || attempt >= 1 || error instanceof PublicApiError && error.status < 500 && error.status !== 429) throw error;
-        await new Promise(resolve => setTimeout(resolve, 180));
+        if (!response.ok) {
+          const wait = retryAfterMs(response.headers?.get('retry-after'));
+          // Release the failed response before retrying; do not leave undici
+          // connections occupied by unread error bodies during an outage.
+          await response.body?.cancel().catch(() => undefined);
+          throw new PublicApiError(response.status, `Public API ${path}: ${response.status}`, wait,
+            response.status === 429 ? 'rate_limit_exceeded' : response.status === 503 ? 'service_unavailable' : 'http_error');
+        }
+        const data: unknown = await response.json();
+        if (models && (!Array.isArray(data) || !data.every(item => item && typeof item.id === 'string' && typeof item.name === 'string' && typeof item.slug === 'string') ||
+          new Set(data.map(item => item.id)).size !== data.length)) throw new PublicApiError(502, 'Invalid model catalog', undefined, 'invalid_payload');
+        return data;
+      });
+    } catch (cause) {
+      // Next uses thrown control-flow errors for dynamic rendering/redirects.
+      // Preserve those and programming errors; classify only native I/O errors.
+      const name = cause && typeof cause === 'object' && 'name' in cause ? String(cause.name) : '';
+      if (!(cause instanceof PublicApiError) && !['TypeError', 'TimeoutError', 'AbortError', 'SyntaxError'].includes(name)) throw cause;
+      const error = cause instanceof PublicApiError ? cause : new PublicApiError(name === 'SyntaxError' ? 502 : 503,
+        `Public API ${path}: transport failure`, undefined, name);
+      const delay = Math.max(150 * 2 ** attempt + Math.floor(Math.random() * 50), error.retryAfterMs ?? 0);
+      const transient = error.status === 429 || error.status === 503 || models && error.status >= 500;
+      // GET only, at most one retry. Long Retry-After values are not shortened:
+      // fail safely instead of blocking SSR for a minute or retrying too early.
+      if (!transient || attempt >= 1 || delay > 750 || Date.now() - started + delay + 250 >= budgetMs) {
+        logReadFailure(path, error, attempt, 'failed');
+        throw error;
       }
+      logReadFailure(path, error, attempt, 'retry');
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
-  };
-  return read();
+  }
 }
 
 // Reuse parsed results within SSR, including page/layout/metadata callers.
 // React memoization lasts one render; it cannot conceal API invalidation across
 // requests. Cross-request coalescing belongs to the API so that admin mutations
-// can detach old reads. Keep the existing read-slot limit and model retry.
+// can detach old reads. Failed responses are never retained between renders.
 const readRequestData = cache(readPublicData);
 
 export async function publicApi<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
@@ -87,6 +127,28 @@ export async function allPublicLookups<T = PublicLookup>(path: string, params: R
   const rest = await Promise.all(Array.from({ length: Math.max(0, first.meta.totalPages - 1) }, (_, index) =>
     publicApi<PageResult<T>>(path, { ...params, limit: 100, page: index + 2 })));
   return [...first.data, ...rest.flatMap(page => page.data)];
+}
+
+// Only optional filter/navigation lookup data may degrade. A null result means
+// unavailable, not an empty successful catalog. Never use this for cars or leads.
+export async function optionalLookupPage<T = PublicLookup>(path: string, params?: Record<string, string | number | undefined>): Promise<PageResult<T> | null> {
+  if (!lookupPath.test(path)) throw new Error('Optional fallback is limited to public lookups');
+  try { return await publicApi<PageResult<T>>(path, params); }
+  catch (error) {
+    if (!(error instanceof PublicApiError) || !(error.status === 429 || error.status >= 500 && error.status < 600)) throw error;
+    logReadFailure(path, error, 0, 'lookup_unavailable');
+    return null;
+  }
+}
+
+export async function optionalPublicLookups<T = PublicLookup>(path: string, params: Record<string, string | number> = {}): Promise<T[] | null> {
+  const first = await optionalLookupPage<T>(path, { ...params, limit: 100 });
+  if (!first) return null;
+  const rest = await Promise.all(Array.from({ length: Math.max(0, first.meta.totalPages - 1) }, (_, index) =>
+    optionalLookupPage<T>(path, { ...params, limit: 100, page: index + 2 })));
+  // A missing later page must not masquerade as a complete lookup catalog.
+  if (rest.some(page => page === null)) return null;
+  return [...first.data, ...rest.flatMap(page => page!.data)];
 }
 export type PublicBrand = PublicLookup & { stockCount: number };
 export type SeoRecord = { metaTitle?: string | null; metaDescription?: string | null; ogTitle?: string | null;

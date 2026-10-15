@@ -11,7 +11,7 @@ const source = ts.transpileModule(fs.readFileSync('lib/public-api.ts', 'utf8'), 
 }).outputText;
 const exports = {};
 vm.runInNewContext(source, {
-  exports, process: { env: { API_URL: 'http://public-api.test' } }, URLSearchParams,
+  exports, process: { env: { API_URL: 'http://public-api.test' } }, URLSearchParams, AbortSignal, setTimeout,
   require: name => {
     if (name === 'server-only') return {};
     assert.equal(name, 'react', 'No persistent Next wrapper may hide API invalidation');
@@ -26,7 +26,7 @@ vm.runInNewContext(source, {
     calls.push({ url, options }); active++; peak = Math.max(peak, active);
     if (hold) await new Promise(resolve => releases.push(resolve));
     active--;
-    return { ok: status === 200, status, json: async () => ({ revision }) };
+    return { ok: status === 200, status, headers: { get: () => status === 503 ? '60' : null }, json: async () => ({ revision }) };
   },
 });
 for (const [path, params] of [

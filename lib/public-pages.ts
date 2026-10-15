@@ -15,7 +15,7 @@ import { getSiteInfo } from './site-info';
 import { zaloHref } from './contact-links';
 import { getPolicies, renderPolicyLinks, renderWhyChoose } from './website-content';
 import { optionRange, parseRangeQuery, type RangeGroup, type RangeOption } from './filter-options';
-import { allPublicLookups, optionalPublicApi, publicApi, type Article, type CarDetail, type CmsPage, type PageResult,
+import { allPublicLookups, optionalPublicLookups, optionalLookupPage, optionalPublicApi, publicApi, PublicApiError, type Article, type CarDetail, type CmsPage, type PageResult,
   type PublicBrand, type PublicCar, type PublicLookup, type Service, type Slide, type Testimonial, type ContentEntry } from './public-api';
 
 const single = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
@@ -30,15 +30,17 @@ function cardMarkup(cars: PublicCar[]): { html: string; mapped: Record<string, C
 
 async function fetchFilterLookups() {
   const [styles, transmissions, colors, budgets, mileages, yearSuggestions, branches] = await Promise.all([
-    allPublicLookups('/lookups/body-styles'),
-    allPublicLookups('/lookups/transmissions'),
-    allPublicLookups('/lookups/car-colors'),
-    allPublicLookups<PublicLookup & RangeOption & { group: string }>('/lookups/filter-options', { group: 'budget' }),
-    allPublicLookups<PublicLookup & RangeOption & { group: string }>('/lookups/filter-options', { group: 'mileage' }),
+    optionalPublicLookups('/lookups/body-styles'),
+    optionalPublicLookups('/lookups/transmissions'),
+    optionalPublicLookups('/lookups/car-colors'),
+    optionalPublicLookups<PublicLookup & RangeOption & { group: string }>('/lookups/filter-options', { group: 'budget' }),
+    optionalPublicLookups<PublicLookup & RangeOption & { group: string }>('/lookups/filter-options', { group: 'mileage' }),
     publicApi<{ title: string }[]>('/content', { group: 'thiet-lap-goi-y-nam-san-xuat' }),
-    allPublicLookups('/lookups/branches'),
+    optionalPublicLookups('/lookups/branches'),
   ]);
-  return { styles, transmissions, colors, branches, ranges: [...budgets, ...mileages], yearSuggestions };
+  return { styles: styles ?? [], transmissions: transmissions ?? [], colors: colors ?? [], branches: branches ?? [],
+    stylesUnavailable: styles === null, branchesUnavailable: branches === null,
+    ranges: [...(budgets ?? []), ...(mileages ?? [])], yearSuggestions };
 }
 
 // Only reuse within one SSR render; the API owns persistent lookup caching.
@@ -84,6 +86,9 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
   const effectiveSearch = { ...searchParams };
   if (pathname !== '/san-pham' && pathname !== '/tim-kiem-nang-cao') {
     const slug = pathname.slice(1);
+    if (!filters.brands.some(item => item.slug === slug) && !filters.styles.some(item => item.slug === slug) &&
+      !filters.branches.some(item => item.slug === slug) && (filters.stylesUnavailable || filters.branchesUnavailable))
+      throw new PublicApiError(503, 'Route lookup unavailable');
     const key = filters.brands.some(item => item.slug === slug) ? 'hang-xe'
       : filters.styles.some(item => item.slug === slug) ? 'kieu-dang'
       : filters.branches.some(item => item.slug === slug) ? 'chi-nhanh' : 'dong-xe';
@@ -103,8 +108,9 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
   }
   const selectedModel = models.find(model => model.slug === requestedModel);
   effectiveSearch['dong-xe'] = selectedModel?.slug || (!effectiveSearch['hang-xe'] || modelsError ? requestedModel : undefined);
-  const versions = selectedModel ? await allPublicLookups('/lookups/car-versions', { modelId: selectedModel.id }) : [];
-  if (!modelsError) effectiveSearch['phien-ban'] = versions.find(version => version.slug === single(effectiveSearch['phien-ban']))?.slug;
+  const versionLookup = selectedModel ? await optionalPublicLookups('/lookups/car-versions', { modelId: selectedModel.id }) : [];
+  const versions = versionLookup ?? [];
+  if (!modelsError && versionLookup !== null) effectiveSearch['phien-ban'] = versions.find(version => version.slug === single(effectiveSearch['phien-ban']))?.slug;
   $('.boloc_l ul').append('<li data-id=".chinhanh_tk">Chi nhánh</li>');
   $('.boloc_r').append('<div class="tab_bl chinhanh_tk"><div class="dang_text goiy_chinhanh"></div></div>');
   const groupMap: Array<[string, PublicLookup[]]> = [
@@ -786,8 +792,8 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
 const getHomeData = () => Promise.all([
   publicApi<PageResult<PublicCar>>('/cars', { limit: 6, sort: 'newest' }),
   allPublicLookups<Slide>('/slides'), publicApi<PublicBrand[]>('/brands'),
-  publicApi<PageResult<PublicLookup>>('/lookups/body-styles', { limit: 100 }),
-  allPublicLookups<PublicLookup & RangeOption>('/lookups/filter-options', { group: 'budget' }),
+  optionalLookupPage<PublicLookup>('/lookups/body-styles', { limit: 100 }),
+  optionalPublicLookups<PublicLookup & RangeOption>('/lookups/filter-options', { group: 'budget' }),
   allPublicLookups<Testimonial>('/testimonials'),
   publicApi<{ title: string; imageUrl?: string | null }[]>('/content', { group: 'thiet-lap-quy-trinh-ban-xe' }),
   publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-mua-xe' }),
@@ -836,8 +842,8 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
       slider.closest('.slider').remove();
       $('.wap_muaxe').addClass('home-no-slides');
     }
-    const groups = [brands, styles.data];
-    const budgetOptions = budgets.map(item => ({ item, bounds: optionRange(item, 'budget') }))
+    const groups = [brands, styles?.data ?? []];
+    const budgetOptions = (budgets ?? []).map(item => ({ item, bounds: optionRange(item, 'budget') }))
       .filter(option => option.bounds)
       .sort((a, b) => (a.bounds?.min ?? 0) - (b.bounds?.min ?? 0) ||
         (a.bounds?.max ?? Infinity) - (b.bounds?.max ?? Infinity));
@@ -920,10 +926,12 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
       if (slug && !slug.includes('/')) {
         const [brands, styles] = await Promise.all([
           publicApi<PublicBrand[]>('/brands'),
-          publicApi<PageResult<PublicLookup>>('/lookups/body-styles', { limit: 100 }),
+          optionalLookupPage<PublicLookup>('/lookups/body-styles', { limit: 100 }),
         ]);
-        const category = brands.find(item => item.slug === slug) || styles.data.find(item => item.slug === slug);
+        const category = brands.find(item => item.slug === slug) || styles?.data.find(item => item.slug === slug);
         const matchingModel = category ? null : await publicApi<PageResult<PublicCar>>('/cars', { model: slug, limit: 1 });
+        // An unavailable route catalog is not evidence that this route is a 404.
+        if (!styles && !category && !matchingModel?.meta.total) throw new PublicApiError(503, 'Route lookup unavailable');
         if (category || matchingModel?.meta.total) {
           page = await getLegacyPage('/san-pham');
           if (page) {

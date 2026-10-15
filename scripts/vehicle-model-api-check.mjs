@@ -20,7 +20,7 @@ for (const failure of [429, 500, 503, 'network', 'timeout']) {
   let calls = 0;
   const api = setup(async () => {
     if (++calls > 1) return response(200);
-    if (typeof failure === 'string') throw new Error(failure);
+    if (typeof failure === 'string') { const error = new TypeError(failure); if (failure === 'timeout') error.name = 'TimeoutError'; throw error; }
     return response(failure);
   });
   assert.deepEqual(await api('/brands/chevrolet/models'), models);
@@ -45,5 +45,5 @@ for (const invalid of [{ data: models }, [...models, ...models], [{ id: '1', nam
 }
 calls = 0;
 await assert.rejects(setup(async () => { calls++; return response(503); })('/cars'));
-assert.equal(calls, 1, 'Inventory reads retain their original request policy');
+assert.equal(calls, 2, 'Read-only inventory failures have one bounded retry and still propagate as errors');
 console.log('Passed: transient failures, bounded retries, 404, API cache ownership, invalid catalogs, inventory isolation.');
