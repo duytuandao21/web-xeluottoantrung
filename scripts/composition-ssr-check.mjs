@@ -7,6 +7,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { load } from 'cheerio';
 import { chromium } from 'playwright';
 const mode = process.argv[2] || 'verify';
+const homeTotalOnly = process.argv.includes('--home-total');
+let homeTotal = 1234;
 const resultTag = process.env.GOLDEN_RESULT_TAG || mode;
 if (!/^[a-z0-9-]{1,40}$/.test(resultTag)) throw Error('Invalid result tag');
 const suite = process.env.GOLDEN_ARTIFACT_SUITE || 'perf-composition-local-2026-10-15';
@@ -40,7 +42,14 @@ const api = createServer((request, response) => {
     const group = url.searchParams.get('group');
     if (group === failedGroup) { status = failStatus; data = {}; retryAfter = '60'; }
     else data = cms(group);
-  } else if (path === '/api/v1/cars') data = pageResult([car()]);
+  } else if (path === '/api/v1/cars') {
+    if (homeTotalOnly) {
+      assert.equal(url.searchParams.get('limit'), '6');
+      assert.equal(url.searchParams.get('sort'), 'newest');
+      data = { data: Array.from({ length: Math.min(6, homeTotal) }, (_, index) => ({ ...car(), slug: `golden-toyota-${index}` })),
+        meta: { page: 1, limit: 6, total: homeTotal, totalPages: Math.ceil(homeTotal / 6) } };
+    } else data = pageResult([car()]);
+  }
   else if (path === '/api/v1/brands') data = [{ id: 'golden-brand', name: 'Toyota', slug: 'toyota', stockCount: 1 }];
   else if (path.startsWith('/api/v1/site-settings/')) data = [{ key: path.endsWith('thiet-lap-thong-tin') ? 'site_name' : 'logo', value: 'Golden Toan Trung' }];
   else if (path === '/api/v1/seo') data = { metaTitle: `Golden SEO ${revision}`, metaDescription: 'Golden description', canonicalUrl: 'https://example.test/', robotsIndex: true, robotsFollow: true };
@@ -77,6 +86,22 @@ try {
   });
   const base = `http://127.0.0.1:${port}`;
   for (let i = 0; ; i++) { try { const r = await fetch(base + '/'); if (r.ok) { await r.text(); break; } } catch {} if (i > 180 || child.exitCode !== null) throw Error('Next startup failed'); await new Promise(done => setTimeout(done, 250)); }
+  if (homeTotalOnly) {
+    for (const total of [0, 6, 1234]) {
+      homeTotal = total;
+      const before = reads.length;
+      const response = await fetch(base + '/');
+      assert.equal(response.status, 200);
+      const $ = load(await response.text());
+      const button = $('.wap_sanpham .xemtatca a');
+      assert.equal(button.text(), `Xem tất cả ${total.toLocaleString('vi-VN')} xe`);
+      assert.equal(button.attr('href'), '/san-pham');
+      const actual = reads.slice(before);
+      assert.equal(actual.length, 25, 'Homepage GET count stays unchanged');
+      assert.equal(actual.filter(read => read.path === '/api/v1/cars').length, 1, 'Only the existing six-car request');
+    }
+    console.log('PASS home total 0/6/1.234: existing meta.total, unchanged /san-pham link, 25 GETs and one cars request limited to six.');
+  } else {
   let goldenCases = 0;
   for (const fixtureCase of serviceCheck ? ['populated', 'empty'] : ['populated']) {
   scenario = fixtureCase;
@@ -196,4 +221,5 @@ try {
     buildId: (await readFile('.next/BUILD_ID', 'utf8')).trim(), newRequestSeesUpdatedPriceSeoCms: true,
     failureStatuses: [429, 503], requiredFailureGroups: ['policy', 'selling-steps'], optionalFailureGroup: 'social', resetRecovers: true }, null, 2));
   console.log(JSON.stringify(result));
+  }
 } finally { await browser?.close(); child?.kill(); await new Promise(done => api.close(done)); }

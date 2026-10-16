@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import Markup from './Markup';
 import { getPublic, submitPublic } from '@/lib/public-client';
 import { calculateInstallment } from '@/lib/installment-calculator';
-import { formatKmInput } from '@/lib/valuation';
+import { formatKmInput, kmDigits } from '@/lib/valuation';
 import CarComparison from '@/components/car/CarComparison';
 import ContactMethods, { type ContactMethodDetails } from './ContactMethods';
 
@@ -59,7 +59,7 @@ export default function SiteInteractions() {
     const previousMileage = new WeakMap<HTMLInputElement, string>();
     const formatMileage = (event: Event) => {
       const input = event.target;
-      if (!(input instanceof HTMLInputElement) || !input.matches('.tt-trade-in-form input[name="km"]') || (event as InputEvent).isComposing) return;
+      if (!(input instanceof HTMLInputElement) || !input.matches('.tt-trade-in-form input[name="km"], [data-filter-range] input[data-grouped-number]') || (event as InputEvent).isComposing) return;
       const edit = event as InputEvent;
       const result = formatKmInput(previousMileage.get(input) ?? input.defaultValue, input.value,
         input.selectionStart ?? input.value.length, edit.inputType || '', edit.data ?? null);
@@ -315,6 +315,7 @@ export default function SiteInteractions() {
           });
           window.dispatchEvent(new CustomEvent('tt:vehicle-brand-change',{detail:{brandSlug:next.searchParams.get('hang-xe')||'',href:`${next.pathname}${next.search}`}}));
         }
+        closeFilterPopovers();
         startFilterTransition(()=>router.push(href,{scroll:false}));
         return;
       }
@@ -383,7 +384,9 @@ export default function SiteInteractions() {
         const key=form.dataset.rangeKey;
         if(!key)return;
         const values=new FormData(form);
-        const min=String(values.get('min')||'').trim(),max=String(values.get('max')||'').trim();
+        const grouped=key==='ngan-sach'||key==='so-km';
+        const rawMin=String(values.get('min')||'').trim(),rawMax=String(values.get('max')||'').trim();
+        const min=grouped?kmDigits(rawMin):rawMin,max=grouped?kmDigits(rawMax):rawMax;
         const lower=min?Number(min):undefined,upper=max?Number(max):undefined;
         const year=key==='nam-san-xuat';
         if((lower===undefined&&upper===undefined)||[lower,upper].some(value=>value!==undefined&&(!Number.isFinite(value)||value<0||!Number.isInteger(value)))||
@@ -392,6 +395,7 @@ export default function SiteInteractions() {
         }
         const params=new URL(document.querySelector<HTMLElement>('.vehicle-filter-panel')?.dataset.filterBase||location.href,location.origin).searchParams;
         params.delete('page');params.set(key,`${min}-${max}`);
+        closeFilterPopovers();
         startFilterTransition(()=>router.push(`/san-pham?${params}`,{scroll:false}));return;
       }
       form.classList.add('was-validated');if(!form.checkValidity()){form.reportValidity();return;}

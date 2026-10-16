@@ -43,11 +43,22 @@ try {
   
   const broken=process.argv.includes('--expect-broken');
   const dismissalOnly=process.argv.includes('--dismiss-only');
-  for(const width of broken||dismissalOnly?[1440,390]:[1440,1024,390,320]) {
+  for(const width of broken?[1440,390]:[1440,1024,390,320]) {
     const mobile=width<=960,page=await browser.newPage({viewport:{width,height:900},isMobile:mobile,hasTouch:mobile});
-    const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    const errors=[];page.on('pageerror',error=>{errors.push(error.message);console.error('Browser error on fixture route',new URL(page.url()).pathname,error.message);});
     await page.route('**/*',async route=>{const url=new URL(route.request().url());if(url.pathname==='/menu-fixture.svg')return route.fulfill({contentType:'image/svg+xml',body:artwork});if(url.pathname.startsWith('/api/v1/')){const response=await fetch(apiUrl+url.pathname+url.search);return route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});}return ['127.0.0.1','localhost'].includes(url.hostname)?route.continue():route.abort();});
     const root=page.locator(mobile?'.tt-mobile-menu .tt-buy-menu':'.hidden_m .tt-buy-menu'),panel=root.locator('.tt-buy-panel');
+    if(!broken) for(const activation of ['click','Enter',' ']) {
+      await page.goto(base+'/khuyen-mai',{waitUntil:'networkidle'});
+      if(mobile)await page.locator('.icon_menu_mobi').tap();
+      const trigger=root.locator(':scope > a');
+      assert.equal(await trigger.getAttribute('href'),null,'Buy header trigger has no navigation target');
+      if(activation==='click'){if(mobile)await trigger.tap();else await trigger.click();}
+      else {await trigger.focus();await page.keyboard.press(activation);}
+      await panel.waitFor({state:'visible'});
+      assert.equal(page.url(),base+'/khuyen-mai','Header activation only opens menu');
+      await page.keyboard.press('Escape');
+    }
     const cases=dismissalOnly?[]:broken?[{name:'all',tab:0,selector:'.tt-buy-heading a',href:'/san-pham'}]:[
       {name:'all',tab:0,selector:'.tt-buy-heading a',href:'/san-pham'},
       {name:'new',tab:1,selector:'.tt-buy-heading a',href:'/san-pham?xe-moi-ve=true'},

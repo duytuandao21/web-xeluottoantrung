@@ -23,31 +23,31 @@ function MenuList({items,mobile=false,close,depth=0,className,style,simple=false
     if (depth === 0 && item.label === 'Mua xe') return <BuyMenu key={item.label} mobile={mobile} active={active === item.label} close={close} onOpen={() => setExpanded(null)} brands={item.children.filter(brand => brand.href !== '/san-pham')} />;
     const hasSubmenu=(depth > 0 || item.label === 'Dịch vụ') ? item.children.length > 0 : item.children.length > 1;
     const destination=item.children.length===1?item.children[0]:item;
-    const directHref=depth===0?(item.label==='Mua xe'?'/san-pham':item.label==='Bán xe'?'/ban-xe':undefined):undefined;
+    const separateToggle=depth===0&&item.label==='Bán xe';
     const isExpanded=mobile&&expanded===item.label;
     const isSelling=depth===0&&item.label==='Bán xe';
     const canDismiss=depth===0&&(isSelling||item.label==='Khám phá');
     const closeMenu=()=>{setExpanded(null);if(canDismiss)setDismissedMenu(item.label);close();};
-    return <li className={[item.className,isSelling?'menu-selling':'',canDismiss&&dismissedMenu===item.label?'is-dismissed':'',hasSubmenu?'has-submenu':'',directHref?'has-direct-link':''].filter(Boolean).join(' ')} key={item.label}
+    return <li className={[item.className,isSelling?'menu-selling':'',canDismiss&&dismissedMenu===item.label?'is-dismissed':'',hasSubmenu?'has-submenu':'',separateToggle?'has-direct-link':''].filter(Boolean).join(' ')} key={item.label}
       onPointerEnter={event=>{if(canDismiss&&!mobile&&event.pointerType==='mouse')setDismissedMenu(null);}}
       onFocus={event=>{if(canDismiss&&!mobile&&event.target===event.currentTarget.firstElementChild)setDismissedMenu(null);}}>
-      <a href={directHref||(hasSubmenu?undefined:destination.href)} target={destination.target} rel={destination.target?'noreferrer':undefined} title={item.title||item.label}
-        role={hasSubmenu&&!directHref?'button':undefined} tabIndex={hasSubmenu&&!directHref?0:undefined}
-        aria-haspopup={hasSubmenu&&!directHref?'menu':undefined} aria-expanded={hasSubmenu&&mobile&&!directHref?isExpanded:undefined}
+      <a href={hasSubmenu?undefined:destination.href} target={destination.target} rel={destination.target?'noreferrer':undefined} title={item.title||item.label}
+        role={hasSubmenu?'button':undefined} tabIndex={hasSubmenu?0:undefined}
+        aria-haspopup={hasSubmenu?'menu':undefined} aria-expanded={hasSubmenu&&mobile?isExpanded:undefined}
         className={[isExpanded?'active2':'',(simple?destination.href===pathname:active===item.label.trim()||destination.href===pathname)?'active':''].filter(Boolean).join(' ')}
-        onClick={event=>{if(hasSubmenu&&!directHref){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}else {
+        onClick={event=>{if(hasSubmenu){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);else if(isSelling)setDismissedMenu(null);}else {
           closeMenu();
-          const href=directHref||destination.href;
+          const href=destination.href;
           if(href?.startsWith('/')&&!destination.target&&event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey){
             event.preventDefault();
             if(href === pathname && (href === '/ban-xe' || href === '/len-doi')) window.scrollTo({ top: 0, behavior: 'instant' });
             else router.push(href);
           }
         }}}
-        onKeyDown={event=>{if(hasSubmenu&&!directHref&&(event.key===' '||event.key==='Enter')){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);}}}>
-        {simple?<><span>{item.label}</span><span className={`menu-simple-arrow${hasSubmenu&&mobile?' is-expandable':''}`} aria-hidden="true">›</span></>:<>{mobile&&depth===0&&<MobileMenuIcon name={item.label}/>}{item.label}</>}{hasSubmenu&&mobile&&!directHref&&!simple&&<span className="mobile-menu-chevron" aria-hidden="true"/>}
+        onKeyDown={event=>{if(hasSubmenu&&(event.key===' '||event.key==='Enter')){event.preventDefault();if(mobile)setExpanded(isExpanded?null:item.label);else if(isSelling)setDismissedMenu(null);}}}>
+        {simple?<><span>{item.label}</span><span className={`menu-simple-arrow${hasSubmenu&&mobile?' is-expandable':''}`} aria-hidden="true">›</span></>:<>{mobile&&depth===0&&<MobileMenuIcon name={item.label}/>}{item.label}</>}{hasSubmenu&&mobile&&!separateToggle&&!simple&&<span className="mobile-menu-chevron" aria-hidden="true"/>}
       </a>
-      {hasSubmenu&&mobile&&directHref&&<button type="button" className={`mobile-submenu-toggle${isExpanded?' is-expanded':''}`} aria-label={`Danh sách ${item.label.toLowerCase()}`} aria-expanded={isExpanded} onClick={()=>setExpanded(isExpanded?null:item.label)}><span className="mobile-menu-chevron" aria-hidden="true"/></button>}
+      {hasSubmenu&&mobile&&separateToggle&&<button type="button" className={`mobile-submenu-toggle${isExpanded?' is-expanded':''}`} aria-label={`Danh sách ${item.label.toLowerCase()}`} aria-expanded={isExpanded} onClick={()=>setExpanded(isExpanded?null:item.label)}><span className="mobile-menu-chevron" aria-hidden="true"/></button>}
       {hasSubmenu&&<MenuList items={item.children} mobile={mobile} close={closeMenu} depth={depth+1} simple={simple||depth===0&&(item.label==='Bán xe'||item.label==='Khám phá')} className={depth===0&&item.label==='Bán xe'?'menu-selling-panel':item.label==='Tiện ích'||item.label==='Dịch vụ'?'menu-utilities':undefined} style={mobile?{display:isExpanded?(depth===0&&item.label==='Bán xe'?'grid':'block'):'none'}:undefined}/>}
     </li>;
   })}</ul>;

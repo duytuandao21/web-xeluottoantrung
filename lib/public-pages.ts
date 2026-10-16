@@ -17,6 +17,7 @@ import { getSiteInfo } from './site-info';
 import { zaloHref } from './contact-links';
 import { getPolicies, renderPolicyLinks, renderWhyChoose } from './website-content';
 import { optionRange, parseRangeQuery, type RangeGroup, type RangeOption } from './filter-options';
+import { formatKm } from './valuation';
 import { allPublicLookups, optionalPublicLookups, optionalLookupPage, optionalPublicApi, publicApi, PublicApiError, type Article, type CarDetail, type CmsPage, type PageResult,
   type PublicBrand, type PublicCar, type PublicLookup, type Service, type Slide, type Testimonial, type ContentEntry } from './public-api';
 
@@ -289,10 +290,17 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
       const range = parseRangeQuery(single(effectiveSearch[option.key]));
       const form = $('<form class="vehicle-filter-popover__range" data-filter-range="true"></form>')
         .attr('data-range-key', option.key);
-      form.append($('<label>Từ</label>').append($('<input type="number" min="0" inputmode="numeric" name="min" placeholder="Tối thiểu">')
-        .attr('value', range?.min === undefined ? '' : String(range.min))));
-      form.append($('<label>Đến</label>').append($('<input type="number" min="0" inputmode="numeric" name="max" placeholder="Tối đa">')
-        .attr('value', range?.max === undefined ? '' : String(range.max))));
+      const grouped = option.range === 'budget' || option.range === 'mileage';
+      const unit = option.range === 'budget' ? ' (triệu)' : option.range === 'mileage' ? ' (km)' : '';
+      for (const [name, label, placeholder, value] of [
+        ['min', 'Từ', 'Tối thiểu', range?.min], ['max', 'Đến', 'Tối đa', range?.max],
+      ] as const) {
+        const input = $('<input inputmode="numeric">').attr({ name, placeholder, type: grouped ? 'text' : 'number',
+          value: value === undefined ? '' : grouped ? formatKm(value) : String(value) });
+        if (grouped) input.attr({ 'data-grouped-number': 'true', pattern: '[0-9]+(?:\\.[0-9]{3})*' });
+        else input.attr('min', '0');
+        form.append($('<label></label>').text(label + unit).append(input));
+      }
       form.append('<button type="submit" aria-label="Lọc theo khoảng đã nhập">Lọc khoảng</button>');
       popover.append(form);
     }
@@ -833,6 +841,7 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
     const $ = load(sourceContent, {}, false);
     const cards = cardMarkup(result.data);
     $('.wap_sanpham .loadthem_sp1').html(cards.html);
+    $('.wap_sanpham .load_them a').text(`Xem tất cả ${result.meta.total.toLocaleString('vi-VN')} xe`);
     const slider = $('.slider_slick').first().empty();
     // Give the initially visible LCP image high priority. Keep the other
     // slides' original loading behavior: deprioritizing them regressed cold

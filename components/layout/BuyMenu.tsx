@@ -103,6 +103,11 @@ export default function BuyMenu({ brands, mobile = false, active = false, close,
     return () => heightAnimation.current?.cancel();
   }, [open, section, cars, error, mobile]);
   const cancelHover = () => { if (hoverTimer.current) clearTimeout(hoverTimer.current); };
+  const toggleMenu = () => {
+    cancelHover();
+    if (mobile) { if (!open) onOpen(); setOpen(value => !value); }
+    else { pinned.current = !pinned.current; setOpen(pinned.current); }
+  };
   const navigate = (event: MouseEvent<HTMLAnchorElement>) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ||
       event.currentTarget.hasAttribute('download') || event.currentTarget.target && event.currentTarget.target !== '_self') return;
@@ -131,14 +136,13 @@ export default function BuyMenu({ brands, mobile = false, active = false, close,
     onPointerEnter={event => { if (!mobile && event.pointerType === 'mouse') { cancelHover(); setOpen(true); } }}
     onPointerLeave={event => { if (!mobile && !pinned.current && !pointerActive.current && event.pointerType === 'mouse') { cancelHover(); hoverTimer.current = setTimeout(() => setOpen(false), 160); } }}
     onBlur={event => { if (!pointerActive.current && !event.currentTarget.contains(event.relatedTarget)) { pinned.current = false; setOpen(false); } }}>
-    <Link prefetch={false} ref={trigger} href="/san-pham" className={active || pathname === '/san-pham' || open ? 'active' : ''} aria-haspopup="true" aria-controls={id} aria-expanded={open}
-      onClick={event => {
-        if (mobile) { navigate(event); return; }
-        if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-        event.preventDefault(); cancelHover(); pinned.current = !pinned.current; setOpen(pinned.current);
-      }} onKeyDown={event => { if (event.key === 'ArrowDown' || event.key === ' ') { event.preventDefault(); setOpen(true); } }}>
+    <a ref={trigger} role="button" tabIndex={0} className={active || pathname === '/san-pham' || open ? 'active' : ''} aria-haspopup="true" aria-controls={id} aria-expanded={open}
+      onClick={toggleMenu} onKeyDown={event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleMenu(); }
+        else if (event.key === 'ArrowDown') { event.preventDefault(); if (mobile && !open) onOpen(); setOpen(true); }
+      }}>
       {mobile && <MobileMenuIcon name="Mua xe" />}Mua xe
-    </Link>
+    </a>
     {mobile && <button type="button" className={`mobile-submenu-toggle${open ? ' is-expanded' : ''}`} aria-label="Danh sách mua xe" aria-controls={id} aria-expanded={open} onClick={() => { if (!open) onOpen(); setOpen(value => !value); }}><span className="mobile-menu-chevron" aria-hidden="true" /></button>}
     {open && <div id={id} className="tt-buy-panel" aria-label="Danh mục mua xe">
       <div className="tt-buy-tabs" role="tablist" aria-label="Khám phá xe">

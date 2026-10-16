@@ -12,14 +12,18 @@ const cars = Array.from({ length: 13 }, (_, index) => ({
   brand: { name: 'Toyota', slug: 'toyota' }, model: { name: 'Vios', slug: 'vios' }, cover: null,
 }));
 const lookup = (name, slug) => ({ id: slug, name, slug });
+const inventoryReads = [];
 const result = (data, page = 1, limit = 100) => ({
   data: data.slice((page - 1) * limit, page * limit), meta: { page, limit, total: data.length, totalPages: Math.ceil(data.length / limit) },
 });
 const api = createServer((request, response) => {
   const url = new URL(request.url, 'http://fixture.test'), query = url.searchParams, path = url.pathname;
   let data = result([]), status = 200;
-  if (path === '/api/v1/cars') data = result(query.has('price_min') || query.has('price_max') ? cars.slice(0, 7) : cars,
-    Number(query.get('page') || 1), Number(query.get('limit') || 6));
+  if (path === '/api/v1/cars') {
+    inventoryReads.push(Object.fromEntries(query));
+    data = result(query.has('price_min') || query.has('price_max') ? cars.slice(0, 7) : cars,
+      Number(query.get('page') || 1), Number(query.get('limit') || 6));
+  }
   else if (path === '/api/v1/brands') data = [lookup('Toyota', 'toyota')];
   else if (path.endsWith('/body-styles')) data = result([lookup('Sedan', 'sedan'), lookup('SUV', 'suv')]);
   else if (path.endsWith('/transmissions')) data = result([lookup('Số tự động', 'tu-dong')]);
@@ -140,13 +144,24 @@ try {
     await page.setViewportSize({ width, height: 900 });
     await activate(price.getByRole('link', { name: '100 - 300 triệu', exact: true }));
     await page.waitForURL(url => url.searchParams.get('ngan-sach') === '100-300'); await ready();
-    assert(await price.isVisible(), 'Choosing an option keeps the active menu open after navigation');
-    await anchored();
-    assert.equal(await priceTrigger.getAttribute('aria-expanded'), 'true');
-    await price.locator('input[name=min]').fill('0'); await price.locator('input[name=max]').fill('500');
+    assert.equal(await price.isVisible(), false, 'Choosing an option closes the menu after navigation');
+    assert.equal(await priceTrigger.getAttribute('aria-expanded'), 'false');
+    await activate(priceTrigger);
+    assert.deepEqual(await price.locator('form label').evaluateAll(nodes=>nodes.map(el=>el.textContent)), ['Từ (triệu)', 'Đến (triệu)']);
+    const beforeInput = inventoryReads.length;
+    await price.locator('input[name=min]').fill('0'); await price.locator('input[name=max]').fill('1000');
+    assert.equal(await price.locator('input[name=max]').inputValue(), '1.000');
+    await price.locator('input[name=max]').press('Home'); await price.locator('input[name=max]').press('ArrowRight'); await page.keyboard.type('2');
+    assert.equal(await price.locator('input[name=max]').inputValue(), '12.000', 'Editing inside grouped price preserves digits');
+    assert.equal(await price.locator('input[name=max]').evaluate(el=>el.selectionStart), 2);
+    await price.locator('input[name=max]').fill('1000');
+    assert.equal(inventoryReads.length, beforeInput, 'Typing does not fetch or apply filters');
     await activate(price.getByRole('button', { name: 'Lọc theo khoảng đã nhập' }));
-    await page.waitForURL(url => url.searchParams.get('ngan-sach') === '0-500'); await ready();
-    assert(await price.isVisible(), 'Applying a custom range keeps the menu open');
+    await page.waitForURL(url => url.searchParams.get('ngan-sach') === '0-1000'); await ready();
+    assert.equal(await price.isVisible(), false, 'Applying a custom range closes the menu');
+    assert(inventoryReads.some(query=>query.price_min==='0'&&query.price_max==='1000000000'), 'Price remains millions in URL and dong in API');
+    await activate(priceTrigger);
+    assert.equal(await price.locator('input[name=max]').inputValue(), '1.000', 'SSR restores grouped price');
     await page.mouse.click(4, 450); await price.waitFor({ state: 'hidden' });
     assert.equal(await priceTrigger.getAttribute('aria-expanded'), 'false', 'Outside click closes it');
     assert.equal(await page.locator('.vehicle-filter-bar.is-docked,.vehicle-filter-bar-placeholder').count(), 0);
@@ -164,13 +179,43 @@ try {
     await activate(page.locator('[aria-controls="vehicle-filter-kieu-dang"]'));
     await activate(page.locator('#vehicle-filter-kieu-dang').getByRole('link', { name: 'Sedan', exact: true }));
     await page.waitForURL(url => url.searchParams.get('kieu-dang') === 'sedan'); await ready();
-    assert(await page.locator('#vehicle-filter-kieu-dang').isVisible(), 'Multiple-choice filters remain open too');
+    assert.equal(await page.locator('#vehicle-filter-kieu-dang').isVisible(), false, 'Multiple-choice selection also closes');
+    await activate(page.locator('[aria-controls="vehicle-filter-kieu-dang"]'));
+    await activate(page.locator('#vehicle-filter-kieu-dang').getByRole('link', { name: 'SUV', exact: true }));
+    await page.waitForURL(url=>url.searchParams.get('kieu-dang')==='sedan,suv'); await ready();
+    assert.equal(await page.locator('#vehicle-filter-kieu-dang').isVisible(), false);
+    const kmTrigger=page.locator('[aria-controls="vehicle-filter-so-km"]'), km=page.locator('#vehicle-filter-so-km');
+    await kmTrigger.scrollIntoViewIfNeeded(); await activate(kmTrigger);
+    await km.locator('input[name=min]').fill('50000'); await km.locator('input[name=max]').fill('1000000');
+    assert.equal(await km.locator('input[name=min]').inputValue(),'50.000');
+    assert.equal(await km.locator('input[name=max]').inputValue(),'1.000.000');
+    await km.locator('input[name=max]').fill('1.5');
+    assert.equal(await km.locator('input[name=max]').evaluate(el=>el.checkValidity()),false,'Invalid decimal is not silently converted to integer');
+    await km.locator('input[name=max]').fill('-10');
+    assert.equal(await km.locator('input[name=max]').evaluate(el=>el.checkValidity()),false);
+    await km.locator('input[name=max]').fill('1.000.000');
+    await activate(km.getByRole('button',{name:'Lọc theo khoảng đã nhập'}));
+    await page.waitForURL(url=>url.searchParams.get('so-km')==='50000-1000000'); await ready();
+    assert.equal(await km.isVisible(),false);
+    assert(inventoryReads.some(query=>query.mileage_min==='50000'&&query.mileage_max==='1000000'));
+    await activate(kmTrigger);
+    assert.equal(await km.locator('input[name=min]').inputValue(),'50.000','SSR restores grouped km');
+    await page.keyboard.press('Escape');
+    for(const [key,label,value] of [['nam-san-xuat','2025','2025-2025'],['hop-so','Số tự động','tu-dong'],['mau-sac','Trắng','trang'],['chi-nhanh','Toàn Trung','toan-trung']]){
+      const trigger=page.locator(`[aria-controls="vehicle-filter-${key}"]`), menu=page.locator(`#vehicle-filter-${key}`);
+      await trigger.scrollIntoViewIfNeeded(); await activate(trigger);
+      if(key==='nam-san-xuat')assert.equal(await menu.locator('input[name=min]').getAttribute('type'),'number','Years stay ungrouped');
+      await activate(menu.getByRole('link',{name:label,exact:true}));
+      await page.waitForURL(url=>url.searchParams.get(key)===value); await ready();
+      assert.equal(await menu.isVisible(),false,`${key} closes after selection`);
+      assert.equal(await trigger.getAttribute('aria-expanded'),'false');
+    }
     await page.mouse.click(4, 450);
     await page.getByRole('button', { name: 'Xem thêm 1 xe', exact: true }).click();
     await page.waitForFunction(() => document.querySelectorAll('.vehicle-results > .item').length === 7);
     assert.equal(await page.locator('.car-load-more__button').count(), 0);
     assert.deepEqual(errors, []);
-    console.log(`PASS ${width}px: seven filter toggles, menus remain open while scrolling away and back, natural row placement, selection and remaining count`);
+    console.log(`PASS ${width}px: popover placement, close after selection/apply, grouped price/km, million/dong/km values, invalid input, multi-select, seven filters and remaining count`);
     await page.close();
   }
 } finally {

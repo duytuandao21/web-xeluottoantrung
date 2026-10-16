@@ -32,7 +32,7 @@ try {
   await mkdir('artifacts/sell-menu',{recursive:true});
   for(const width of [1440,1024,390,320]) {
     const mobile=width<=960,page=await browser.newPage({viewport:{width,height:900},isMobile:mobile,hasTouch:mobile}),errors=[];
-    page.on('pageerror',error=>errors.push(error.message));
+    page.on('pageerror',error=>{errors.push(error.message);console.error('Browser error on fixture route',new URL(page.url()).pathname,error.message);});
     await page.route('**/*',async route=>{const url=new URL(route.request().url());if(url.pathname.startsWith('/api/v1/')){const response=await fetch(apiUrl+url.pathname+url.search);return route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});}return ['127.0.0.1','localhost'].includes(url.hostname)?route.continue():route.abort();});
     const root=page.locator(mobile?'.tt-mobile-menu .menu-selling':'.hidden_m .menu-selling'),panel=root.locator('.menu-selling-panel');
     const open=async()=>{if(mobile){if(!await page.locator('.tt-mobile-menu').evaluate(el=>el.classList.contains('menu_mobi_active'))){await page.locator('.icon_menu_mobi').tap();await page.locator('.tt-mobile-menu.menu_mobi_active').waitFor();await page.waitForTimeout(300);}const toggle=root.locator('.mobile-submenu-toggle');if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.tap();}else {await page.mouse.move(4,400);await root.locator(':scope > a').hover();}await panel.waitFor({state:'visible'});await page.waitForTimeout(250);};
@@ -58,12 +58,16 @@ try {
       assert.equal(await panel.locator('a.active').evaluate(el=>getComputedStyle(el).color),'rgb(224, 0, 0)');
       assert.equal(await panel.locator('a.active').evaluate(el=>getComputedStyle(el,'::before').opacity),'1');
     }
-    // The direct header link must also dismiss while the pointer stays over it.
-    for(let click=0;click<2;click++){
-      await open();const trigger=root.locator(':scope > a'),box=await trigger.boundingBox();
-      if(mobile)await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);else await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
-      await page.waitForURL(base+'/ban-xe');await page.waitForFunction(()=>scrollY<2);await panel.waitFor({state:'hidden'});
-      if(mobile)assert.equal(await root.locator('.mobile-submenu-toggle').getAttribute('aria-expanded'),'false');
+    // Header label is a disclosure; only its submenu rows navigate.
+    for(const activation of ['click','Enter',' ']){
+      await page.goto(base+'/khuyen-mai',{waitUntil:'networkidle'});
+      if(mobile){await page.locator('.icon_menu_mobi').tap();await page.locator('.tt-mobile-menu.menu_mobi_active').waitFor();}
+      const trigger=root.locator(':scope > a');assert.equal(await trigger.getAttribute('href'),null);
+      if(activation==='click'){if(mobile)await trigger.tap();else await trigger.click();}
+      else {await trigger.focus();await page.keyboard.press(activation);}
+      await panel.waitFor({state:'visible'});
+      assert.equal(page.url(),base+'/khuyen-mai','Sell header activation does not navigate');
+      if(mobile)assert.equal(await trigger.getAttribute('aria-expanded'),'true');
     }
     if(!mobile){
       await page.locator('.hidden_m .hotline a').focus();await root.locator(':scope > a').focus();await panel.waitFor({state:'visible'});
