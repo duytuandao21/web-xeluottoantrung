@@ -21,11 +21,12 @@ import '@/components/chatbot/chatbot.css';
 import { getImageOriginalUrl } from '@/lib/image-delivery';
 import { showroom10MapHref } from '@/lib/contact-links';
 import { perfAsync } from '@/lib/perf-observer';
+import { SITE_ORIGIN } from '@/lib/site-origin';
 
 export async function generateMetadata(): Promise<Metadata> {
   const [siteName, branding] = await Promise.all([getSiteName(), getSiteBranding()]);
   return {
-    metadataBase: new URL('https://xeluottoantrung.com'),
+    metadataBase: new URL(SITE_ORIGIN),
     title: { default: siteName, template: `%s | ${siteName}` },
     icons: { icon: getImageOriginalUrl(branding.favicon) },
   };
