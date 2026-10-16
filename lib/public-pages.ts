@@ -14,6 +14,7 @@ import { serviceStepList } from './service-step-markup';
 import { styleServiceForm } from './trade-in-form';
 import { assetUrl, getSiteBranding } from './site-branding';
 import { getSiteInfo } from './site-info';
+import { publicContent } from './public-content';
 import { zaloHref } from './contact-links';
 import { getPolicies, renderPolicyLinks, renderWhyChoose } from './website-content';
 import { optionRange, parseRangeQuery, type RangeGroup, type RangeOption } from './filter-options';
@@ -431,25 +432,6 @@ function renderTestimonials($: ReturnType<typeof load>, selector: string, testim
 }
 
 type ServiceStep = { title: string; body?: string | null; imageUrl?: string | null };
-type ServiceKind = 'buoc-mua-xe' | 'buoc-ban-xe' | 'buoc-len-doi';
-
-function renderServiceSteps($: ReturnType<typeof load>, panel: ReturnType<ReturnType<typeof load>>, kind: ServiceKind, steps: ServiceStep[]) {
-  panel.attr('data-service', kind);
-  const slider = panel.children('.main_fix').first();
-  slider.removeClass('slick321').addClass('slick4321 control_slick').empty();
-  for (const [index, step] of steps.entries()) {
-    const card = $('<div class="item_buoc"></div>')
-      .append($('<span class="so"></span>').text(String(index + 1)));
-    if (step.imageUrl) card.append($('<p class="img_post"></p>')
-      .append($('<img loading="lazy" decoding="async">').attr({ src: step.imageUrl, alt: step.title })));
-    card.append($('<div class="mota"></div>')
-      .append($('<h4 class="name_post"></h4>').text(step.title))
-      .append($('<div class="desc_post"></div>').html(safeHtml(step.body || ''))));
-    slider.append($('<div></div>').append(card));
-  }
-  if (!steps.length) slider.removeClass('slick4321 control_slick')
-    .append('<p class="selling-process-empty">Các bước đang được cập nhật.</p>');
-}
 
 function prepareServiceTabs($: ReturnType<typeof load>, section: ReturnType<ReturnType<typeof load>>) {
   section.find('.cap1 li[data-id]').each((_, element) => {
@@ -797,11 +779,11 @@ const getHomeData = () => Promise.all([
   optionalLookupPage<PublicLookup>('/lookups/body-styles', { limit: 100 }),
   optionalPublicLookups<PublicLookup & RangeOption>('/lookups/filter-options', { group: 'budget' }),
   allPublicLookups<Testimonial>('/testimonials'),
-  publicApi<{ title: string; imageUrl?: string | null }[]>('/content', { group: 'thiet-lap-quy-trinh-ban-xe' }),
-  publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-mua-xe' }),
-  publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-ban-xe' }),
-  publicApi<ServiceStep[]>('/content', { group: 'thiet-lap-cac-buoc-len-doi' }),
-  publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-banner-dong-xe' }),
+  publicContent<{ title: string; imageUrl?: string | null }>('thiet-lap-quy-trinh-ban-xe'),
+  publicContent<ServiceStep>('thiet-lap-cac-buoc-mua-xe'),
+  publicContent<ServiceStep>('thiet-lap-cac-buoc-ban-xe'),
+  publicContent<ServiceStep>('thiet-lap-cac-buoc-len-doi'),
+  publicContent<ContentEntry>('thiet-lap-banner-dong-xe'),
 ]);
 
 export async function getPublicPage(pathname: string, searchParams: SearchParams = {}): Promise<LegacyPageData | null> {
@@ -827,7 +809,7 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
   }
   if (pathname === '/') {
     if (!page) return null;
-    const [result, slides, brands, styles, budgets, testimonials, sellingProcess, buyingSteps, sellingSteps, tradeInSteps, banners] = homeData!;
+    const [result, slides, brands, styles, budgets, testimonials, sellingProcess, , , , banners] = homeData!;
     const sourceContent = page.content;
     const { $, cards } = perfSync('cheerio.transform', 'public-home', () => {
     const $ = load(sourceContent, {}, false);
@@ -887,17 +869,12 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
     }
     if (!sellingProcess.length) processGrid.append('<p class="selling-process-empty">Quy trình đang được cập nhật.</p>');
     const serviceSection = $('.wap_dichvu').first();
-    const buyingPanel = serviceSection.children('.dichvu').first();
-    renderServiceSteps($, buyingPanel, 'buoc-mua-xe', buyingSteps);
-    for (const [kind, steps, href, label] of [
-      ['buoc-ban-xe', sellingSteps, '/ban-xe', 'Bán xe ngay'],
-      ['buoc-len-doi', tradeInSteps, '/len-doi', 'Lên đời ngay'],
-    ] as const) {
-      const panel = buyingPanel.clone();
-      renderServiceSteps($, panel, kind, steps);
-      panel.find('.xemtatca a').attr('href', href).text(label);
-      serviceSection.append(panel);
-    }
+    // HomePage replaces every direct .dichvu child with serviceStepList markup.
+    // Drop the unused snapshot panel here instead of building/serializing panels
+    // that would immediately be parsed and removed by HomePage.
+    serviceSection.children('.dichvu').remove();
+    // Keep normalization of the tab strip outside those discarded panels.
+    // CMS reads above stay unchanged, including their failure/dedup semantics.
     prepareServiceTabs($, serviceSection);
     renderTestimonials($, '.wap_camnhan .camnhan', testimonials, true);
     return { $, cards };

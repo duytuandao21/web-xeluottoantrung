@@ -57,13 +57,24 @@ function retryAfterMs(value: string | null | undefined): number | undefined {
   return Number.isNaN(date) ? undefined : Math.max(0, date - Date.now());
 }
 
-async function readPublicData(path: string, queryString: string): Promise<unknown> {
+async function waitForReadRetry(path: string, queryString: string, error: PublicApiError, attempt: number, started: number) {
+  const budgetMs = path === '/cars/menu' ? 7_000 : 5_000;
+  const delay = Math.max(150 * 2 ** attempt + Math.floor(Math.random() * 50), error.retryAfterMs ?? 0);
+  const transient = error.status === 429 || error.status === 503 || modelPath.test(path) && error.status >= 500;
+  if (!transient || attempt >= 1 || delay > 750 || Date.now() - started + delay + 250 >= budgetMs) {
+    logReadFailure(path, error, attempt, 'failed', queryString);
+    throw error;
+  }
+  logReadFailure(path, error, attempt, 'retry', queryString);
+  await new Promise(resolve => setTimeout(resolve, delay));
+}
+
+async function readPublicData(path: string, queryString: string, initialAttempt = 0, started = Date.now()): Promise<unknown> {
   const models = modelPath.test(path);
   const budgetMs = path === '/cars/menu' ? 7_000 : 5_000;
-  const started = Date.now();
   const label = perfApiLabel(path);
   return perfAsync('api.read', label, async () => {
-  for (let attempt = 0; ; attempt++) {
+  for (let attempt = initialAttempt; ; attempt++) {
     try {
       return await withPublicReadSlot(async () => {
         const finishFetch = perfStart('api.fetch', label);
@@ -95,19 +106,20 @@ async function readPublicData(path: string, queryString: string): Promise<unknow
       if (!(cause instanceof PublicApiError) && !['TypeError', 'TimeoutError', 'AbortError', 'SyntaxError'].includes(name)) throw cause;
       const error = cause instanceof PublicApiError ? cause : new PublicApiError(name === 'SyntaxError' ? 502 : 503,
         `Public API ${path}: transport failure`, undefined, name);
-      const delay = Math.max(150 * 2 ** attempt + Math.floor(Math.random() * 50), error.retryAfterMs ?? 0);
-      const transient = error.status === 429 || error.status === 503 || models && error.status >= 500;
       // GET only, at most one retry. Long Retry-After values are not shortened:
       // fail safely instead of blocking SSR for a minute or retrying too early.
-      if (!transient || attempt >= 1 || delay > 750 || Date.now() - started + delay + 250 >= budgetMs) {
-        logReadFailure(path, error, attempt, 'failed', queryString);
-        throw error;
-      }
-      logReadFailure(path, error, attempt, 'retry', queryString);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await waitForReadRetry(path, queryString, error, attempt, started);
     }
   }
   });
+}
+
+// A failed item in the CMS view has already spent its first source attempt.
+// Retry that group only, once, with the SAME deadline/backoff/Retry-After rules.
+export async function retryComposedContent<T>(group: string, error: PublicApiError, started: number): Promise<T[]> {
+  const query = new URLSearchParams({ group }).toString();
+  await waitForReadRetry('/content', query, error, 0, started);
+  return readPublicData('/content', query, 1, started) as Promise<T[]>;
 }
 
 // Reuse parsed results within SSR, including page/layout/metadata callers.

@@ -28,6 +28,7 @@ export function perfRoute(path: string) {
     path === '/ban-xe' ? 'sell' : path === '/len-doi' ? 'trade-in' : 'other-page';
 }
 export function perfApiLabel(path: string) {
+  if (path === '/content/home') return 'home-content';
   const fixed = new Set(['cars', 'brands', 'seo', 'content', 'slides', 'testimonials', 'articles', 'article-categories', 'services', 'faqs', 'recruitments', 'accessories']);
   const parts = path.split('?')[0].split('/').filter(Boolean);
   if (parts.length === 1 && fixed.has(parts[0])) return parts[0];

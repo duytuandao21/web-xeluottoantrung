@@ -1,11 +1,12 @@
 import 'server-only';
 import { cache } from 'react';
 import type { load } from 'cheerio';
-import { publicApi, type ContentEntry } from './public-api';
+import type { ContentEntry } from './public-api';
 import { safeHtml } from './safe-html';
 import { assetUrl } from './site-branding';
+import { publicContent } from './public-content';
 
-export const getPolicies = cache(() => publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-chinh-sach-dieu-kien' }));
+export const getPolicies = cache(() => publicContent<ContentEntry>('thiet-lap-chinh-sach-dieu-kien'));
 export const policyHref = (policy: Pick<ContentEntry, 'key'>) => `/${policy.key}`;
 
 export function renderPolicyLinks($: ReturnType<typeof load>, policies: ContentEntry[]) {
