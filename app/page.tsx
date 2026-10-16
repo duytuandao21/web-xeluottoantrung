@@ -12,7 +12,6 @@ import { getRequestPublicPage } from "@/lib/public-pages";
 import { pageMetadata } from "@/lib/page-metadata";
 import { measuredCheerio } from '@/lib/measured-cheerio';
 import { perfAsync, perfSync } from '@/lib/perf-observer';
-import { publicContent } from '@/lib/public-content';
 const { load } = measuredCheerio('home-component');
 import HomeScrollReveal from '@/components/common/HomeScrollReveal';
 import HomeServicesMotion from '@/components/common/HomeServicesMotion';
@@ -42,7 +41,7 @@ export default async function HomePage() {
   return perfAsync('ssr.component', 'home', async () => {
   const [page, steps, articles, accessories] = await Promise.all([
     getRequestPublicPage('/'),
-    Promise.all(services.map(service => publicContent<ServiceStep>(`thiet-lap-cac-buoc-${service.key}`))),
+    Promise.all(services.map(service => publicApi<ServiceStep[]>('/content', { group: `thiet-lap-cac-buoc-${service.key}` }))),
     publicApi<PageResult<Article>>('/articles', { limit: 3 }),
     publicApi<PageResult<Accessory>>('/accessories', { limit: 100 }).catch(() => null),
   ]);

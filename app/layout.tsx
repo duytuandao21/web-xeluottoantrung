@@ -21,7 +21,6 @@ import '@/components/chatbot/chatbot.css';
 import { getImageOriginalUrl } from '@/lib/image-delivery';
 import { showroom10MapHref } from '@/lib/contact-links';
 import { perfAsync } from '@/lib/perf-observer';
-import { publicContent } from '@/lib/public-content';
 
 export async function generateMetadata(): Promise<Metadata> {
   const [siteName, branding] = await Promise.all([getSiteName(), getSiteBranding()]);
@@ -46,11 +45,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     allPublicLookups<Region>('/lookups/branch-regions'),
     publicApi<{ key: string; value: string }[]>('/site-settings/thiet-lap-footer'),
     allPublicLookups<Service>('/services'),
-    publicContent<CallContact>('thiet-lap-nut-goi'),
+    publicApi<CallContact[]>('/content', { group: 'thiet-lap-nut-goi' }),
     getPolicies(),
     getSiteBranding(),
-    publicContent<ContentEntry>('thiet-lap-mang-xa-hoi'),
-    publicContent<ContentEntry>('thiet-lap-ung-dung'),
+    publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-mang-xa-hoi' }),
+    publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-ung-dung' }),
   ]);
   const info = results[0].status === 'fulfilled' ? results[0].value : {};
   const branches = results[1].status === 'fulfilled' ? results[1].value : [];

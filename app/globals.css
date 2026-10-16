@@ -712,6 +712,7 @@ body.ss .id_ss { display:inline-flex; align-items:center; gap:8px; min-height:44
 .menu_mobi_add .close_menu, .icon_menu_mobi { cursor:pointer; }
 .slick-slider { min-width:0; }
 .carousel-hydrating { visibility:hidden; }
+.slider_slick.hero-ssr .slick-track { left:0 !important; }
 .slider_slick .slick-slide > div { line-height:0; }
 .slider_slick .hero-dots { position:absolute; z-index:2; bottom:10px; left:50%; transform:translateX(-50%); display:flex !important; align-items:center; justify-content:center; width:max-content; max-width:calc(100% - 24px); margin:0; padding:0; border:0; background:transparent; }
 .slider_slick .hero-dots li { flex:none; width:44px; height:44px; margin:0; }

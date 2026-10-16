@@ -11,16 +11,17 @@ const resultTag = process.env.GOLDEN_RESULT_TAG || mode;
 if (!/^[a-z0-9-]{1,40}$/.test(resultTag)) throw Error('Invalid result tag');
 const suite = process.env.GOLDEN_ARTIFACT_SUITE || 'perf-composition-local-2026-10-15';
 if (!/^[a-z0-9-]{1,80}$/.test(suite)) throw Error('Invalid artifact suite');
-const serviceCheck = ['perf-dom-local-2026-10-16', 'perf-dom-ab-local-2026-10-16'].includes(suite);
+const rollbackCheck = suite === 'rollback-performance-2026-10-16';
+const serviceCheck = rollbackCheck || ['perf-dom-local-2026-10-16', 'perf-dom-ab-local-2026-10-16'].includes(suite);
 const output = resolve('../docs/artifacts', suite, 'html');
 await mkdir(output, { recursive: true });
 const homeGroups = ['thiet-lap-nut-goi', 'thiet-lap-chinh-sach-dieu-kien', 'thiet-lap-mang-xa-hoi', 'thiet-lap-ung-dung', 'thiet-lap-quy-trinh-ban-xe', 'thiet-lap-cac-buoc-mua-xe', 'thiet-lap-cac-buoc-ban-xe', 'thiet-lap-cac-buoc-len-doi', 'thiet-lap-banner-dong-xe'];
-let revision = 1, failedGroup, failStatus = 503, bundleUnavailable = false, scenario = 'populated';
+let revision = 1, failedGroup, failStatus = 503, bundleUnavailable = false, scenario = 'populated', serviceMotionFixture = false;
 const reads = [];
 const car = () => ({ slug: 'golden-toyota', name: 'Golden Toyota Vios 2025', year: 2025, price: revision === 1 ? 433000000 : 423000000,
   originalPrice: 450000000, mileage: 20000, status: 'active', newArrival: false, fuel: 'Xang', transmission: 'Automatic', cover: '/images/logo.png',
   brand: { name: 'Toyota', slug: 'toyota' }, model: { name: 'Vios', slug: 'vios' } });
-const cms = group => serviceCheck && scenario === 'empty' && group.startsWith('thiet-lap-cac-buoc-') ? [] : [{ id: group, key: group === 'thiet-lap-chinh-sach-dieu-kien' ? 'chinh-sach-quyen-rieng-tu' : 'first',
+const cms = group => serviceMotionFixture && group.startsWith('thiet-lap-cac-buoc-') ? Array.from({ length: 4 }, (_, i) => ({ id: `${group}-${i}`, title: `Step ${i + 1}`, body: '<p>Motion fixture step.</p>', imageUrl: i === 0 ? '/images/exchange5565998-3028.png' : '/images/logo.png' })) : serviceCheck && scenario === 'empty' && group.startsWith('thiet-lap-cac-buoc-') ? [] : [{ id: group, key: group === 'thiet-lap-chinh-sach-dieu-kien' ? 'chinh-sach-quyen-rieng-tu' : 'first',
   title: `Golden ${group} ${revision}`, body: '<p>Golden content <strong>kept</strong></p>', imageUrl: '/images/logo.png',
   link: '/san-pham', phone: '0000000000', sortOrder: 0 }, ...(serviceCheck && group.startsWith('thiet-lap-cac-buoc-') ? [
     { id: `${group}-2`, title: 'A & B <title> "quoted"', body: '<p>Detail <a href="/san-pham">link</a><img src="/images/logo.png" alt="body image"><script>unsafe()</script></p>', imageUrl: null },
@@ -98,7 +99,10 @@ try {
       assert.equal(actual.filter(r => r.path === '/api/v1/content/home').length, optimized ? 1 : 0);
       assert.equal(actual.filter(r => r.path === '/api/v1/content').length, optimized ? 0 : 9);
       assert.equal(actual.length, optimized ? 17 : 25);
-    } else assert.equal(actual.filter(r => r.path === '/api/v1/content/home').length, 0, 'No composition overfetch on other pages');
+    } else {
+      assert.equal(actual.filter(r => r.path === '/api/v1/content/home').length, 0, 'No composition overfetch on other pages');
+      if (rollbackCheck && route === '/san-pham') assert.equal(actual.length, 20, 'Single-page listing fixture keeps baseline twenty GETs');
+    }
     goldenCases++;
   }
   }
@@ -167,7 +171,26 @@ try {
     const legacy = await (await fetch(base + '/')).text();
     assert(legacy.includes('Golden Toyota') && legacy.includes('Golden SEO 2'), 'Old API 404 fallback preserves rolling deployment');
   }
-  const result = { passed: true, mode, goldenCases, serviceInteractions: serviceCheck ? 'populated/empty desktop/mobile click + keyboard' : undefined,
+  const browserChecks = [];
+  if (rollbackCheck && process.env.ROLLBACK_BROWSER_CHECKS === 'true') {
+    await browser?.close(); browser = undefined;
+    for (const script of ['chatbot-check.mjs', 'chatbot-dismiss-check.mjs', 'home-services-motion-check.mjs']) {
+      if (process.env.ROLLBACK_BROWSER_ONLY && process.env.ROLLBACK_BROWSER_ONLY !== script) continue;
+      serviceMotionFixture = script === 'home-services-motion-check.mjs';
+      const record = await new Promise((done, reject) => {
+        const check = spawn(process.execPath, [resolve('scripts', script)], { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, TEST_BASE_URL: base } });
+        let log = '';
+        check.stdout.on('data', value => { log += value.toString(); });
+        check.stderr.on('data', value => { log += value.toString(); });
+        check.on('error', reject);
+        check.on('exit', code => done({ script, code, log }));
+      });
+      browserChecks.push(record);
+      await writeFile(resolve(output, 'rollback-browser-checks.json'), JSON.stringify(browserChecks, null, 2));
+      assert.equal(record.code, 0, `${script}: see rollback-browser-checks.json`);
+    }
+  }
+  const result = { passed: true, mode, goldenCases, browserChecks: browserChecks.map(({ script, code }) => ({ script, code })), serviceInteractions: serviceCheck ? 'populated/empty desktop/mobile click + keyboard' : undefined,
     expectedHomeGets: serviceCheck || mode === 'capture' || mode === 'verify-off' ? 25 : 17 };
   if (serviceCheck) await writeFile(resolve(output, `${resultTag}-result.json`), JSON.stringify({ ...result, time: new Date().toISOString(),
     buildId: (await readFile('.next/BUILD_ID', 'utf8')).trim(), newRequestSeesUpdatedPriceSeoCms: true,

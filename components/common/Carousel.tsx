@@ -49,5 +49,6 @@ export default function Carousel({className,children,settings}: {className:strin
   if(mobileLookups) return <div className={`${className} lookup-carousel-mobile`} role="group" aria-label="Danh sách lựa chọn xe" tabIndex={0}>{children}</div>;
   // Apply responsive settings before revealing slides; avoids desktop columns
   // flashing during hydration on phones. Slick owns and cleans up its timers.
-  return <Slider ref={ref} className={`${className}${ready?'':' carousel-hydrating'}`} {...resolved} dots={isHero ? resolved.dots && Children.count(children) > 1 : resolved.dots}>{children}</Slider>;
+  // Show the hero's SSR slide and correct Slick's pre-mount track offset.
+  return <Slider ref={ref} className={`${className}${ready?'':isHero?' hero-ssr':' carousel-hydrating'}`} {...resolved} dots={isHero ? resolved.dots && Children.count(children) > 1 : resolved.dots}>{children}</Slider>;
 }
