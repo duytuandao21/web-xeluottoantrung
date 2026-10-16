@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 const webRoot = process.cwd(), apiRoot = resolve('../api-xeluottoantrung');
+const noticeOnly = process.env.OWNERSHIP_NOTICE_ONLY === 'true';
 const { ownershipFixture } = await import(pathToFileURL(resolve(apiRoot, '.test-dist/test/fixtures/ownership.js')).href);
 process.chdir(apiRoot); const f = await ownershipFixture(undefined, true); process.chdir(webRoot);
 let child, browser;
@@ -18,8 +19,9 @@ try {
   for (let attempt = 0; ; attempt++) { try { const r = await fetch('http://127.0.0.1:3003/ownership-test'); if (r.ok) break; } catch {} if (attempt > 40) throw new Error('Isolated web server unavailable'); await new Promise(r => setTimeout(r, 500)); }
   await mkdir('artifacts/ownership', { recursive: true });
   browser = await chromium.launch({ channel: 'chrome', headless: true });
-  for (const width of [1440, 768, 390, 320]) {
-    const page = await browser.newPage({ viewport: { width, height: 920 }, reducedMotion: width === 1440 ? 'no-preference' : 'reduce' });
+  const viewports = noticeOnly ? [{ width: 1440, height: 920 }, { width: 768, height: 920 }, { width: 430, height: 932 }, { width: 390, height: 920 }, { width: 375, height: 812 }, { width: 360, height: 640 }, { width: 320, height: 920 }, { width: 320, height: 480 }, { width: 844, height: 390 }] : [1440, 768, 390, 320].map(width => ({ width, height: 920 }));
+  for (const { width, height } of viewports) {
+    const page = await browser.newPage({ viewport: { width, height }, reducedMotion: width === 1440 ? 'no-preference' : 'reduce' });
     const requests = [], errors = [], posts = []; let failNext = false;
     page.on('request', request => requests.push(request.url())); page.on('pageerror', e => errors.push(e.message)); page.setDefaultTimeout(20000);
     await page.addInitScript(() => { Object.defineProperty(crypto, 'randomUUID', { value: undefined }); });
@@ -46,10 +48,36 @@ try {
     await page.getByText('Chi phí chỉ mang tính ước tính', { exact: true }).waitFor();
     assert.ok((await dialog.boundingBox()).height < 690, 'Notice fits its content without a large empty area');
     assert.equal(requests.filter(url => /\/api\/v1\/cars\/[^/]+\/ownership-/.test(url)).length, 0, 'No config before agreement');
-    await page.screenshot({ path: `artifacts/ownership/${width}-notice.png` });
+    await page.screenshot({ path: `artifacts/ownership/${width}-notice${noticeOnly ? `-responsive-${height}` : ''}.png` });
+    const noticeBounds = await page.locator('.tt-own-body').evaluate(el => ({ height: el.clientHeight, contentHeight: el.scrollHeight, width: el.clientWidth, contentWidth: el.scrollWidth }));
+    assert.ok(noticeBounds.height >= 120, 'Notice body must not collapse');
+    if (height >= 640) assert.ok(noticeBounds.height >= noticeBounds.contentHeight - 1, `Notice content fits without being collapsed: ${JSON.stringify(noticeBounds)}`);
+    assert.ok(noticeBounds.contentWidth <= noticeBounds.width + 1, 'Notice has no horizontal overflow');
+    const noticeRect = await dialog.boundingBox();
+    assert.ok(noticeRect.x >= 0 && noticeRect.y >= 0 && noticeRect.x + noticeRect.width <= width + 1 && noticeRect.y + noticeRect.height <= height + 1, 'Notice stays within viewport');
+    for (const name of ['Hủy', 'Đồng ý']) {
+      const bounds = await page.getByRole('button', { name, exact: true }).boundingBox();
+      assert.ok(bounds.height >= 44 && bounds.y >= 0 && bounds.y + bounds.height <= height, 'Action stays visible and touchable');
+    }
+    if (height < 600) {
+      await page.locator('.tt-own-body').evaluate(el => { el.scrollTop = el.scrollHeight; });
+      const noticeVisible = await page.locator('#tt-own-estimate-notice').evaluate(el => {
+        const text = el.getBoundingClientRect(), body = el.closest('.tt-own-body').getBoundingClientRect();
+        return text.bottom <= body.bottom + 1 && text.bottom > body.top;
+      });
+      assert.ok(noticeVisible, 'Estimate notice remains reachable by scrolling');
+    }
     await page.getByRole('button', { name: 'Hủy', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
     assert.equal(await trigger.evaluate(el => document.activeElement === el), true);
     assert.equal(requests.filter(url => /\/api\/v1\/cars\/[^/]+\/ownership-/.test(url)).length, 0, 'Cancel does not fetch or persist');
+    if (noticeOnly) {
+      await trigger.click(); await dialog.waitFor(); await page.getByRole('button', { name: 'Đóng dự toán', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
+      await trigger.click(); await dialog.waitFor(); await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'hidden' });
+      assert.equal(await trigger.evaluate(el => document.activeElement === el), true);
+      assert.notEqual(await page.evaluate(() => document.body.style.overflow), 'hidden');
+      assert.deepEqual(errors, []); console.log(`Ownership notice ${width}px passed: content, cancel/close/Escape, focus, no config request.`);
+      await page.close(); continue;
+    }
     await trigger.click(); await page.getByRole('button', { name: 'Đồng ý', exact: true }).click(); await page.locator('input[name=monthlyKm]').waitFor();
     assert.equal(page.url(), originalUrl); assert.equal(await page.evaluate(() => document.body.style.overflow), 'hidden');
     assert.ok(requests.some(url => chunks.some(name => url.endsWith(`/${name}`))), 'Click fetches modal JS');
@@ -96,6 +124,9 @@ try {
     await trigger.click(); await dialog.waitFor(); await page.getByRole('button', { name: 'Đóng dự toán', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
     assert.deepEqual(errors, [], 'No hydration or browser errors'); console.log(`Ownership web ${width}px passed; lazy modal, validation, finance, edits, focus and scroll.`); await page.close();
   }
+  if (noticeOnly) process.exitCode = 0;
+  else {
   const summary = await f.server.inject({ method: 'GET', url: '/api/v1/admin/ownership/summary', headers: { authorization: 'Bearer ownership-admin' } });
   assert.equal(summary.json().total, 4, 'One compact record per completed interaction despite editing');
+  }
 } finally { await browser?.close(); if (child) child.kill(); await f.close(); }

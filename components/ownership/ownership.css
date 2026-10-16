@@ -40,7 +40,8 @@
 .is-intro .tt-own-header{position:relative;height:0;padding:0;border:0}
 .is-intro .tt-own-header>button{position:absolute;top:14px;right:14px;z-index:1;width:44px;height:44px;font-size:28px;transition:background .2s,color .2s}
 .is-intro .tt-own-header>button:hover{background:#e9edf3;color:#14213a}
-.is-intro .tt-own-body{padding:36px 28px 24px;scrollbar-gutter:auto}
+/* Keep the notice's natural height; shrink its scroll area only on short screens. */
+.is-intro .tt-own-body{flex:0 1 auto;padding:36px 28px 24px;scrollbar-gutter:auto}
 .tt-own-intro{text-align:center}
 .tt-own-intro-icon{display:grid;place-items:center;width:64px;height:64px;border-radius:20px;background:#fff0f0;border:1px solid #ffe0e0;color:#c90000;box-shadow:0 6px 18px #e200000a;margin:0 auto 20px}
 .tt-own-intro h2{font-size:24px;font-weight:700;line-height:1.4;letter-spacing:-.4px;margin:0;color:#14213a}
