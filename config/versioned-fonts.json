@@ -92,5 +92,27 @@
       "head flags bit 11",
       "DSIG"
     ]
+  },
+  {
+    "src": "/assets/fonts/SF-Pro-Display-Regular-UnicodeText.f6be1cf259de.woff2",
+    "sha256": "f6be1cf259deb5e582746cec42f6d19f9dd5e765d49de6bd9bb0dbf948734247",
+    "original": "/assets/fonts/SF-Pro-Display-Regular.otf",
+    "family": "body",
+    "beforeBytes": 1156688,
+    "afterBytes": 198052,
+    "unicodeRange": "U+0-FFFFF",
+    "glyphCount": 14823,
+    "retainedGlyphs": 2722
+  },
+  {
+    "src": "/assets/fonts/SF-Pro-Display-Bold-UnicodeText.62951c551edc.woff2",
+    "sha256": "62951c551edc4ffc46b057c3edcf2dcd553990d45e48512c91510b1ef73a6f1c",
+    "original": "/assets/fonts/SF-Pro-Display-Bold.otf",
+    "family": "tieude",
+    "beforeBytes": 1200668,
+    "afterBytes": 215828,
+    "unicodeRange": "U+0-FFFFF",
+    "glyphCount": 14823,
+    "retainedGlyphs": 2722
   }
 ]

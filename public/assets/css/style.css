@@ -38,6 +38,12 @@ body{
 @font-face {
     font-family: 'body';
     src: url('../fonts/SF-Pro-Display-Regular.a14defb2876c.woff2') format('woff2'), url('../fonts/SF-Pro-Display-Regular.otf') format('opentype');
+    unicode-range: U+100000-10FFFF;
+}
+@font-face {
+    font-family: 'body';
+    src: url('../fonts/SF-Pro-Display-Regular-UnicodeText.f6be1cf259de.woff2') format('woff2'), url('../fonts/SF-Pro-Display-Regular.a14defb2876c.woff2') format('woff2'), url('../fonts/SF-Pro-Display-Regular.otf') format('opentype');
+    unicode-range: U+0-FFFFF;
 }
 @font-face {
     font-family: 'menu';
@@ -46,6 +52,12 @@ body{
 @font-face {
     font-family: 'tieude';
     src: url('../fonts/SF-Pro-Display-Bold.7999684c63dc.woff2') format('woff2'), url('../fonts/SF-Pro-Display-Bold.otf') format('opentype');
+    unicode-range: U+100000-10FFFF;
+}
+@font-face {
+    font-family: 'tieude';
+    src: url('../fonts/SF-Pro-Display-Bold-UnicodeText.62951c551edc.woff2') format('woff2'), url('../fonts/SF-Pro-Display-Bold.7999684c63dc.woff2') format('woff2'), url('../fonts/SF-Pro-Display-Bold.otf') format('opentype');
+    unicode-range: U+0-FFFFF;
 }
 
 b,strong,h1,h2,h3,h4,h5,h6{font-family: 'tieude';}

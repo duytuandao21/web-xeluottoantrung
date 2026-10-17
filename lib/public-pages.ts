@@ -760,7 +760,7 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
   }
   const checkBadge = '<circle cx="48" cy="47" r="14" fill="#fff"/><circle cx="48" cy="47" r="12" fill="#ffb914"/><path d="m41 47 5 5 10-11" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>';
   const documentIcon = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 4h28l15 15v33a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5V9a5 5 0 0 1 5-5Z" fill="#ed0000"/><path d="M38 4v11a4 4 0 0 0 4 4h11" fill="none" stroke="#fff" stroke-width="3"/><path d="M15 26h27M15 34h24M15 42h12" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>${checkBadge}</svg>`;
-  const carIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.83 1.55h8.85c.95 0 1.78.54 2.1 1.45l1.74 3.88c1.8.37 2.58 1.49 2.58 2.88V12c0 .83-.67 1.49-1.49 1.49H4.54v1.5a1.49 1.49 0 1 1-2.98 0v-1.7C1.1 13.04.8 12.57.8 12V9.76c0-1.55 1.13-2.82 2.98-2.99L4.73 3c.32-.91 1.15-1.45 2.1-1.45Zm.69 1.55c-.39 0-.53.12-.65.47L5.94 6.77h11.32l-1.39-3.2c-.12-.35-.26-.47-.65-.47h-7.7Z" fill="#ed0000" fill-rule="evenodd"/><circle cx="4.16" cy="10.13" r=".75" fill="#fff"/><circle cx="18.7" cy="10.13" r=".75" fill="#fff"/><circle cx="17.227" cy="16.479" r="5.973" fill="#fff"/><circle cx="17.227" cy="16.479" r="5.48" fill="#ffb914"/><path d="m19.89 14.743-2.893 3.856a.748.748 0 0 1-1.126.08l-1.493-1.493" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const carIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7.5 6.1 3.1Q6.4 2.3 7.3 2.3H15.6Q16.5 2.3 16.8 3.1L18.4 7.5" fill="none" stroke="#ed0000" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.52 6.88c1.8.37 2.58 1.49 2.58 2.88V12c0 .83-.67 1.49-1.49 1.49H4.54v1.5a1.49 1.49 0 1 1-2.98 0v-1.7C1.1 13.04.8 12.57.8 12V9.76c0-1.55 1.13-2.82 2.98-2.99Z" fill="#ed0000"/><circle cx="4.16" cy="10.13" r=".75" fill="#fff"/><circle cx="18.7" cy="10.13" r=".75" fill="#fff"/><circle cx="17.227" cy="16.479" r="5.973" fill="#fff"/><circle cx="17.227" cy="16.479" r="5.48" fill="#ffb914"/><path d="m19.89 14.743-2.893 3.856a.748.748 0 0 1-1.126.08l-1.493-1.493" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const transferIcon = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M17 4h30a6 6 0 0 1 6 6v43a6 6 0 0 1-6 6H11a6 6 0 0 1-6-6V14a5 5 0 0 1 5-5h3a4 4 0 0 0 4-5Z" fill="#ed0000"/><path d="M17 19h26M17 27h26" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><circle cx="27" cy="39" r="5" fill="#fff"/><path d="M16 52c1-7 5-10 11-10s10 3 11 10" fill="#fff"/>${checkBadge}</svg>`;
   const assurance = $('<div class="detail-assurance" aria-label="Cam kết khi mua xe"></div>');
   for (const [label, icon] of [
@@ -874,7 +874,8 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
       $(element).empty();
       if (index === 0) $(element).addClass('home-car-brands');
       for (const item of group) {
-        const anchor = $('<a></a>').attr({ href: `/${item.slug}`, title: item.name });
+        const query = new URLSearchParams({ [index === 0 ? 'hang-xe' : 'kieu-dang']: item.slug });
+        const anchor = $('<a></a>').attr({ href: `/san-pham?${query}`, title: item.name });
         if (item.imageUrl) anchor.append($('<img>').attr({ src: item.imageUrl, alt: item.name }));
         anchor.append(item.name);
         $(element).append($('<p class="img"></p>').append(anchor));

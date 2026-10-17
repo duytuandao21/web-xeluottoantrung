@@ -8,6 +8,7 @@ import { load } from 'cheerio';
 import { chromium } from 'playwright';
 const mode = process.argv[2] || 'verify';
 const homeTotalOnly = process.argv.includes('--home-total');
+const homeFiltersOnly = process.argv.includes('--home-filters');
 let homeTotal = 1234;
 const resultTag = process.env.GOLDEN_RESULT_TAG || mode;
 if (!/^[a-z0-9-]{1,40}$/.test(resultTag)) throw Error('Invalid result tag');
@@ -32,7 +33,7 @@ const cms = group => serviceMotionFixture && group.startsWith('thiet-lap-cac-buo
 const pageResult = data => ({ data, meta: { page: 1, limit: 100, total: data.length, totalPages: data.length ? 1 : 0 } });
 const api = createServer((request, response) => {
   const url = new URL(request.url, 'http://fixture.test'), path = url.pathname;
-  reads.push({ path, group: url.searchParams.get('group') });
+  reads.push({ path, group: url.searchParams.get('group'), ...(homeFiltersOnly ? { query: Object.fromEntries(url.searchParams) } : {}) });
   let status = 200, data = pageResult([]), retryAfter;
   if (path === '/api/v1/content/home') {
     if (bundleUnavailable) { status = 404; data = {}; }
@@ -51,6 +52,8 @@ const api = createServer((request, response) => {
     } else data = pageResult([car()]);
   }
   else if (path === '/api/v1/brands') data = [{ id: 'golden-brand', name: 'Toyota', slug: 'toyota', stockCount: 1 }];
+  else if (homeFiltersOnly && path === '/api/v1/lookups/body-styles') data = pageResult([{ id: 'golden-style', name: 'Pickup', slug: 'pickup', imageUrl: '/images/logo.png' }]);
+  else if (homeFiltersOnly && /^\/api\/v1\/brands\/[^/]+\/models$/.test(path)) data = [];
   else if (path.startsWith('/api/v1/site-settings/')) data = [{ key: path.endsWith('thiet-lap-thong-tin') ? 'site_name' : 'logo', value: 'Golden Toan Trung' }];
   else if (path === '/api/v1/seo') data = { metaTitle: `Golden SEO ${revision}`, metaDescription: 'Golden description', canonicalUrl: 'https://example.test/', robotsIndex: true, robotsFollow: true };
   else if (path === '/api/v1/slides') data = pageResult([{ id: 'golden-slide', title: 'Golden slide', imageUrl: '/images/xe-moi-ve-banner.png', link: '/san-pham' }]);
@@ -101,6 +104,41 @@ try {
       assert.equal(actual.filter(read => read.path === '/api/v1/cars').length, 1, 'Only the existing six-car request');
     }
     console.log('PASS home total 0/6/1.234: existing meta.total, unchanged /san-pham link, 25 GETs and one cars request limited to six.');
+  } else if (homeFiltersOnly) {
+    const before = reads.length;
+    const response = await fetch(base + '/');
+    assert.equal(response.status, 200);
+    const $ = load(await response.text());
+    const rows = $('.muaxe .thuonghieu');
+    const choices = [
+      { index: 0, href: '/san-pham?hang-xe=toyota', apiKey: 'brand', slug: 'toyota' },
+      { index: 1, href: '/san-pham?kieu-dang=pickup', apiKey: 'body_type', slug: 'pickup' },
+    ];
+    for (const choice of choices) assert.equal(rows.eq(choice.index).find('a').first().attr('href'), choice.href);
+    const homeReads = reads.slice(before);
+    assert.equal(homeReads.length, 25, 'Homepage still uses the same 25 GETs');
+    assert.deepEqual(homeReads.filter(read => read.path === '/api/v1/cars').map(read => read.query), [{ limit: '6', sort: 'newest' }]);
+    browser = await chromium.launch({ channel: 'chrome', headless: true });
+    const page = await browser.newPage();
+    await page.route('**/*', route => {
+      const request = route.request(), url = new URL(request.url());
+      return ['localhost', '127.0.0.1'].includes(url.hostname) && request.method() === 'GET' && !request.headers()['next-router-prefetch']
+        ? route.continue() : route.abort();
+    });
+    for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+      await page.setViewportSize(viewport);
+      for (const choice of choices) {
+        await page.goto(base + '/', { waitUntil: 'networkidle' });
+        const start = reads.length;
+        await page.locator(`.muaxe .thuonghieu a[href="${choice.href}"]:visible`).first().click();
+        await page.waitForURL(base + choice.href);
+        await page.waitForLoadState('networkidle');
+        assert(reads.slice(start).some(read => read.path === '/api/v1/cars' && read.query[choice.apiKey] === choice.slug),
+          `${viewport.width}px: selected homepage filter reaches the listing cars API`);
+        assert.equal(await page.locator('main[role="alert"]').count(), 0);
+      }
+    }
+    console.log('PASS homepage brand/style links: desktop/mobile clicks reach /san-pham with the corresponding API filter; home keeps 25 GETs and six-car query.');
   } else {
   let goldenCases = 0;
   for (const fixtureCase of serviceCheck ? ['populated', 'empty'] : ['populated']) {
