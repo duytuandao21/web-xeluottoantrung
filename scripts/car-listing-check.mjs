@@ -153,6 +153,7 @@ try {
   assert.equal(await sale.locator('.car-load-more__button').count(), 0);
   assert(saleRequests.every(params => params.get('limit') === '6' && params.get('search') === '51A12345'));
   await sale.locator('.wap_header .sale-header-button').evaluate(button => button.click());
+  await sale.getByRole('dialog', { name: 'Xác nhận đăng xuất' }).getByRole('button', { name: 'Đăng xuất', exact: true }).click();
   await sale.waitForFunction(() => !document.querySelector('[data-car-id^="sale-fixture-"]'));
   assert.equal(await sale.locator('.car-license-plate').count(), 0);
   await sale.close();

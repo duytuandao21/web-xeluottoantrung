@@ -640,6 +640,14 @@ body.ss .id_ss { display:inline-flex; align-items:center; gap:8px; min-height:44
 .sale-login-dialog form > button:hover:not(:disabled) { background:#a90000; transform:translateY(-1px); }
 .sale-login-dialog form > button:disabled { opacity:.65; cursor:wait; }
 .sale-login-error { padding:10px 12px; border-radius:8px; background:#fff2f2; color:#a50000; font-size:13px; }
+.sale-logout-dialog { box-sizing:border-box; width:min(420px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); margin:auto; overflow:auto; }
+.sale-logout-dialog::backdrop { background:#121721a8; backdrop-filter:blur(4px); }
+.sale-logout-dialog h2 { padding-right:0; font-size:23px; line-height:1.3; }
+.sale-logout-actions { display:flex; gap:12px; margin-top:22px; }
+.sale-logout-actions button { flex:1; min-width:0; min-height:46px; padding:10px 14px; border:1px solid #d7dce4; border-radius:10px; background:#fff; color:#344054; font:inherit; font-weight:700; cursor:pointer; }
+.sale-logout-actions button:last-child { border-color:#d00000; background:#d00000; color:#fff; }
+.sale-logout-actions button:disabled { opacity:.65; cursor:wait; }
+.sale-logout-actions button:focus-visible { outline:2px solid #c90000; outline-offset:3px; }
 .menu_mobi_add .header-actions { justify-content:flex-start; padding:14px 20px; gap:10px; flex-wrap:wrap; }
 .menu_mobi_add .header-actions .hotline { font-size:16px; padding:0 0 0 27px; }
 .menu_mobi_add .menu-coming-soon { display:block; margin-left:20px; padding:9px 20px; color:#6b7280; font:15px 'body',Arial,sans-serif; }
