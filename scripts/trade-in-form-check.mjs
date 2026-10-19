@@ -52,7 +52,26 @@ try {
       for (const [key, asset] of fixtureAssets) if (url.pathname.endsWith(key)) return route.fulfill(asset);
       return ['127.0.0.1', 'localhost'].includes(url.hostname) ? route.continue() : route.abort();
     });
-    await page.goto(`${base}/${service}`, { waitUntil: 'networkidle' });
+    if(selling&&!appearanceOnly){
+      const previousSubmissions=submissions.length;
+      if(width>960){
+      await page.goto(`${base}/`,{waitUntil:'networkidle'});
+      const quickForm=page.locator('.banxe form');
+      await quickForm.locator('select[name="hangxe_lendoi"]').selectOption('toyota');
+      await quickForm.locator('select[name="dongxe_lendoi"] option[value="vios"]').waitFor({state:'attached'});
+      await quickForm.locator('select[name="dongxe_lendoi"]').selectOption('vios');
+      await quickForm.locator('[type="submit"]').click();
+      await page.waitForURL(url=>url.pathname==='/ban-xe'&&url.searchParams.get('hang-xe')==='toyota'&&url.searchParams.get('dong-xe')==='vios');
+      }else{
+        // The existing responsive layout hides the home quick form on mobile.
+        // Verify that its generated destination also restores selections there.
+        await page.goto(`${base}/ban-xe?hang-xe=toyota&dong-xe=vios`,{waitUntil:'networkidle'});
+      }
+      await page.waitForFunction(()=>document.querySelector('.tt-trade-in-form select[name="dongxe_lendoi"]')?.value==='vios');
+      assert.equal(await page.locator('.tt-trade-in-form select[name="hangxe_lendoi"]').inputValue(),'toyota');
+      await page.locator('.tt-trade-in-form select[name="phienban_lendoi"] option[value="e-at"]').waitFor({state:'attached'});
+      assert.equal(submissions.length,previousSubmissions,'The home form only navigates; it must not send an incomplete lead');
+    }else await page.goto(`${base}/${service}`, { waitUntil: 'networkidle' });
     const panel = page.locator('.tt-trade-in-form'), form = panel.locator('form'); await panel.scrollIntoViewIfNeeded();
     assert.equal(await panel.locator('h2').textContent(), 'Nhập thông tin chi tiết xe của bạn');
     assert.equal(await panel.locator('.tt-trade-in-form__eyebrow').innerText(), selling ? 'Bán xe' : 'Lên đời');
@@ -61,6 +80,8 @@ try {
     assert.equal(await form.locator('.tt-trade-in-form__next').count(), 0);
     assert.equal(await form.locator('.tt-trade-in-form__control').count(), selling ? 6 : 8);
     assert.equal(await form.locator('label').count(), selling ? 6 : 8);
+    assert.equal(await form.locator('select[required],input[required]').count(),selling?6:8);
+    assert.equal(await form.getAttribute('novalidate'),null);
     assert.equal(await form.locator('.thanhtrai,input[type="submit"]').count(), 0);
     assert.equal(await form.locator('input[type="hidden"][name="submit-laithu"]').count(), 1);
     const layout = await form.evaluate(el => ({ columns: getComputedStyle(el.querySelector('.row')).gridTemplateColumns.split(' ').length, controls: [...el.querySelectorAll('.form-control')].map(input => ({ height: input.getBoundingClientRect().height, padding: parseFloat(getComputedStyle(input).paddingLeft) })), overflow: document.documentElement.scrollWidth > innerWidth + 1 }));
@@ -95,6 +116,20 @@ try {
         await form.locator('select[name="dongxe_lendoimm"] option[value="vios"]').waitFor({ state: 'attached' });
         await form.getByLabel('Dòng xe mong muốn', { exact: true }).selectOption('vios');
       }
+      const requiredFields=['hangxe_lendoi','dongxe_lendoi','phienban_lendoi','nsx_lendoi','km','dienthoai',...(!selling?['hangxe_lendoimm','dongxe_lendoimm']:[])];
+      for(const name of requiredFields){
+        const control=form.locator(`[name="${name}"]`),value=await control.inputValue();
+        await control.evaluate(el=>{el.value='';});
+        await form.getByRole('button',{name:'Gửi thông tin',exact:true}).click();
+        assert.equal(submissions.length,before,`Missing ${name} must block submission`);
+        await control.evaluate((el,value)=>{el.value=value;},value);
+      }
+      await form.getByLabel('Số điện thoại',{exact:true}).fill('abcdefghi');
+      await form.getByRole('button',{name:'Gửi thông tin',exact:true}).click();
+      await page.getByText('Vui lòng nhập số điện thoại Việt Nam hợp lệ.',{exact:true}).waitFor();
+      assert.equal(submissions.length,before);
+      await page.getByRole('button',{name:'Đóng',exact:true}).click();
+      await form.getByLabel('Số điện thoại',{exact:true}).fill('0901234567');
       await form.getByRole('button', { name: 'Gửi thông tin', exact: true }).click();
       await page.getByText('Đã gửi yêu cầu. Nhân viên Toàn Trung sẽ liên hệ với bạn.', { exact: true }).waitFor();
       assert.deepEqual(submissions.at(-1), { type: selling ? 'sell' : 'trade_in', phone: '0901234567', offeredBrand: 'Toyota', offeredModel: 'Vios', offeredYear: '2024', offeredVersion: 'E AT', offeredMileage: '1000000', ...(!selling ? { desiredCar: 'Toyota Vios' } : {}) });

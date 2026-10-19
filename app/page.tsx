@@ -43,7 +43,7 @@ export default async function HomePage() {
     getRequestPublicPage('/'),
     Promise.all(services.map(service => publicApi<ServiceStep[]>('/content', { group: `thiet-lap-cac-buoc-${service.key}` }))),
     publicApi<PageResult<Article>>('/articles', { limit: 3 }),
-    publicApi<PageResult<Accessory>>('/accessories', { limit: 100 }).catch(() => null),
+    publicApi<PageResult<Accessory>>('/accessories', { limit: 12 }).catch(() => null),
   ]);
   if (!page) return null;
   return perfSync('cheerio.transform', 'home-component', () => {

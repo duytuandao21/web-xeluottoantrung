@@ -167,6 +167,50 @@ export default function SiteInteractions() {
       update();cleanups.push(()=>fill.remove());
     }
     const notify=(text:string)=>setDialog({html:`<p>${text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}</p>`});
+    const catalogRequests=new WeakMap<HTMLSelectElement,AbortController>();
+    const activeCatalogRequests=new Set<AbortController>();
+    const submittingForms=new WeakSet<HTMLFormElement>();
+    cleanups.push(()=>activeCatalogRequests.forEach(controller=>controller.abort()));
+    const resetSelect=(select:HTMLSelectElement,label:string)=>{
+      catalogRequests.get(select)?.abort();
+      select.replaceChildren(new Option(label,''));
+    };
+    const loadVersions=async(select:HTMLSelectElement)=>{
+      const version=select.form?.elements.namedItem('phienban_lendoi');
+      if(!(version instanceof HTMLSelectElement))return;
+      resetSelect(version,'Chọn phiên bản');
+      const modelId=select.value;
+      if(!modelId)return;
+      const controller=new AbortController();catalogRequests.set(version,controller);activeCatalogRequests.add(controller);
+      try{
+        const result=await getPublic<{data:{id:string;name:string}[]}>(`/lookups/car-versions?modelId=${encodeURIComponent(modelId)}&limit=100`,{signal:controller.signal});
+        if(controller.signal.aborted||!select.isConnected||select.value!==modelId)return;
+        for(const item of result.data)version.add(new Option(item.name,item.id));
+      }catch(error){if(!controller.signal.aborted)notify(error instanceof Error?error.message:'Không thể tải phiên bản xe.');}
+      finally{activeCatalogRequests.delete(controller);}
+    };
+    const loadModels=async(select:HTMLSelectElement,preferredModel='')=>{
+      const desired=select.name==='hangxe_lendoimm';
+      const model=select.form?.elements.namedItem(desired?'dongxe_lendoimm':'dongxe_lendoi');
+      const version=select.form?.elements.namedItem('phienban_lendoi');
+      if(!(model instanceof HTMLSelectElement))return;
+      catalogRequests.get(select)?.abort();
+      resetSelect(model,'Chọn dòng xe');
+      if(!desired&&version instanceof HTMLSelectElement)resetSelect(version,'Chọn phiên bản');
+      const slug=select.value;
+      if(!slug)return;
+      const controller=new AbortController();catalogRequests.set(select,controller);activeCatalogRequests.add(controller);
+      try{
+        const models=await getPublic<{id:string;name:string}[]>(`/brands/${encodeURIComponent(slug)}/models`,{signal:controller.signal});
+        if(controller.signal.aborted||!select.isConnected||select.value!==slug)return;
+        for(const item of models)model.add(new Option(item.name,item.id));
+        if(preferredModel&&models.some(item=>item.id===preferredModel)){
+          model.value=preferredModel;
+          if(!desired)await loadVersions(model);
+        }
+      }catch(error){if(!controller.signal.aborted)notify(error instanceof Error?error.message:'Không thể tải dòng xe.');}
+      finally{activeCatalogRequests.delete(controller);}
+    };
     let activeFilterTrigger:HTMLButtonElement|null=null;
     let filterPositionFrame=0;
     let filterHoverCloseTimer=0;
@@ -400,13 +444,21 @@ export default function SiteInteractions() {
       }
       form.classList.add('was-validated');if(!form.checkValidity()){form.reportValidity();return;}
       if(form.matches('.validation-laithu,.validation-contact')) {
+        if(submittingForms.has(form))return;
         const values=new FormData(form);
         const text=(name:string)=>{
           const element=form.elements.namedItem(name);
-          return element instanceof HTMLSelectElement ? element.selectedOptions[0]?.textContent?.trim()||'' : String(values.get(name)||'').trim();
+          return element instanceof HTMLSelectElement ? element.value.trim()?element.selectedOptions[0]?.textContent?.trim()||'':'' : String(values.get(name)||'').trim();
         };
         const phone=String(values.get('dienthoai')||'').trim();
+        if(form.matches('.validation-laithu')){
+          const requiredFields=['hangxe_lendoi','dongxe_lendoi','phienban_lendoi','nsx_lendoi','km','dienthoai',...(pathname==='/len-doi'?['hangxe_lendoimm','dongxe_lendoimm']:[])];
+          const missing=requiredFields.find(name=>!String(values.get(name)||'').trim());
+          if(missing){(form.elements.namedItem(missing) as HTMLElement|null)?.focus();notify('Vui lòng nhập đầy đủ thông tin xe và số điện thoại trước khi gửi.');return;}
+          if(!/^(?:\+84|0)[0-9]{9,10}$/.test(phone.replace(/[()\s.-]/g,''))){notify('Vui lòng nhập số điện thoại Việt Nam hợp lệ.');return;}
+        }
         const button=form.querySelector<HTMLButtonElement>('button[type="submit"],input[type="submit"]');
+        submittingForms.add(form);
         if(button)button.disabled=true;
         const payload=form.matches('.validation-laithu') ? {
           type:form.closest('.wap_lendoi') && pathname==='/len-doi' ? 'trade_in' : 'sell', phone,
@@ -417,10 +469,15 @@ export default function SiteInteractions() {
           carName:document.querySelector('.right-pro-detail .name_sp')?.textContent?.trim()||undefined };
         void submitPublic('/leads',payload).then(()=>{form.reset();notify('Đã gửi yêu cầu. Nhân viên Toàn Trung sẽ liên hệ với bạn.');})
           .catch(error=>notify(error instanceof Error?error.message:'Không thể gửi yêu cầu. Vui lòng thử lại.'))
-          .finally(()=>{if(button)button.disabled=false;});
+          .finally(()=>{submittingForms.delete(form);if(button)button.disabled=false;});
         return;
       }
-      if(form.closest('.banxe')){window.location.href='/ban-xe';return;}
+      if(form.closest('.banxe')){
+        const values=new FormData(form);
+        const brand=String(values.get('hangxe_lendoi')||'').trim(),model=String(values.get('dongxe_lendoi')||'').trim();
+        if(!brand||!model){notify('Vui lòng chọn hãng xe và dòng xe.');return;}
+        window.location.href=`/ban-xe?${new URLSearchParams({'hang-xe':brand,'dong-xe':model})}`;return;
+      }
       notify('Hiện chưa thể gửi yêu cầu trực tuyến. Vui lòng liên hệ 0777393913 để được hỗ trợ.');
     };
     const change=(event:Event)=>{
@@ -436,31 +493,19 @@ export default function SiteInteractions() {
       const form=select.form;
       if(!form)return;
       if(select.name==='hangxe_lendoi'||select.name==='hangxe_lendoimm'){
-        const desired=select.name==='hangxe_lendoimm';
-        const model=form.elements.namedItem(desired?'dongxe_lendoimm':'dongxe_lendoi');
-        const version=form.elements.namedItem('phienban_lendoi');
-        if(!(model instanceof HTMLSelectElement))return;
-        model.replaceChildren(new Option('Chọn dòng xe',''));
-        if(!desired && version instanceof HTMLSelectElement)version.replaceChildren(new Option('Chọn phiên bản',''));
-        const slug=select.value;
-        if(!slug)return;
-        void getPublic<{id:string;name:string}[]>(`/brands/${encodeURIComponent(slug)}/models`).then(models=>{
-          if(select.value!==slug)return;
-          for(const item of models)model.add(new Option(item.name,item.id));
-        }).catch(error=>notify(error instanceof Error?error.message:'Không thể tải dòng xe.'));
+        void loadModels(select);
       }
       if(select.name==='dongxe_lendoi'){
-        const version=form.elements.namedItem('phienban_lendoi');
-        if(!(version instanceof HTMLSelectElement))return;
-        version.replaceChildren(new Option('Chọn phiên bản',''));
-        const modelId=select.value;
-        if(!modelId)return;
-        void getPublic<{data:{id:string;name:string}[]}>(`/lookups/car-versions?modelId=${encodeURIComponent(modelId)}&limit=100`).then(result=>{
-          if(select.value!==modelId)return;
-          for(const item of result.data)version.add(new Option(item.name,item.id));
-        }).catch(error=>notify(error instanceof Error?error.message:'Không thể tải phiên bản xe.'));
+        void loadVersions(select);
       }
     };
+    if(pathname==='/ban-xe'||pathname==='/len-doi'){
+      const brand=document.querySelector<HTMLSelectElement>('.tt-trade-in-form select[name="hangxe_lendoi"]');
+      const brandSlug=query.get('hang-xe'),modelId=query.get('dong-xe');
+      if(brand&&brandSlug&&modelId&&Array.from(brand.options).some(option=>option.value===brandSlug)){
+        brand.value=brandSlug;void loadModels(brand,modelId);
+      }
+    }
     const keys=(e:KeyboardEvent)=>{
       if(['Enter',' '].includes(e.key) && (e.target as HTMLElement).matches('.wap_dichvu .cap1 [role="tab"],.wap_dichvu2 .cap1 [role="tab"]')){e.preventDefault();(e.target as HTMLElement).click();return;}
       if(e.key==='Escape'){

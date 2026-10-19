@@ -7,6 +7,7 @@ export function styleServiceForm($: ReturnType<typeof load>, service: '/ban-xe' 
   const panel = $('.lendoi_r').first();
   const form = panel.find('form.validation-laithu').first();
   if (!form.length) return;
+  form.removeAttr('novalidate');
   const selling = service === '/ban-xe';
   const headingId = selling ? 'selling-form-heading' : 'trade-in-form-heading';
   panel.addClass('tt-trade-in-form').attr({ role: 'region', 'aria-labelledby': headingId });
@@ -28,7 +29,7 @@ export function styleServiceForm($: ReturnType<typeof load>, service: '/ban-xe' 
     const field = $(element), control = field.children('select,input:not([type="hidden"])').first();
     if (!control.length) return;
     const name = control.attr('name') || '', id = control.attr('id') || `trade-in-${name}`;
-    control.attr('id', id);
+    control.attr({ id, required: 'required' });
     const oldLabel = field.children('p').first();
     oldLabel.replaceWith($('<label></label>').attr('for', id).text(oldLabel.text()));
     const icon = $('<span class="tt-trade-in-form__field-icon" aria-hidden="true"></span>');
