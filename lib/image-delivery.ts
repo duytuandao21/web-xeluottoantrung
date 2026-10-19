@@ -106,10 +106,35 @@ export const getImageDeliveryUrl = createImageDelivery({
 });
 
 export const getImageOriginalUrl = getImageDeliveryUrl.original;
+export type ImageDimensions = { width?: number | null; height?: number | null };
 type Dimensions = { width: number; height: number; animated?: boolean };
-export function imageDimensions(src: string): Dimensions | undefined {
+export function imageDimensions(src: string, metadata?: ImageDimensions): Dimensions | undefined {
+  if (metadata && Number.isInteger(metadata.width) && Number.isInteger(metadata.height) &&
+    metadata.width! > 0 && metadata.width! <= 20000 && metadata.height! > 0 && metadata.height! <= 20000)
+    return { width: metadata.width!, height: metadata.height! };
   return Object.prototype.hasOwnProperty.call(localImages, src) ? (localImages as Record<string, Dimensions>)[src]
     : Object.prototype.hasOwnProperty.call(remoteDimensions, src) ? (remoteDimensions as Record<string, Dimensions>)[src] : undefined;
+}
+
+/** Car covers use object-fit:cover (5/4 mobile, 4/3 desktop), plus the existing hover zoom.
+ * Size the whole bitmap, including the cropped part, to avoid upscaling visible pixels. */
+export function carImageSizes(metadata?: ImageDimensions): string | undefined {
+  const dimensions = imageDimensions('', metadata);
+  if (!dimensions) return;
+  const ratio = dimensions.width / dimensions.height;
+  const mobile = Math.max(1, ratio / (5 / 4)) * 1.035;
+  const desktop = Math.max(1, ratio / (4 / 3)) * 1.035;
+  return `(max-width: 490px) calc((100vw - 32px) * ${mobile / 2}), (max-width: 700px) calc((100vw - 64px) * ${mobile / 2}), (max-width: 800px) calc((100vw - 64px) * ${desktop / 2}), ${400 * desktop}px`;
+}
+
+/** Existing gallery thumbnails crop to fixed CSS heights. Include hidden cropped pixels. */
+export function carThumbnailSizes(metadata?: ImageDimensions): string | undefined {
+  const dimensions = imageDimensions('', metadata);
+  if (!dimensions) return;
+  const ratio = dimensions.width / dimensions.height;
+  const mobile = 68 * ratio;
+  const desktop = 84 * ratio;
+  return `(max-width: 376px) max(calc((100vw - 32px) / 3), ${mobile}px), (max-width: 500px) max(calc((100vw - 32px) / 4), ${mobile}px), (max-width: 600px) max(calc((100vw - 32px) / 6), ${mobile}px), (max-width: 960px) max(calc((100vw - 32px) / 6), ${desktop}px), max(128px, ${desktop}px)`;
 }
 
 export type ImageProfile = Exclude<ImageDeliveryKind, 'lightbox'> | 'icon' | 'brand';
@@ -122,13 +147,13 @@ export const IMAGE_SIZES: Record<ImageProfile, string> = {
 };
 
 /** Width descriptors reflect actual scale-down output, deduplicated at source size. */
-export function responsiveImage(src: string, profile: ImageProfile = 'content', sizes = IMAGE_SIZES[profile]) {
+export function responsiveImage(src: string, profile: ImageProfile = 'content', sizes = IMAGE_SIZES[profile], metadata?: ImageDimensions) {
   const original = getImageOriginalUrl(src);
   const kind = profile === 'icon' || profile === 'brand' ? 'logo' : profile;
   // Small brand tiles need at most 192 physical pixels at 3x DPR. Reuse the
   // existing 240px CDN variant, including when source dimensions are unknown.
   const widths = profile === 'brand' ? [240] : widthsByKind[kind];
-  const dimensions = imageDimensions(src);
+  const dimensions = imageDimensions(src, metadata);
   const quality = profile === 'logo' || profile === 'icon' || profile === 'brand' ? 90 : 85;
   if (dimensions?.animated) return { src: original, sizes: undefined, srcSet: undefined, original };
   const fallback = getImageDeliveryUrl({ src, width: widths.at(-1) as ImageDeliveryWidth, quality, kind });

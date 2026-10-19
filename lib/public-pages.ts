@@ -583,10 +583,10 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
   const images = [...car.media].sort((a, b) => Number(b.isCover) - Number(a.isCover) || a.sortOrder - b.sortOrder);
   const gallery = $('.album_pro').first().empty();
   for (const [index, media] of images.entries()) gallery.append($('<a class="MagicZoom" data-zoom-id="Zoom-detail"></a>')
-    .attr({ href: media.url, title }).append($('<img class="cloudzoom no_lazy">').attr({ src: media.url, alt: media.altText || `${title} ${index + 1}` })));
+    .attr({ href: media.url, title }).append($('<img class="cloudzoom no_lazy">').attr({ src: media.url, alt: media.altText || `${title} ${index + 1}`, ...(media.width && media.height ? {'data-image-width': String(media.width), 'data-image-height': String(media.height)} : {}) })));
   const thumbnails = $('.album_pro2').first().empty();
   for (const [index, media] of images.entries()) thumbnails.append($('<p></p>')
-    .append($('<img class="cloudzoom no_lazy">').attr({ src: media.url, alt: media.altText || `${title} ${index + 1}` })));
+    .append($('<img class="cloudzoom no_lazy">').attr({ src: media.url, alt: media.altText || `${title} ${index + 1}`, ...(media.width && media.height ? {'data-image-width': String(media.width), 'data-image-height': String(media.height)} : {}) })));
   $('.breadCrumbs .breadcrumb-item').eq(2).find('a').attr('href', `/${car.brand.slug}`).find('span').text(car.brand.name);
   $('.breadCrumbs .breadcrumb-item').last().find('span').text(title);
   const priceBar = $('.right-pro-detail .gia_sp').first().empty();

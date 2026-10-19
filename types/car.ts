@@ -6,7 +6,7 @@ export interface Car {
   href: string;
   title?: string;
   nameClass: string;
-  images: {src:string;alt:string}[];
+  images: {src:string;alt:string;width?:number|null;height?:number|null}[];
   priceHtml: string;
   price?: number;
   originalPrice?: number | null;

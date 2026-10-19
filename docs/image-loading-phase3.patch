@@ -1,0 +1,40 @@
+diff --git a/components/layout/Footer.tsx b/components/layout/Footer.tsx
+index c4c2e15..85d20eb 100644
+--- a/components/layout/Footer.tsx
++++ b/components/layout/Footer.tsx
+@@ -1,5 +1,6 @@
+ "use client";
+ import ResponsiveImage from '@/components/common/ResponsiveImage';
++import { imageDimensions } from '@/lib/image-delivery';
+ 
+ import { useState, type FormEvent } from 'react';
+ import Link from 'next/link';
+@@ -7,6 +8,14 @@ import type { CallContact, ContentEntry } from '@/lib/public-api';
+ import { submitPublic } from '@/lib/public-client';
+ import { zaloHref } from '@/lib/contact-links';
+ 
++// Footer artwork is below the initial viewport. Defer only images whose
++// existing source ratio reserves their space; new Admin uploads without
++// dimensions retain eager discovery until their metadata is available.
++function footerImageLoading(src: string): 'lazy' | undefined {
++  const dimensions = imageDimensions(src);
++  return dimensions?.width && dimensions.height && !dimensions.animated ? 'lazy' : undefined;
++}
++
+ const serviceLinks = [
+   { label: 'Mua xe', href: '/san-pham' },
+   { label: 'Bán xe', href: '/ban-xe' },
+@@ -79,10 +88,10 @@ export default function Footer({ showrooms, phone, address, zalo, settings, call
+       <div className="tt-footer-wrap">
+         <div className="tt-footer-main">
+           <div className="tt-footer-brand">
+-            <Link href="/" aria-label="Về trang chủ Toàn Trung"><ResponsiveImage profile="logo" sizes="285px" src={logoUrl} alt="Auto Toàn Trung" /></Link>
++            <Link href="/" aria-label="Về trang chủ Toàn Trung"><ResponsiveImage profile="logo" sizes="285px" src={logoUrl} alt="Auto Toàn Trung" loading={footerImageLoading(logoUrl)} /></Link>
+             <p>{value('footerAbout', 'Hệ thống mua bán ô tô đã qua sử dụng, hướng tới trải nghiệm minh bạch, thuận tiện và chuyên nghiệp cho khách hàng.')}</p>
+-            {socials.length > 0 && <div className="tt-footer-social" aria-label="Mạng xã hội">{socials.map(social => <a key={social.id} href={social.link!} target="_blank" rel="noopener noreferrer" aria-label={social.title} title={social.title}>{social.imageUrl ? <ResponsiveImage profile="logo" sizes="24px" src={social.imageUrl} alt="" /> : social.title}</a>)}</div>}
+-            {apps.length > 0 && <div className="tt-footer-apps" aria-label="Tải ứng dụng">{apps.map(app => <a key={app.id} href={app.link!} target="_blank" rel="noopener noreferrer" aria-label={app.title}>{app.imageUrl ? <ResponsiveImage profile="logo" sizes="140px" src={app.imageUrl} alt={app.title} /> : app.title}</a>)}</div>}
++            {socials.length > 0 && <div className="tt-footer-social" aria-label="Mạng xã hội">{socials.map(social => <a key={social.id} href={social.link!} target="_blank" rel="noopener noreferrer" aria-label={social.title} title={social.title}>{social.imageUrl ? <ResponsiveImage profile="logo" sizes="24px" src={social.imageUrl} alt="" loading={footerImageLoading(social.imageUrl)} /> : social.title}</a>)}</div>}
++            {apps.length > 0 && <div className="tt-footer-apps" aria-label="Tải ứng dụng">{apps.map(app => <a key={app.id} href={app.link!} target="_blank" rel="noopener noreferrer" aria-label={app.title}>{app.imageUrl ? <ResponsiveImage profile="logo" sizes="140px" src={app.imageUrl} alt={app.title} loading={footerImageLoading(app.imageUrl)} /> : app.title}</a>)}</div>}
+           </div>
+           <div><h2 className="tt-footer-heading">{value('serviceTitle', 'Dịch vụ')}</h2><FooterLinks links={services} /></div>
+           <div><h2 className="tt-footer-heading">{value('aboutTitle', 'Về Toàn Trung')}</h2><FooterLinks links={about} /></div>

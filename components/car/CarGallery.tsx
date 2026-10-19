@@ -4,9 +4,9 @@ import Slider from 'react-slick';
 import {useResponsiveSettings} from '@/components/common/Carousel';
 import VehicleLightbox from './VehicleLightbox';
 import ResponsiveImage from '@/components/common/ResponsiveImage';
-import { getImageOriginalUrl } from '@/lib/image-delivery';
+import { getImageOriginalUrl, carThumbnailSizes } from '@/lib/image-delivery';
 
-export default function CarGallery({images, subject = 'xe'}:{images:{src:string;alt:string;href:string}[];subject?:string}) {
+export default function CarGallery({images, subject = 'xe'}:{images:{src:string;alt:string;href:string;width?:number|null;height?:number|null}[];subject?:string}) {
   const [main,setMain]=useState<Slider|null>(null);
   const [thumbs,setThumbs]=useState<Slider|null>(null);
   const [openIndex,setOpenIndex]=useState<number|null>(null);
@@ -22,7 +22,7 @@ export default function CarGallery({images, subject = 'xe'}:{images:{src:string;
       {images.map((image,index)=><a className="MagicZoom" key={index} href={getImageOriginalUrl(image.href)} data-gallery="vehicle" data-index={index}><ResponsiveImage profile="gallery" className="cloudzoom no_lazy" src={image.src} alt={image.alt}/></a>)}
     </Slider>
     <Slider className="album_pro2" ref={setThumbs} asNavFor={main??undefined} {...settings}>
-      {images.map((image,index)=><button type="button" key={index} className={`car-gallery__thumbnail${activeIndex===index?' is-active':''}`} aria-label={`Xem ảnh ${index+1}`} aria-pressed={activeIndex===index}><ResponsiveImage profile="thumbnail" className="cloudzoom no_lazy" src={image.src} alt={image.alt}/></button>)}
+      {images.map((image,index)=><button type="button" key={index} className={`car-gallery__thumbnail${activeIndex===index?' is-active':''}`} aria-label={`Xem ảnh ${index+1}`} aria-pressed={activeIndex===index}><ResponsiveImage profile="thumbnail" dimensions={image} sizes={carThumbnailSizes(image)} className="cloudzoom no_lazy" src={image.src} alt={image.alt}/></button>)}
     </Slider>
     {openIndex!==null && images.length>0 && <VehicleLightbox images={images} initialIndex={openIndex} subject={subject} onClose={()=>setOpenIndex(null)}/>}
   </div>;

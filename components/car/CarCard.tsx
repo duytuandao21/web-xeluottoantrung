@@ -4,7 +4,7 @@ import parse from 'html-react-parser';
 import { getPublic } from '@/lib/public-client';
 import type { Car } from '@/types/car';
 import ResponsiveImage from '@/components/common/ResponsiveImage';
-import { responsiveImage } from '@/lib/image-delivery';
+import { responsiveImage, carImageSizes } from '@/lib/image-delivery';
 import { observeCardCover } from '@/lib/card-cover-loading';
 import { SalePlate } from '@/components/sale/SaleAccess';
 import { isNewArrival, newArrivalExpiresAt } from '@/lib/car-new-arrival';
@@ -17,7 +17,7 @@ export default function CarCard({car,imageLoading}:{car:Car;imageLoading?:'eager
   return <CarCardState key={JSON.stringify([car.id,car.images])} car={car} imageLoading={imageLoading}/>;
 }
 
-function CardImage({src,alt,loading}:{src:string;alt:string;loading?:'eager'|'lazy'}) {
+function CardImage({src,alt,loading,width,height}:{src:string;alt:string;width?:number|null;height?:number|null;loading?:'eager'|'lazy'}) {
   const [failed,setFailed]=useState(false);
   const imageRef=useRef<HTMLImageElement>(null);
   useEffect(()=>{
@@ -35,12 +35,12 @@ function CardImage({src,alt,loading}:{src:string;alt:string;loading?:'eager'|'la
   },[src]);
   return <>
     {/* Let the browser paint SSR covers without waiting for hydration/decode(). */}
-    <ResponsiveImage ref={imageRef} src={src} profile="card" alt={alt} loading={loading} decoding="async" onError={()=>setFailed(true)} style={failed?{visibility:'hidden'}:undefined}/>
+    <ResponsiveImage ref={imageRef} src={src} profile="card" dimensions={{width,height}} sizes={carImageSizes({width,height})} alt={alt} loading={loading} decoding="async" onError={()=>setFailed(true)} style={failed?{visibility:'hidden'}:undefined}/>
     {failed&&<span className="car-card-gallery__placeholder" role="status">Không tải được ảnh xe</span>}
   </>;
 }
 
-function prepareImage(src:string,signal:AbortSignal):Promise<void> {
+function prepareImage(src:string,signal:AbortSignal,dimensions?:Car['images'][number]):Promise<void> {
   return new Promise((resolve,reject)=>{
     const img=new Image();
     const finish=(error?:Error)=>{
@@ -57,7 +57,7 @@ function prepareImage(src:string,signal:AbortSignal):Promise<void> {
     };
     signal.addEventListener('abort',abort,{once:true});
     if(signal.aborted){abort();return;}
-    const delivery=responsiveImage(src,'card');
+    const delivery=responsiveImage(src,'card',carImageSizes(dimensions),dimensions);
     if(delivery.srcSet)img.srcset=delivery.srcSet;
     if(delivery.sizes)img.sizes=delivery.sizes;
     img.src=delivery.src;
@@ -119,16 +119,16 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
     setGalleryError('');
     try {
     if(!galleryLoaded){
-        const detail=await getPublic<{slug:string;media:{url:string;altText?:string|null}[]}>(`/cars/${encodeURIComponent(car.id)}`,{signal:request.signal});
+        const detail=await getPublic<{slug:string;media:{url:string;altText?:string|null;width?:number|null;height?:number|null}[]}>(`/cars/${encodeURIComponent(car.id)}`,{signal:request.signal});
         if(detail.slug!==car.id)throw new Error('Gallery does not belong to this car');
-        gallery=detail.media.length?detail.media.map(media=>({src:media.url,alt:media.altText||car.name})):car.images;
+        gallery=detail.media.length?detail.media.map(media=>({src:media.url,alt:media.altText||car.name,width:media.width,height:media.height})):car.images;
         // Keep the displayed cover in place if media ordering changed after the list loaded.
         const coverIndex=gallery.findIndex(image=>image.src===images[activeIndex]?.src);
         if(coverIndex>0)gallery=[...gallery.slice(coverIndex),...gallery.slice(0,coverIndex)];
     }
     if(gallery.length<2)return;
     const target=(activeIndex+direction+gallery.length)%gallery.length;
-    await prepareImage(gallery[target].src,request.signal);
+    await prepareImage(gallery[target].src,request.signal,gallery[target]);
     if(request.signal.aborted)return;
     setImages(gallery);setGalleryLoaded(true);
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
@@ -183,7 +183,7 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
             movingRef.current=false;
           }}>
             {/* Only the initial cover may be lazy. Keep adjacent gallery images eager after interaction. */}
-            {[previous,current,next].map((image,index)=><p className="slick-slide" key={index} data-current={index===1} onClick={event=>{if(Date.now()<suppressClickUntilRef.current){event.preventDefault();return;}window.location.href=car.href;}}><CardImage key={image.src} src={image.src} alt={image.alt} loading={galleryLoaded?undefined:imageLoading}/></p>)}
+            {[previous,current,next].map((image,index)=><p className="slick-slide" key={index} data-current={index===1} onClick={event=>{if(Date.now()<suppressClickUntilRef.current){event.preventDefault();return;}window.location.href=car.href;}}><CardImage key={image.src} src={image.src} alt={image.alt} width={image.width} height={image.height} loading={galleryLoaded?undefined:imageLoading}/></p>)}
           </div>
         </div>
         <button type="button" className="slick-arrow slick-prev" disabled={loading||motion!==null} aria-label={`Ảnh trước của ${car.name}`} onClick={()=>void moveImage(-1)}>Previous</button>

@@ -126,7 +126,7 @@ export async function publicApi<T>(path: string, params?: Record<string, string 
 export type PageResult<T> = { data: T[]; meta: { page: number; limit: number; total: number; totalPages: number } };
 export type PublicCar = {
   slug: string; name: string; year: number; price: number; originalPrice?: number | null; mileage?: number | null;
-  status: string; featured?: boolean; fuel?: string | null; cover?: string | null; transmission?: string | null;
+  status: string; featured?: boolean; fuel?: string | null; cover?: string | null; coverWidth?: number | null; coverHeight?: number | null; transmission?: string | null;
   color?: string | null; colorSlug?: string | null; createdAt?: string | null; newArrival?: boolean;
   seatCount?: number | null; branch?: string | null;
   brand: { name: string; slug: string }; model: { name: string; slug: string }; bodyType?: string | null;
@@ -136,7 +136,7 @@ export type CarDetail = Omit<PublicCar, 'cover' | 'transmission' | 'branch'> & {
   description?: string | null; condition?: string | null; seatCount?: number | null;
   version?: string | null; transmission?: string | null; color?: string | null;
   branch?: { name: string; slug: string; address?: string; phone?: string; mapUrl?: string | null; imageUrl?: string | null } | null;
-  media: { url: string; altText?: string | null; isCover: boolean; sortOrder: number }[];
+  media: { url: string; altText?: string | null; isCover: boolean; sortOrder: number; width?: number | null; height?: number | null }[];
   specifications: { key: string; label: string; value: string; sortOrder: number }[];
 };
 export type PublicLookup = { id: string; name: string; slug: string; imageUrl?: string | null; colorCode?: string | null };

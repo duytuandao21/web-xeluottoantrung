@@ -1,13 +1,13 @@
 "use client";
 import { forwardRef, useEffect, useRef, type CSSProperties, type ImgHTMLAttributes } from 'react';
-import { getImageOriginalUrl, imageDimensions, responsiveImage, type ImageProfile } from '@/lib/image-delivery';
+import { getImageOriginalUrl, imageDimensions, responsiveImage, type ImageProfile, type ImageDimensions } from '@/lib/image-delivery';
 
-type Props = ImgHTMLAttributes<HTMLImageElement> & { src: string; profile?: ImageProfile };
+type Props = ImgHTMLAttributes<HTMLImageElement> & { src: string; profile?: ImageProfile; dimensions?: ImageDimensions };
 
 // Same <img>, CSS, attributes and loading lifecycle. Native srcset handles DPR;
 // verified source aspect ratio avoids layout drift from rounded resize heights.
-const ResponsiveImage = forwardRef<HTMLImageElement, Props>(function ResponsiveImage({src,profile='content',sizes,style,srcSet,onError,...props},ref) {
-  const delivery=responsiveImage(src,profile,sizes);
+const ResponsiveImage = forwardRef<HTMLImageElement, Props>(function ResponsiveImage({src,profile='content',sizes,style,srcSet,onError,dimensions:metadata,...props},ref) {
+  const delivery=responsiveImage(src,profile,sizes,metadata);
   const imageRef=useRef<HTMLImageElement>(null);
   useEffect(()=>{
     const image=imageRef.current;
@@ -15,7 +15,7 @@ const ResponsiveImage = forwardRef<HTMLImageElement, Props>(function ResponsiveI
       image.removeAttribute('srcset');image.removeAttribute('sizes');image.src=delivery.original;
     }
   },[delivery.src,delivery.original]);
-  const sourceDimensions=imageDimensions(src);
+  const sourceDimensions=imageDimensions(src,metadata);
   // Multi-frame metadata can expose stacked heights. Preserve native frame sizing.
   const dimensions=sourceDimensions?.animated ? undefined : sourceDimensions;
   const imageStyle=dimensions?.width&&dimensions.height

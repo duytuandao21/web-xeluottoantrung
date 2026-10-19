@@ -56,7 +56,7 @@ export default function Markup({html,cars={}}:{html:string;cars?:Record<string,C
       if(gallery instanceof Element) {
         const images=gallery.children.filter(child=>child instanceof Element && child.name==='a').map(child=>{
           const anchor=child as Element; const img=anchor.children.find(el=>el instanceof Element && el.name==='img') as Element|undefined;
-          return {href:anchor.attribs.href,src:img?.attribs.src || '',alt:img?.attribs.alt || ''};
+          return {href:anchor.attribs.href,src:img?.attribs.src || '',alt:img?.attribs.alt || '',width:Number(img?.attribs['data-image-width'])||undefined,height:Number(img?.attribs['data-image-height'])||undefined};
         });
         return <div {...attributesToProps(node.attribs)}><CarGallery images={images}/>{domToReact(node.children.filter(child=>!(child instanceof Element && ['album_pro','album_pro2'].includes(child.attribs.class))) as DOMNode[],options)}</div>;
       }
