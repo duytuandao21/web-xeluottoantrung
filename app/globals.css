@@ -1152,6 +1152,7 @@ body.ss .item[data-car-id] .car-card-new-arrival { top:auto; bottom:10px; }
   .item[data-car-id] ul li { min-width:0; gap:4px; }
   .item[data-car-id] ul li img { flex:none; width:14px; height:14px; margin:0; object-fit:contain; }
   .item[data-car-id] .car-card-spec__value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .item[data-car-id] li[data-spec="Km"] .car-card-spec__value[title="Chưa cập nhật"] { white-space:normal; overflow:visible; text-overflow:clip; }
   .item[data-car-id] .car-card-spec__unit { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
   .item[data-car-id] li[data-spec="Năm sản xuất"] { grid-column:1; grid-row:1; }
   .item[data-car-id] li[data-spec="Km"] { grid-column:2; grid-row:1; }

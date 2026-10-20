@@ -24,7 +24,7 @@ export function carToCard(car: PublicCar): Car {
     status: car.status === 'deposit' ? 'Đã nhận cọc' : car.status === 'sold' ? 'Đã bán' : '',
     createdAt: car.createdAt, newArrival: car.newArrival, isNewArrival: car.newArrival === true && isNewArrival(car.createdAt),
     specs: [
-      { icon: '/assets/images/km.png', alt: 'Km', text: `${Number(car.mileage || 0).toLocaleString('vi-VN')} km` },
+      { icon: '/assets/images/km.png', alt: 'Km', text: car.mileage == null ? 'Chưa cập nhật' : `${Number(car.mileage).toLocaleString('vi-VN')} km` },
       ...(car.seatCount ? [{ icon: '/assets/images/socho.png', alt: 'Số chỗ', text: `${car.seatCount} chỗ` }] : []),
       { icon: '/assets/images/hopso.png', alt: 'Hộp số', text: car.transmission || '—' },
       { icon: '/assets/images/nhienlieu.png', alt: 'Nhiên liệu', text: car.fuel || '—' },

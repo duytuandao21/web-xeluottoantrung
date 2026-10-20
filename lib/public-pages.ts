@@ -605,7 +605,7 @@ async function detailPage(car: CarDetail, page: LegacyPageData): Promise<LegacyP
   }
   $('.right-pro-detail .name_sp a').first().attr({ href: `/${car.slug}`, title }).text(title);
   const facts = [
-    `${Number(car.mileage || 0).toLocaleString('vi-VN')} km`, car.seatCount ? `${car.seatCount} chỗ` : '—',
+    car.mileage == null ? 'Chưa cập nhật' : `${Number(car.mileage).toLocaleString('vi-VN')} km`, car.seatCount ? `${car.seatCount} chỗ` : '—',
     car.transmission || '—', car.fuel || '—', String(car.year), car.branch?.name || '—',
   ];
   const factKeys = ['mileage', 'seats', 'transmission', 'fuel', 'year', 'branch'];
