@@ -16,6 +16,8 @@ let failure = false;
 let revision = 0;
 let inventoryLimit = 128;
 let tvConfig = null;
+const defaultFixtureConfig = { logoUrl: '', title: 'Bảng giá xe đang bán', hotlineTitle: 'Liên hệ nhận giá tốt',
+  carIntervalSeconds: 15, hotlineIntervalSeconds: 5, syncSalesContacts: true, hotlines: [] };
 let mixedBrands = false;
 const toyotaBrand = { slug: 'toyota', name: 'Toyota', imageUrl: 'https://cdn.toantrungxeluot.io.vn/tv-brands/toyota.png' };
 const brandCatalog = [toyotaBrand,
@@ -54,7 +56,7 @@ const api = http.createServer((request, response) => {
   }
   if (url.pathname.endsWith('/thiet-lap-thong-tin')) return response.end(JSON.stringify([{ key: 'phone', value: '0777262607' }, { key: 'siteName', value: headerOnly ? 'OTO TOAN TRUNG | O TO CU TPHCM | O TO CU GIA LAI' : 'Xe Lướt Toàn Trung' }]));
   if (url.pathname.endsWith('/thiet-lap-logo')) return response.end(JSON.stringify([{ key: 'logo', value: '/upload/photo/logo-tt-gold-6981.webp' }]));
-  if (url.pathname === '/api/v1/site-settings/tv-display') return response.end(JSON.stringify(tvConfig ? [{ key: 'config', value: JSON.stringify(tvConfig) }] : []));
+  if (url.pathname === '/api/v1/site-settings/tv-display') return response.end(JSON.stringify([{ key: 'config', value: JSON.stringify(tvConfig || defaultFixtureConfig) }]));
   if (url.pathname === '/api/v1/content' && url.searchParams.get('group') === 'thiet-lap-nut-goi') return response.end(JSON.stringify([
     { title: 'Sale HCM', body: '(Tư vấn bán hàng (HCM))', phone: '0777262607', status: 'active' },
     { title: 'Sale Gia Lai', body: '(Tư Vấn Bán Hàng (Gia Lai))', phone: '0777393913', status: 'active' },
@@ -110,7 +112,7 @@ try {
     assert.fail('Timed out waiting for a committed TV state');
   };
   const startPositionCheck = page => page.evaluate(() => {
-    const selectors = ['.tv-masthead', '.tv-logo', '.tv-heading h1', '.tv-hotline', '.tv-stage', '.tv-footer', '.tv-brand-ribbon', '.tv-brand-summaries'];
+    const selectors = ['.tv-masthead', '.tv-logo', '.tv-heading h1', '.tv-qr', '.tv-hotline', '.tv-stage', '.tv-footer', '.tv-brand-ribbon', '.tv-brand-summaries'];
     const nodes = selectors.map(selector => document.querySelector(selector));
     const geometry = node => { const b = node.getBoundingClientRect(); return [b.x, b.y, b.width, b.height]; };
     const original = nodes.map(geometry);
@@ -207,16 +209,36 @@ try {
     assert.match(await page.locator('.tv-pagination').innerText(), /128/);
     assert.equal(await page.locator('.tv-pagination > strong').count(), 0, 'page numbers are removed');
     assert.equal(await page.locator('.tv-brand-summary--active').getAttribute('data-brand-count'), '128');
-    const footer = await page.locator('.tv-footer').evaluate(node => {
-      const qr = node.querySelector('.tv-qr img').getBoundingClientRect();
+    const layout = await page.locator('.tv-screen').evaluate(node => {
+      const header = node.querySelector('.tv-masthead').getBoundingClientRect();
+      const footer = node.querySelector('.tv-footer').getBoundingClientRect();
+      const qrImage = node.querySelector('.tv-masthead .tv-qr img');
+      const qr = qrImage.getBoundingClientRect();
+      const qrCaption = node.querySelector('.tv-qr > span').getBoundingClientRect();
       const logo = node.querySelector('.tv-brand-summary--active img').getBoundingClientRect();
-      const bounds = node.getBoundingClientRect();
-      return { qrSize: qr.width, logoSize: logo.width, inside: qr.top >= bounds.top && qr.bottom <= bounds.bottom && qr.right <= bounds.right,
-        labelClipped: [...node.querySelectorAll('.tv-brand-summary--active .tv-brand-summary__count, .tv-website')].some(item => item.scrollWidth > item.clientWidth + 1) };
+      const hotline = node.querySelector('.tv-footer .tv-hotline').getBoundingClientRect();
+      const hotlineParts = [...node.querySelectorAll('.tv-hotline__icon, .tv-hotline > div > span, .tv-hotline__numbers')].map(item => item.getBoundingClientRect());
+      const inside = (box, bounds) => box.top >= bounds.top && box.bottom <= bounds.bottom && box.left >= bounds.left && box.right <= bounds.right;
+      const stage = node.querySelector('.tv-stage').getBoundingClientRect();
+      return { qrSize: qr.width, logoSize: logo.width, qrInside: inside(qr, header) && inside(qrCaption, header), hotlineInside: inside(hotline, footer),
+        headerHeight: header.height,
+        qrLoaded: qrImage.complete && qrImage.naturalWidth > 0, stage: [stage.top, stage.bottom],
+        hotlineOneLine: hotlineParts.every((box, i) => Math.abs(box.top + box.height / 2 - hotlineParts[0].top - hotlineParts[0].height / 2) < 1 && (!i || box.left >= hotlineParts[i - 1].right)),
+        hotlineGaps: hotlineParts.slice(1).map((box, i) => box.left - hotlineParts[i].right),
+        labelClipped: [...node.querySelectorAll('.tv-brand-summary--active .tv-brand-summary__count, .tv-hotline > div > span, .tv-hotline__number--active, .tv-qr > span')].some(item => item.scrollWidth > item.clientWidth + 1) };
     });
-    assert.ok(footer.inside, 'enlarged SVG QR remains wholly inside the unchanged footer');
-    assert.ok(footer.qrSize >= viewport.height * .071 && footer.logoSize >= viewport.width * .064);
-    assert.equal(footer.labelClipped, false);
+    assert.ok(layout.qrInside && layout.qrLoaded, 'larger SVG QR is ready and wholly inside the header');
+    assert.ok(layout.hotlineInside, 'hotline fits the unchanged footer');
+    assert.ok(layout.hotlineOneLine && layout.hotlineGaps.every(gap => gap < viewport.width * .02), 'icon, label and rotating number share one line with compact gaps');
+    assert.ok(layout.qrSize >= viewport.height * (viewport.width > viewport.height ? .139 : .099) && layout.logoSize >= viewport.width * .064);
+    assert.equal(layout.labelClipped, false);
+    const portrait = viewport.height > viewport.width;
+    assert.ok(Math.abs(layout.headerHeight - viewport.height * (portrait ? .13 : .15)) < 1, 'larger QR keeps the header height unchanged');
+    assert.ok(Math.abs(layout.stage[0] - viewport.height * (portrait ? .14 : .166)) < 1 &&
+      Math.abs(layout.stage[1] - viewport.height * (portrait ? .91 : .90)) < 1, 'car region keeps its original bounds');
+    assert.equal(await page.locator('.tv-masthead .tv-hotline, .tv-footer .tv-qr, .tv-website').count(), 0);
+    assert.equal(await page.locator('.tv-qr').count(), 1);
+    assert.doesNotMatch(await page.locator('.tv-screen').innerText(), /Xem thêm xe tại|xeluottoantrung\.com/);
     assert.match(await page.locator('.tv-hotline').innerText(), /0777262607/);
     assert.equal(calls.slice(before).filter(path => path.startsWith('/api/v1/cars?')).length, 2);
     assert.equal(calls.slice(before).length, 7, 'two inventory reads, four shared settings reads and one existing sales contact list');
@@ -225,7 +247,7 @@ try {
     assert.equal(await page.locator('link[rel="icon"]').count(), 1);
     assert.equal(await page.locator('.tv-heading p').count(), 0);
     await page.screenshot({ path: `${artifactDir}/${viewport.width}x${viewport.height}.png` });
-    summaries.push({ viewport, ...data, errors }); assert.deepEqual(errors, []);
+    summaries.push({ viewport, ...data, layout, errors }); assert.deepEqual(errors, []);
     if (checkPositions) {
       const reads = calls.length;
       await startPositionCheck(page);
@@ -404,7 +426,7 @@ try {
     await page.waitForTimeout(150);
     const clipped = await page.locator('.tv-heading h1, .tv-hotline > div > span, .tv-hotline__number--active').evaluateAll(nodes =>
       nodes.filter(node => node.scrollWidth > node.clientWidth + 1).map(node => node.textContent));
-    assert.deepEqual(clipped, [], 'long configured titles and international phones fit their fixed header regions');
+    assert.deepEqual(clipped, [], 'long configured titles and international phones fit their fixed header/footer regions');
     summaries.push({ longConfiguredHeaderFits: 'PASS' });
     await context.close(); tvConfig = null;
   }

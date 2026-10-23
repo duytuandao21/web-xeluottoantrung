@@ -27,17 +27,14 @@ function Icon({ kind }: { kind: 'year' | 'mileage' | 'fuel' | 'phone' }) {
 }
 
 /** The masthead is independent of the two rotating car buffers. */
-const TVMasthead = memo(function TVMasthead({ logoUrl, siteName, title, hotlineTitle, hotlines, hotlineIntervalSeconds, logoRef, brands, children }: {
-  logoUrl: string; siteName: string; title: string; hotlineTitle: string; hotlines: TVHotline[];
-  hotlineIntervalSeconds: number; logoRef: RefObject<HTMLImageElement | null>; brands: TVBrand[]; children: ReactNode;
+const TVMasthead = memo(function TVMasthead({ logoUrl, siteName, title, logoRef, brands, children }: {
+  logoUrl: string; siteName: string; title: string;
+  logoRef: RefObject<HTMLImageElement | null>; brands: TVBrand[]; children: ReactNode;
 }) {
   const headingRef = useRef<HTMLDivElement>(null);
   const headingTextRef = useRef<HTMLHeadingElement>(null);
-  const hotlineTitleRef = useRef<HTMLSpanElement>(null);
   const lastLogo = useRef(logoUrl);
   const logo = useMemo(() => responsiveImage(logoUrl, 'logo', '22vw'), [logoUrl]);
-  const phoneKey = hotlines.map(contact => contact.phone).join('|');
-  const phones = useMemo(() => phoneKey.split('|'), [phoneKey]);
   useEffect(() => {
     if (lastLogo.current === logoUrl) return;
     lastLogo.current = logoUrl;
@@ -49,7 +46,7 @@ const TVMasthead = memo(function TVMasthead({ logoUrl, siteName, title, hotlineT
     let live = true;
     const fit = () => {
       if (!live) return;
-      for (const text of [headingTextRef.current, hotlineTitleRef.current]) {
+      for (const text of [headingTextRef.current]) {
         if (!text?.parentElement) continue;
         text.style.removeProperty('font-size');
         const width = text.clientWidth;
@@ -61,10 +58,9 @@ const TVMasthead = memo(function TVMasthead({ logoUrl, siteName, title, hotlineT
     };
     const observer = new ResizeObserver(fit);
     if (headingRef.current) observer.observe(headingRef.current);
-    if (hotlineTitleRef.current?.parentElement) observer.observe(hotlineTitleRef.current.parentElement);
     void document.fonts.ready.then(fit);
     return () => { live = false; observer.disconnect(); };
-  }, [title, hotlineTitle]);
+  }, [title]);
   return <header className="tv-masthead">
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img ref={logoRef} className="tv-logo" src={logo.src} srcSet={logo.srcSet} sizes={logo.sizes} alt={siteName}
@@ -74,9 +70,42 @@ const TVMasthead = memo(function TVMasthead({ logoUrl, siteName, title, hotlineT
       {brands.map(brand => <div key={brand.slug} className="tv-brand-measure" data-logo={Boolean(brand.imageUrl)} aria-hidden="true">
         <strong>{brand.name}</strong></div>)}
       {children}</div></div>
-    <div className="tv-hotline"><span className="tv-hotline__icon"><Icon kind="phone"/></span><div><span ref={hotlineTitleRef}>{hotlineTitle}</span>
-      <TVHotlineNumbers key={`${phones.join('|')}:${hotlineIntervalSeconds}`} phones={phones} seconds={hotlineIntervalSeconds}/></div></div>
+    <div className="tv-qr"><span>Quét mã<br className="tv-qr__break"/> xem xe</span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/TV/QR-xeluottoantrung.svg" alt="Quét mã QR để xem website Xe Lướt Toàn Trung" width="200" height="200"/>
+    </div>
   </header>;
+});
+
+/** Keep the phone timer independent of the car buffers and their transitions. */
+const TVHotlinePanel = memo(function TVHotlinePanel({ title, hotlines, seconds }: {
+  title: string; hotlines: TVHotline[]; seconds: number;
+}) {
+  const titleRef = useRef<HTMLSpanElement>(null);
+  const phoneKey = hotlines.map(contact => contact.phone).join('|');
+  const phones = useMemo(() => phoneKey.split('|'), [phoneKey]);
+  useEffect(() => {
+    let live = true;
+    const fit = () => {
+      const text = titleRef.current;
+      if (!live || !text) return;
+      text.style.removeProperty('font-size');
+      if (text.clientWidth > 0 && text.scrollWidth > text.clientWidth) {
+        const base = parseFloat(getComputedStyle(text).fontSize);
+        text.style.fontSize = `${base * (text.clientWidth - 2) / text.scrollWidth}px`;
+      }
+    };
+    const observer = new ResizeObserver(fit);
+    // Observe the fixed footer region, not the text's intrinsic flex width.
+    const region = titleRef.current?.closest('.tv-hotline');
+    if (region) observer.observe(region);
+    void document.fonts.ready.then(fit);
+    return () => { live = false; observer.disconnect(); };
+  }, [title]);
+  return <div className="tv-hotline"><span className="tv-hotline__icon"><Icon kind="phone"/></span>
+    <div><span ref={titleRef}>{title}</span>
+      <TVHotlineNumbers key={`${phoneKey}:${seconds}`} phones={phones} seconds={seconds}/></div>
+  </div>;
 });
 
 function CarTile({ car }: { car: TVCar }) {
@@ -148,7 +177,7 @@ function BrandSummary({ batch, summaryRef, active }: { batch: Batch; summaryRef:
   </div>;
 }
 
-export default function TVDisplay({ initial, website, unavailable = false }: { initial: TVSnapshot; website: string; unavailable?: boolean }) {
+export default function TVDisplay({ initial, unavailable = false }: { initial: TVSnapshot; unavailable?: boolean }) {
   const screenRef = useRef<HTMLElement>(null);
   const firstRef = useRef<HTMLDivElement>(null);
   const secondRef = useRef<HTMLDivElement>(null);
@@ -316,10 +345,9 @@ export default function TVDisplay({ initial, website, unavailable = false }: { i
     };
   }, [initial, unavailable]);
 
-  const host = new URL(website).host;
   return <main className="tv-screen" ref={screenRef}>
     <TVMasthead logoUrl={snapshot.logo} siteName={snapshot.siteName} title={snapshot.title}
-      hotlineTitle={snapshot.hotlineTitle} hotlines={snapshot.hotlines} hotlineIntervalSeconds={snapshot.hotlineIntervalSeconds} logoRef={logoRef} brands={displayBrands}>
+      logoRef={logoRef} brands={displayBrands}>
       <BrandBadge batch={slots[0]} badgeRef={firstBrandRef} active={active === 0}/>
       {slots[1] && <BrandBadge batch={slots[1]} badgeRef={secondBrandRef} active={active === 1}/>}
     </TVMasthead>
@@ -335,11 +363,7 @@ export default function TVDisplay({ initial, website, unavailable = false }: { i
           {slots[1] && <BrandSummary batch={slots[1]} summaryRef={secondSummaryRef} active={active === 1}/>}
         </div>
         {stale && <small>Kết nối gián đoạn · Dữ liệu lúc {new Date(snapshot.updatedAt).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit' })}</small>}</div>
-      <p className="tv-website">Xem thêm xe tại <strong>{host}</strong></p>
-      <div className="tv-qr"><span>Quét mã<br/>xem xe</span>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/TV/QR-xeluottoantrung.svg" alt="Quét mã QR để xem website Xe Lướt Toàn Trung" width="100" height="100"/>
-      </div>
+      <TVHotlinePanel title={snapshot.hotlineTitle} hotlines={snapshot.hotlines} seconds={snapshot.hotlineIntervalSeconds}/>
     </footer>
   </main>;
 }
