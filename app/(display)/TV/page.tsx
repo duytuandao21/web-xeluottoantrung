@@ -17,7 +17,7 @@ export default async function TVPage() {
   catch {
     const branding = await getTVBranding();
     return <TVDisplay initial={{ ...branding, ...defaultTVSettings,
-      hotlines: [{ name: branding.siteName, phone: branding.phone }], cars: [], updatedAt: new Date().toISOString() }}
+      hotlines: [{ name: branding.siteName, phone: branding.phone }], cars: [], brands: [], updatedAt: new Date().toISOString() }}
       unavailable website={TV_WEBSITE} />;
   }
 }

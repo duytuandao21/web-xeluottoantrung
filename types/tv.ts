@@ -9,12 +9,15 @@ export type TVCar = {
   cover: string | null;
   coverWidth: number | null;
   coverHeight: number | null;
+  brandSlug: string;
 };
 
+export type TVBrand = { slug: string; name: string; imageUrl: string | null };
 export type TVHotline = { name: string; phone: string };
 
 export type TVSnapshot = {
   cars: TVCar[];
+  brands: TVBrand[];
   logo: string;
   favicon: string;
   phone: string;

@@ -2,7 +2,7 @@ import { responsiveImage } from './image-delivery';
 import type { TVCar } from '@/types/tv';
 
 export const TV_IMAGE_PLACEHOLDER = '/TV/image-unavailable.svg';
-export const TV_PAGE_SIZE = 6;
+export { TV_PAGE_SIZE } from './tv-pages';
 export const TV_INTERVAL = 15_000;
 export const TV_REFRESH_INTERVAL = 300_000;
 
@@ -46,6 +46,10 @@ export function prepareTVImage(image: HTMLImageElement, signal: AbortSignal): Pr
       image.removeAttribute('srcset'); image.removeAttribute('sizes');
       if (fallback === 0 && original && new URL(original, location.href).href !== image.src) {
         fallback = 1; image.src = original; arm();
+      } else if (image.dataset.tvOptional === 'true') {
+        // A missing brand logo leaves the brand name visible, without fetching
+        // a vehicle placeholder or showing a broken image in the ribbon.
+        image.dataset.tvFailed = 'true'; image.style.visibility = 'hidden'; finish();
       } else if (fallback < 2) {
         fallback = 2; image.dataset.tvFailed = 'true';
         image.src = image.dataset.tvFallback || TV_IMAGE_PLACEHOLDER; arm();
@@ -64,6 +68,7 @@ export function prepareTVImage(image: HTMLImageElement, signal: AbortSignal): Pr
     image.addEventListener('error', failed);
     signal.addEventListener('abort', aborted, { once: true });
     if (signal.aborted) return aborted();
+    if (image.dataset.tvOptional === 'true' && image.dataset.tvFailed === 'true') return finish();
     arm();
     if (image.complete) { if (image.naturalWidth) loaded(); else failed(); }
   });

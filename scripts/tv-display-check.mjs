@@ -7,13 +7,25 @@ import { chromium } from 'playwright';
 
 // Production build required. All API data and image bytes below are local fixtures.
 const base = 'http://127.0.0.1:3117';
+const artifactDir = 'artifacts/tv-display';
 const headerOnly = process.argv.includes('--header-only');
+const rotationOnly = process.argv.includes('--rotation-only');
 const checkPositions = !process.argv.includes('--smoke');
 const calls = [];
 let failure = false;
 let revision = 0;
 let inventoryLimit = 128;
 let tvConfig = null;
+let mixedBrands = false;
+const toyotaBrand = { slug: 'toyota', name: 'Toyota', imageUrl: 'https://cdn.toantrungxeluot.io.vn/tv-brands/toyota.png' };
+const brandCatalog = [toyotaBrand,
+  { slug: 'mercedes-benz', name: 'Mercedes-Benz', imageUrl: 'https://cdn.toantrungxeluot.io.vn/tv-brands/mercedes.png' },
+  { slug: 'hyundai', name: 'Hyundai', imageUrl: null }];
+const catalogWithEmptyBrands = [
+  { slug: 'empty-first', name: 'No active cars first', imageUrl: null }, toyotaBrand,
+  { slug: 'empty-middle', name: 'Deposit only', imageUrl: null }, ...brandCatalog.slice(1),
+  { slug: 'empty-last', name: 'No active cars last', imageUrl: null },
+];
 const names = ['Toyota Fortuner 2.4AT', 'Toyota Innova Cross 2.0V', 'Hyundai Santa Fe Dầu Premium',
   'Mercedes-Benz GLB 200 AMG', 'Vinfast VF3 Tiêu chuẩn', 'Ford Everest Titanium Bi-turbo 4x4'];
 const cars = Array.from({ length: 128 }, (_, index) => ({
@@ -22,6 +34,7 @@ const cars = Array.from({ length: 128 }, (_, index) => ({
   originalPrice: index % 2 ? null : 1_290_000_000, mileage: index % 5 ? 48000 + index * 10 : null,
   fuel: index % 3 ? 'Xăng' : 'Dầu', status: 'active', coverWidth: 1200, coverHeight: 800,
   cover: `https://cdn.toantrungxeluot.io.vn/tv-test/tv-car-${index + 1}.jpg`,
+  brand: toyotaBrand,
 }));
 const api = http.createServer((request, response) => {
   const url = new URL(request.url, 'http://fixture');
@@ -32,10 +45,12 @@ const api = http.createServer((request, response) => {
     assert.equal(url.searchParams.get('status'), 'active');
     assert.equal(url.searchParams.get('limit'), '100');
     const page = Number(url.searchParams.get('page'));
-    const selected = cars.slice(0, inventoryLimit);
+    assert.equal(url.searchParams.get('view'), page === 1 ? 'tv' : null);
+    const selected = mixedBrands ? cars.slice(0, 16).map((car, i) => ({ ...car, brand: brandCatalog[i < 8 ? 0 : i < 15 ? 1 : 2] })) : cars.slice(0, inventoryLimit);
     const inventory = revision ? selected.slice(1).map(car => ({ ...car, price: 333_000_000 })) : selected;
     const data = inventory.slice((page - 1) * 100, page * 100);
-    return response.end(JSON.stringify({ data, meta: { page, limit: 100, total: inventory.length, totalPages: Math.ceil(inventory.length / 100) } }));
+    return response.end(JSON.stringify({ data, meta: { page, limit: 100, total: inventory.length, totalPages: Math.ceil(inventory.length / 100),
+      ...(page === 1 ? { tvBrands: mixedBrands ? catalogWithEmptyBrands : [toyotaBrand] } : {}) } }));
   }
   if (url.pathname.endsWith('/thiet-lap-thong-tin')) return response.end(JSON.stringify([{ key: 'phone', value: '0777262607' }, { key: 'siteName', value: headerOnly ? 'OTO TOAN TRUNG | O TO CU TPHCM | O TO CU GIA LAI' : 'Xe Lướt Toàn Trung' }]));
   if (url.pathname.endsWith('/thiet-lap-logo')) return response.end(JSON.stringify([{ key: 'logo', value: '/upload/photo/logo-tt-gold-6981.webp' }]));
@@ -51,7 +66,7 @@ const api = http.createServer((request, response) => {
   return response.end('[]');
 });
 await new Promise((resolve, reject) => { api.once('error', reject); api.listen(4127, '127.0.0.1', resolve); });
-await mkdir('.tmp/tv-display', { recursive: true });
+await mkdir(artifactDir, { recursive: true });
 const output = [];
 const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', '3117', '-H', '127.0.0.1'], {
   env: { ...process.env, API_URL: 'http://127.0.0.1:4127' }, stdio: ['ignore', 'pipe', 'pipe'],
@@ -59,6 +74,7 @@ const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'star
 server.stdout.on('data', chunk => output.push(String(chunk)));
 server.stderr.on('data', chunk => output.push(String(chunk)));
 let browser;
+const watchdog = setTimeout(() => { output.push('TV test watchdog: closing owned browser after 5 minutes.'); void browser?.close(); }, 300000);
 const summaries = [];
 try {
   for (let attempt = 0; attempt < 100; attempt++) {
@@ -68,9 +84,14 @@ try {
   browser = await chromium.launch({ channel: 'chrome', headless: true });
   const photo = await readFile('public/upload/photo/img8444-2-7758.jpg');
   const logo = await readFile('public/upload/photo/logo-tt-gold-6981.webp');
+  const brandLogo = await readFile('public/thumbs/65x35x2/upload/product/png-clipart-toyota-logo-toyota-symbol-logo-transport-cars-removebg-preview-3661.png');
   const createPage = async (viewport = { width: 1920, height: 1080 }, options = {}) => {
     const context = await browser.newContext({ viewport, serviceWorkers: 'block', ...options });
-    await context.route('https://cdn.toantrungxeluot.io.vn/**', route => route.fulfill({ contentType: route.request().url().includes('/tv-test/') ? 'image/jpeg' : 'image/webp', body: route.request().url().includes('/tv-test/') ? photo : logo }));
+    await context.route('https://cdn.toantrungxeluot.io.vn/**', route => {
+      const url = route.request().url();
+      return route.fulfill({ contentType: url.includes('/tv-test/') ? 'image/jpeg' : url.includes('/tv-brands/') ? 'image/png' : 'image/webp',
+        body: url.includes('/tv-test/') ? photo : url.includes('/tv-brands/') ? brandLogo : logo });
+    });
     // The installed production build keeps the user's API rewrite. Block optional
     // storefront client reads here so a layout check cannot contact that origin.
     await context.route(`${base}/api/v1/**`, route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [], meta: { page: 1, limit: 100, total: 0, totalPages: 0 } }) }));
@@ -89,7 +110,7 @@ try {
     assert.fail('Timed out waiting for a committed TV state');
   };
   const startPositionCheck = page => page.evaluate(() => {
-    const selectors = ['.tv-masthead', '.tv-logo', '.tv-heading h1', '.tv-hotline', '.tv-stage', '.tv-footer'];
+    const selectors = ['.tv-masthead', '.tv-logo', '.tv-heading h1', '.tv-hotline', '.tv-stage', '.tv-footer', '.tv-brand-ribbon', '.tv-brand-summaries'];
     const nodes = selectors.map(selector => document.querySelector(selector));
     const geometry = node => { const b = node.getBoundingClientRect(); return [b.x, b.y, b.width, b.height]; };
     const original = nodes.map(geometry);
@@ -98,7 +119,7 @@ try {
     const observer = new MutationObserver(records => {
       mutations += records.filter(record => {
         const node = record.target.nodeType === Node.ELEMENT_NODE ? record.target : record.target.parentElement;
-        return !node?.closest('.tv-hotline__numbers');
+        return !node?.closest('.tv-hotline__numbers, .tv-brand-ribbon');
       }).length;
     });
     observer.observe(nodes[0], { attributes: true, childList: true, characterData: true, subtree: true });
@@ -129,7 +150,7 @@ try {
       cancelAnimationFrame(frame); observer.disconnect();
       return { samples, transitionFrames, maxDelta, maxCardDelta, mutations, blankFrames, unreadyImages, coveredIncomingFrames,
         sameNodes: nodes.every((node, i) => node === document.querySelector(selectors[i])),
-        heading: document.querySelector('.tv-heading').innerText };
+        heading: document.querySelector('.tv-heading h1').innerText };
     };
   });
   const finishPositionCheck = async page => {
@@ -146,7 +167,7 @@ try {
     return result;
   };
 
-  for (const viewport of [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }, { width: 3840, height: 2160 }, { width: 1080, height: 1920 }]) {
+  for (const viewport of (rotationOnly ? [] : [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }, { width: 3840, height: 2160 }, { width: 1080, height: 1920 }])) {
     const { context, page } = await createPage(viewport);
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -176,7 +197,7 @@ try {
         title: document.title,
       };
     });
-    await page.screenshot({ path: `.tmp/tv-display/${viewport.width}x${viewport.height}.png` });
+    await page.screenshot({ path: `${artifactDir}/${viewport.width}x${viewport.height}.png` });
     console.log(JSON.stringify({ viewport, ...data }));
     assert.equal(data.cards, 6); assert.ok(data.loaded); assert.equal(data.extras, 0);
     assert.equal(data.legacyCSS, 0);
@@ -184,6 +205,18 @@ try {
     assert.equal(data.titleClippedVertically, 0);
     assert.ok(data.brands.every(brand => brand.text === brand.expected && brand.preserved && brand.ratio >= 1.17 && brand.stroke > 0), 'only the first word is emphasized, without changing the car name');
     assert.match(await page.locator('.tv-pagination').innerText(), /128/);
+    assert.equal(await page.locator('.tv-pagination > strong').count(), 0, 'page numbers are removed');
+    assert.equal(await page.locator('.tv-brand-summary--active').getAttribute('data-brand-count'), '128');
+    const footer = await page.locator('.tv-footer').evaluate(node => {
+      const qr = node.querySelector('.tv-qr img').getBoundingClientRect();
+      const logo = node.querySelector('.tv-brand-summary--active img').getBoundingClientRect();
+      const bounds = node.getBoundingClientRect();
+      return { qrSize: qr.width, logoSize: logo.width, inside: qr.top >= bounds.top && qr.bottom <= bounds.bottom && qr.right <= bounds.right,
+        labelClipped: [...node.querySelectorAll('.tv-brand-summary--active .tv-brand-summary__count, .tv-website')].some(item => item.scrollWidth > item.clientWidth + 1) };
+    });
+    assert.ok(footer.inside, 'enlarged SVG QR remains wholly inside the unchanged footer');
+    assert.ok(footer.qrSize >= viewport.height * .071 && footer.logoSize >= viewport.width * .064);
+    assert.equal(footer.labelClipped, false);
     assert.match(await page.locator('.tv-hotline').innerText(), /0777262607/);
     assert.equal(calls.slice(before).filter(path => path.startsWith('/api/v1/cars?')).length, 2);
     assert.equal(calls.slice(before).length, 7, 'two inventory reads, four shared settings reads and one existing sales contact list');
@@ -191,7 +224,7 @@ try {
     assert.equal((await page.locator('meta[name="robots"]').getAttribute('content')), 'noindex, nofollow');
     assert.equal(await page.locator('link[rel="icon"]').count(), 1);
     assert.equal(await page.locator('.tv-heading p').count(), 0);
-    await page.screenshot({ path: `.tmp/tv-display/${viewport.width}x${viewport.height}.png` });
+    await page.screenshot({ path: `${artifactDir}/${viewport.width}x${viewport.height}.png` });
     summaries.push({ viewport, ...data, errors }); assert.deepEqual(errors, []);
     if (checkPositions) {
       const reads = calls.length;
@@ -211,6 +244,120 @@ try {
   }
 
   if (!process.argv.includes('--smoke') && !headerOnly) {
+  // Brand boundary, partial pages, next-logo readiness, and repeated buffers.
+  {
+    mixedBrands = true;
+    const { context, page } = await createPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    let release;
+    const gate = new Promise(resolve => { release = resolve; });
+    await context.route(/tv-brands\/mercedes\.png/, async route => {
+      await gate; await route.fulfill({ contentType: 'image/webp', body: logo }).catch(() => {});
+    });
+    await page.clock.install();
+    const readsBefore = calls.length;
+    await page.goto(`${base}/TV`); await page.clock.runFor(1800);
+    await page.locator('.tv-stage[data-ready="true"]').waitFor();
+    assert.equal(calls.length - readsBefore, 6, 'one inventory request plus existing settings/contacts; no brand request');
+    const reads = calls.length;
+    await startPositionCheck(page);
+    const check = async (brand, slugs) => {
+      await pumpUntil(page, async () => await page.locator(`.tv-board--active [data-car-slug="tv-car-${slugs[0]}"]`).count() === 1);
+      assert.equal(await page.locator('.tv-brand--active').getAttribute('data-brand-slug'), brand);
+      assert.equal(await page.locator('.tv-brand-summary--active').getAttribute('data-brand-slug'), brand);
+      assert.equal(await page.locator('.tv-brand-summary--active').getAttribute('data-brand-count'), String(brand === 'toyota' ? 8 : brand === 'mercedes-benz' ? 7 : 1));
+      assert.match(await page.locator('.tv-brand-summary--active').innerText(), /^\d+ xe đang bán$/);
+      assert.ok(await page.locator('.tv-brand-summary--active img').evaluateAll(images => images.every(image => image.dataset.tvFailed === 'true' || image.complete && image.naturalWidth > 0)));
+      if (await page.locator('.tv-brand-summary--active img').count())
+        assert.equal(await page.locator('.tv-brand-summary--active img').evaluate(image => image.currentSrc),
+          await page.locator('.tv-brand--active img').evaluate(image => image.currentSrc), 'reuse the same logo candidate');
+      assert.deepEqual(await page.locator('.tv-board--active [data-car-slug]').evaluateAll(nodes => nodes.map(node => Number(node.dataset.carSlug.split('-').at(-1)))), slugs);
+      assert.ok(await page.locator('.tv-brand--active img').evaluateAll(images => images.every(image => image.dataset.tvFailed === 'true' || image.complete && image.naturalWidth > 0)));
+      assert.equal(await page.locator('.tv-brand--active strong').evaluate(node => node.scrollWidth > node.clientWidth + 1), false);
+      assert.doesNotMatch(await page.locator('.tv-brand--active').innerText(), /Hãng/i);
+      assert.equal(calls.length, reads);
+    };
+    await check('toyota', [1, 2, 3, 4, 5, 6]);
+    await page.clock.runFor(16500); await check('toyota', [7, 8]);
+    // Next brand's cars are ready, but its logo is still held. Keep current pair.
+    await page.clock.runFor(16500);
+    assert.equal(await page.locator('.tv-brand--active').getAttribute('data-brand-slug'), 'toyota');
+    assert.equal(await page.locator('.tv-board--active [data-tv-card]').count(), 2);
+    release(); await check('mercedes-benz', [9, 10, 11, 12, 13, 14]);
+    await page.clock.runFor(16500); await check('mercedes-benz', [15]);
+    await page.clock.runFor(16500); await check('hyundai', [16]);
+    await page.screenshot({ path: `${artifactDir}/brand-partial.png` });
+    await page.clock.runFor(16500); await check('toyota', [1, 2, 3, 4, 5, 6]);
+    for (let cycle = 0; cycle < 2; cycle++) {
+      for (const [brand, slugs] of [['toyota', [7, 8]], ['mercedes-benz', [9, 10, 11, 12, 13, 14]],
+        ['mercedes-benz', [15]], ['hyundai', [16]], ['toyota', [1, 2, 3, 4, 5, 6]]]) {
+        await page.clock.runFor(16500); await check(brand, slugs);
+      }
+    }
+    assert.equal(await page.locator('.tv-brand-measure').count(), 3, 'empty brands do not enter the header or rotation');
+    assert.equal(await page.locator('.tv-pagination > strong').count(), 0);
+    const stable = await finishPositionCheck(page);
+    assert.deepEqual(errors, []);
+    summaries.push({ brandCycle: 'PASS', completeCycles: 3, skipsEmptyBrands: 'PASS', pages: [6, 2, 6, 1, 1], slowBrandLogoHoldsPreviousPage: 'PASS', noBrandRotationRequests: true, stable });
+    // Exercise new server props without remounting the TV client component.
+    // Next's installed publicAppRouterInstance is exposed here for diagnostics.
+    const beforeServerRefresh = calls.length;
+    const beforeRefreshToken = await page.locator('.tv-board--active').getAttribute('data-token');
+    const serverRefresh = page.waitForResponse(response => new URL(response.url()).pathname === '/TV' &&
+      response.request().headers()['rsc'] === '1' && response.status() === 200);
+    await page.evaluate(() => window.next.router.refresh());
+    // A Flight stream may stay open after React commits the new server props.
+    // Wait for the matching active buffer rather than response.finished().
+    await serverRefresh;
+    await pumpUntil(page, async () => await page.locator('.tv-board--active').getAttribute('data-token') !== beforeRefreshToken &&
+      await page.locator('.tv-stage').getAttribute('data-ready') === 'true' &&
+      await page.locator('.tv-board--active [data-car-slug="tv-car-1"]').count() === 1);
+    await page.clock.runFor(16500);
+    await pumpUntil(page, async () => await page.locator('.tv-board--active [data-car-slug="tv-car-7"]').count() === 1);
+    assert.equal(calls.length - beforeServerRefresh, 6, 'only the requested server refresh reads');
+    assert.deepEqual(errors, []);
+    summaries.push({ newServerPropsDoNotFreezeRotation: 'PASS' });
+    await context.close();
+    // Broken transform + original logo hides only the optional logo.
+    const broken = await createPage();
+    await broken.context.route(/tv-brands\/toyota\.png/, route => route.fulfill({ status: 404, body: '' }));
+    await broken.page.goto(`${base}/TV`);
+    await broken.page.locator('.tv-stage[data-ready="true"]').waitFor();
+    assert.equal(await broken.page.locator('.tv-brand--active img[data-tv-failed="true"]').count(), 1);
+    assert.equal(await broken.page.locator('.tv-brand--active strong').innerText(), 'TOYOTA');
+    summaries.push({ optionalBrandLogoFailure: 'PASS' });
+    await broken.context.close(); mixedBrands = false;
+  }
+  // A long carousel crosses the five-minute refresh without restarting at page 0.
+  {
+    mixedBrands = true;
+    tvConfig = { logoUrl: '', title: 'Bảng giá xe đang bán', hotlineTitle: 'Hotline',
+      carIntervalSeconds: 300, hotlineIntervalSeconds: 120, syncSalesContacts: true, hotlines: [] };
+    const { context, page } = await createPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.clock.install();
+    await page.goto(`${base}/TV`); await page.clock.runFor(1800);
+    await page.locator('.tv-stage[data-ready="true"]').waitFor();
+    for (let cycle = 0; cycle < 2; cycle++) {
+      for (const expected of [7, 9, 15, 16, 1]) {
+        const reads = calls.length;
+        const refreshed = page.waitForResponse(response => response.url().endsWith('/api/tv') && response.status() === 200);
+        await page.clock.fastForward(300100);
+        await (await refreshed).json();
+        await pumpUntil(page, async () => await page.locator(`.tv-board--active [data-car-slug="tv-car-${expected}"]`).count() === 1);
+        assert.equal(calls.length - reads, 6, 'only the existing five-minute refresh reads');
+        const showing = await page.locator('.tv-brand--active').getAttribute('data-brand-slug');
+        assert.equal(showing, expected <= 8 ? 'toyota' : expected <= 15 ? 'mercedes-benz' : 'hyundai');
+        assert.equal(await page.locator('.tv-brand-summary--active').getAttribute('data-brand-slug'), showing);
+      }
+    }
+    assert.deepEqual(errors, []);
+    summaries.push({ cyclesAcrossRefresh: 'PASS', completeCycles: 2, refreshes: 10, skipsEmptyBrands: 'PASS' });
+    await context.close(); mixedBrands = false; tvConfig = null;
+  }
+  if (!rotationOnly) {
   // Separate clocks: phones change every 5s without moving cars or fetching data.
   {
     const { context, page } = await createPage();
@@ -280,6 +427,7 @@ try {
     await context.close();
   }
 
+  }
   // Accelerated five-minute wall clock, while requests and GSAP still run normally.
   {
     const { context, page } = await createPage();
@@ -294,11 +442,13 @@ try {
     const refreshed = page.waitForResponse(response => response.url().endsWith('/api/tv') && response.status() === 200);
     await page.clock.fastForward(300100);
     assert.equal((await (await refreshed).json()).cars.length, 127);
-    await pumpUntil(page, async () => (await page.locator('.tv-pagination').innerText()).includes('127'));
+    // During the crossfade, the incoming footer text is visible before the
+    // active-class handoff. Wait for the committed summary, not that text.
+    await pumpUntil(page, async () => await page.locator('.tv-brand-summary--active').getAttribute('data-brand-count') === '127');
     assert.match(await page.locator('.tv-pagination').innerText(), /127/);
     assert.equal(await page.locator('.tv-board--active [data-car-slug="tv-car-1"]').count(), 0);
     assert.match(await page.locator('.tv-board--active .tv-car__price').first().innerText(), /333/);
-    await pumpUntil(page, async () => await page.locator('.tv-heading').innerText() === 'CẬP NHẬT TV');
+    await pumpUntil(page, async () => await page.locator('.tv-heading h1').innerText() === 'CẬP NHẬT TV');
     await pumpUntil(page, async () => (await page.locator('.tv-logo').getAttribute('src')).includes('logo-tt-gold-6981.webp'));
     assert.equal(await page.locator('.tv-hotline__number--active').innerText(), '0901111222');
     failure = true;
@@ -313,6 +463,7 @@ try {
     await context.close();
   }
 
+  if (!rotationOnly) {
   // Reuse both animation buffers, reach the partial last page, then wrap cleanly.
   {
     inventoryLimit = 13;
@@ -360,12 +511,14 @@ try {
     await context.close();
   }
   }
-  await writeFile(`.tmp/tv-display/${headerOnly ? 'header-results' : process.argv.includes('--smoke') ? 'smoke-results' : 'results'}.json`, JSON.stringify(summaries, null, 2));
+  }
+  await writeFile(`${artifactDir}/${rotationOnly ? 'rotation-results' : headerOnly ? 'header-results' : process.argv.includes('--smoke') ? 'smoke-results' : 'results'}.json`, JSON.stringify(summaries, null, 2));
   console.log(JSON.stringify(summaries, null, 2));
 } finally {
+  clearTimeout(watchdog);
   await browser?.close();
   server.kill();
   if (server.exitCode === null) await Promise.race([once(server, 'exit'), new Promise(resolve => setTimeout(resolve, 3000))]);
   await new Promise(resolve => api.close(resolve));
-  await writeFile('.tmp/tv-display/server.log', output.join(''));
+  await writeFile(`${artifactDir}/server.log`, output.join(''));
 }
