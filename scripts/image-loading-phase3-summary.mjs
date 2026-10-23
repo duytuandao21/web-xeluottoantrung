@@ -53,7 +53,7 @@ function heroRequests(run) {
       priorities: [...new Set(c.requests.filter(r => r.url.includes(path)).map(r => r.priority))] })),
   }));
 }
-const protectedFiles = ['components/layout/Footer.tsx', 'components/common/Carousel.tsx', 'components/common/ResponsiveImage.tsx', 'components/common/Markup.tsx', 'lib/image-delivery.ts', 'lib/public-pages.ts', 'lib/public-api.ts', 'app/page.tsx', 'app/layout.tsx', 'app/globals.css', 'public/assets/css/style.css', 'next.config.ts', 'package.json', 'package-lock.json'];
+const protectedFiles = ['components/layout/Footer.tsx', 'components/common/Carousel.tsx', 'components/common/ResponsiveImage.tsx', 'components/common/Markup.tsx', 'lib/image-delivery.ts', 'lib/public-pages.ts', 'lib/public-api.ts', 'app/(website)/page.tsx', 'app/(website)/layout.tsx', 'app/globals.css', 'public/assets/css/style.css', 'next.config.ts', 'package.json', 'package-lock.json'];
 const protectedSha256 = Object.fromEntries(await Promise.all(protectedFiles.map(async name => [name, createHash('sha256').update(await readFile(name)).digest('hex')])));
 const summary = {
   date: '2026-10-19', scope: 'Local production-build trials; application patches rolled back',

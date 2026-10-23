@@ -482,12 +482,39 @@ async function serviceLandingPage(page: LegacyPageData, route: '/ban-xe' | '/len
   ]);
   const $ = load(base.content, {}, false);
   $('.lendoi').addClass('vehicle-service-landing');
+  if (route === '/ban-xe') {
+    $('.lendoi').addClass('sell-car-landing');
+    const heading = $('.lendoi_l .ten').first();
+    heading.contents().each((_, node) => {
+      if (node.type !== 'text') return;
+      const match = /với\s+giá\s+tốt\s+nhất/i.exec(node.data);
+      if (!match) return;
+      const content = $('<span></span>').append(
+        $('<span></span>').text(node.data.slice(0, match.index)).contents(),
+        $('<span class="sell-car-heading-highlight"></span>').text(match[0]),
+        $('<span></span>').text(node.data.slice(match.index + match[0].length)).contents(),
+      );
+      $(node).replaceWith(content.contents());
+    });
+  }
   styleServiceForm($, route);
   const section = $('.wap_dichvu2').first().addClass('tt-home-services tt-service-process');
   const panel = section.children('.dichvu').first();
   let contacts = $('.lendoi_l .lienhe_ct').first();
   if (route === '/len-doi') {
     $('.lendoi').addClass('trade-in-landing');
+    const heading = $('.lendoi_l .ten').first();
+    const currentTitle = heading.text().trim();
+    // Refresh the original headline while keeping future custom CMS titles editable.
+    const headline = !currentTitle || currentTitle === 'Lên đời xe của bạn'
+      ? 'Đổi xe dễ dàng Lên đời xứng đáng' : currentTitle;
+    const lines = /^(Đổi xe dễ dàng)\.?\s+(Lên đời xứng đáng)\.?$/i.exec(headline);
+    if (lines) {
+      heading.addClass('trade-in-split-headline').empty().append(
+        $('<span class="trade-in-heading-line"></span>').text(lines[1]), ' ',
+        $('<span class="trade-in-heading-line trade-in-heading-highlight"></span>').text(lines[2]),
+      );
+    }
     if (!contacts.length && $('.lendoi_l').length) {
       const description = $('.lendoi_l .mota').first();
       if (description.length) description.append('<div class="lienhe_ct"></div>');

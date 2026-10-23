@@ -1,0 +1,20 @@
+{
+  "results": [
+    {
+      "name": "admin-desktop",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "name": "admin-mobile",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "name": "admin-dark",
+      "overflow": false,
+      "errors": []
+    }
+  ],
+  "mutations": 5
+}

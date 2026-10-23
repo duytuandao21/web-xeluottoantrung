@@ -1,0 +1,120 @@
+{
+  "threeChunks": [
+    "b536a0f1.07dd0d661da40b7a.js",
+    "bd904a5c.aac6be770688f181.js"
+  ],
+  "results": [
+    {
+      "name": "desktop",
+      "h1": 1,
+      "chapters": 5,
+      "milestones": 12,
+      "overflow": false,
+      "h1font": "tieude, Arial, sans-serif",
+      "h1weight": "400",
+      "bodyfont": "body, Arial, sans-serif",
+      "heroLoaded": true,
+      "canvas": 1,
+      "draws": 6,
+      "errors": []
+    },
+    {
+      "name": "laptop",
+      "h1": 1,
+      "chapters": 5,
+      "milestones": 12,
+      "overflow": false,
+      "h1font": "tieude, Arial, sans-serif",
+      "h1weight": "400",
+      "bodyfont": "body, Arial, sans-serif",
+      "heroLoaded": true,
+      "canvas": 1,
+      "draws": 9,
+      "errors": []
+    },
+    {
+      "name": "tablet",
+      "h1": 1,
+      "chapters": 5,
+      "milestones": 12,
+      "overflow": false,
+      "h1font": "tieude, Arial, sans-serif",
+      "h1weight": "400",
+      "bodyfont": "body, Arial, sans-serif",
+      "heroLoaded": true,
+      "canvas": 0,
+      "draws": 0,
+      "errors": []
+    },
+    {
+      "name": "mobile",
+      "h1": 1,
+      "chapters": 5,
+      "milestones": 12,
+      "overflow": false,
+      "h1font": "tieude, Arial, sans-serif",
+      "h1weight": "400",
+      "bodyfont": "body, Arial, sans-serif",
+      "heroLoaded": true,
+      "canvas": 0,
+      "draws": 0,
+      "errors": []
+    },
+    {
+      "name": "small",
+      "h1": 1,
+      "chapters": 5,
+      "milestones": 12,
+      "overflow": false,
+      "h1font": "tieude, Arial, sans-serif",
+      "h1weight": "400",
+      "bodyfont": "body, Arial, sans-serif",
+      "heroLoaded": true,
+      "canvas": 0,
+      "draws": 0,
+      "errors": []
+    },
+    {
+      "name": "reduced",
+      "h1": 1,
+      "chapters": 5,
+      "milestones": 12,
+      "overflow": false,
+      "h1font": "tieude, Arial, sans-serif",
+      "h1weight": "400",
+      "bodyfont": "body, Arial, sans-serif",
+      "heroLoaded": true,
+      "canvas": 0,
+      "draws": 0,
+      "errors": []
+    },
+    {
+      "name": "no-js",
+      "h1": 1,
+      "chapters": 5,
+      "milestones": 12,
+      "overflow": false,
+      "h1font": "tieude, Arial, sans-serif",
+      "h1weight": "400",
+      "bodyfont": "body, Arial, sans-serif",
+      "heroLoaded": true,
+      "canvas": 0,
+      "draws": 0,
+      "errors": []
+    },
+    {
+      "name": "no-webgl",
+      "h1": 1,
+      "chapters": 5,
+      "milestones": 12,
+      "overflow": false,
+      "h1font": "tieude, Arial, sans-serif",
+      "h1weight": "400",
+      "bodyfont": "body, Arial, sans-serif",
+      "heroLoaded": true,
+      "canvas": 0,
+      "draws": 0,
+      "errors": []
+    }
+  ]
+}

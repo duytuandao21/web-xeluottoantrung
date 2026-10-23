@@ -1,0 +1,74 @@
+[
+  {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "cards": 6,
+    "loaded": true,
+    "overflow": [
+      0,
+      0
+    ],
+    "extras": 0,
+    "legacyCSS": 0,
+    "clipped": 0,
+    "clipDetails": [],
+    "title": "Bảng giá xe đang bán | Xe Lướt Toàn Trung",
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "cards": 6,
+    "loaded": true,
+    "overflow": [
+      0,
+      0
+    ],
+    "extras": 0,
+    "legacyCSS": 0,
+    "clipped": 0,
+    "clipDetails": [],
+    "title": "Bảng giá xe đang bán | Xe Lướt Toàn Trung",
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 3840,
+      "height": 2160
+    },
+    "cards": 6,
+    "loaded": true,
+    "overflow": [
+      0,
+      0
+    ],
+    "extras": 0,
+    "legacyCSS": 0,
+    "clipped": 0,
+    "clipDetails": [],
+    "title": "Bảng giá xe đang bán | Xe Lướt Toàn Trung",
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 1080,
+      "height": 1920
+    },
+    "cards": 6,
+    "loaded": true,
+    "overflow": [
+      0,
+      0
+    ],
+    "extras": 0,
+    "legacyCSS": 0,
+    "clipped": 0,
+    "clipDetails": [],
+    "title": "Bảng giá xe đang bán | Xe Lướt Toàn Trung",
+    "errors": []
+  }
+]

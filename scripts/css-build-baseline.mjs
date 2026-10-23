@@ -6,6 +6,8 @@ import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 const require = createRequire(import.meta.url);
 const root = process.cwd();
+assert(!existsSync(resolve('app/(website)/layout.tsx')),
+  'Historical CSS baseline uses the former root layout. Capture a new baseline for the website/display route groups before comparing builds.');
 const artifacts = resolve('../docs/artifacts/css-optimization-2026-10-17');
 const target = resolve(artifacts, 'baseline-project');
 assert(target.startsWith(artifacts + sep));

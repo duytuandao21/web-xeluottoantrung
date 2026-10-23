@@ -16,7 +16,7 @@ const output = resolve('../docs/artifacts/hero-lcp-fix-2026-10-16', run);
 await mkdir(resolve(output, 'images'), { recursive: true });
 await mkdir(resolve(output, variant), { recursive: true });
 const digest = value => createHash('sha256').update(value).digest('hex');
-const files = ['components/common/Carousel.tsx', 'components/common/Markup.tsx', 'components/common/ResponsiveImage.tsx', 'lib/image-delivery.ts', 'app/globals.css', 'lib/public-api.ts', 'lib/public-pages.ts', 'app/page.tsx', 'app/layout.tsx'];
+const files = ['components/common/Carousel.tsx', 'components/common/Markup.tsx', 'components/common/ResponsiveImage.tsx', 'lib/image-delivery.ts', 'app/globals.css', 'lib/public-api.ts', 'lib/public-pages.ts', 'app/(website)/page.tsx', 'app/(website)/layout.tsx'];
 const hashes = async () => Object.fromEntries(await Promise.all(files.map(async file => [file, digest(await readFile(file))])));
 const sourceHashes = await hashes();
 const slidesResponse = await fetch('http://127.0.0.1:4000/api/v1/slides?limit=100');

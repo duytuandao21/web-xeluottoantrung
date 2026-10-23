@@ -12,7 +12,7 @@ const root = resolve('../docs/artifacts/perf-dom-local-2026-10-16');
 const before = await readFile(resolve(root, 'public-pages-before.ts'), 'utf8');
 const after = await readFile(process.argv.includes('--saved-candidate') ? resolve(root, 'public-pages-candidate.ts') : 'lib/public-pages.ts', 'utf8');
 assert.notEqual(after, before, 'Apply the candidate patch first, or use --saved-candidate after rollback');
-const home = await readFile('app/page.tsx', 'utf8');
+const home = await readFile('app/(website)/page.tsx', 'utf8');
 const manifest = JSON.parse(await readFile('data/route-manifest.json', 'utf8'));
 const snapshot = JSON.parse(await readFile(resolve('data/pages', manifest['/']), 'utf8')).content;
 function compile(text, context = {}) {

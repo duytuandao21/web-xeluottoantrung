@@ -79,14 +79,21 @@
   .tt-mobile-menu .tt-buy-menu .tt-buy-brands a { margin:0; padding:10px 14px; min-height:44px; font-size:16px; border-bottom:1px solid #e9ebef; }
   .tt-mobile-menu .tt-buy-menu .tt-buy-cars { grid-template-columns:1fr; min-height:0; gap:10px; }
   .tt-mobile-menu .tt-buy-menu .tt-buy-panel a.tt-buy-car { display:grid; grid-template-columns:110px minmax(0,1fr); gap:10px; padding:8px; margin:0; border-radius:12px; }
-  .tt-mobile-menu .tt-buy-menu .tt-buy-car-image { aspect-ratio:1.1; align-self:center; }
+  .tt-mobile-menu .tt-buy-menu .tt-buy-car-image { aspect-ratio:4/3; align-self:center; }
+  /* Fill the thumbnail despite the legacy global img height:auto !important. */
+  .tt-mobile-menu .tt-buy-menu .tt-buy-car-image img { position:absolute; inset:0; width:100%; height:100% !important; object-position:center; }
   .tt-mobile-menu .tt-buy-menu .tt-buy-car-image > span { top:5px; left:5px; font-size:11px; padding:3px 7px; }
   .tt-mobile-menu .tt-buy-menu .tt-buy-car-copy { padding:4px 0; align-self:center; }
   .tt-mobile-menu .tt-buy-menu .tt-buy-car h3 { font-size:14px; }
   .tt-mobile-menu .tt-buy-menu .tt-buy-car del { font-size:12px; }
   .tt-mobile-menu .tt-buy-menu .tt-buy-car strong { font-size:17px; }
   .tt-mobile-menu .tt-buy-menu .tt-buy-skeleton { display:grid; grid-template-columns:110px 1fr; gap:10px; }
-  .tt-mobile-menu .tt-buy-menu .tt-buy-skeleton > div { grid-row:span 2; aspect-ratio:1.1; }
+  .tt-mobile-menu .tt-buy-menu .tt-buy-skeleton > div { grid-row:span 2; aspect-ratio:4/3; }
   .tt-mobile-menu .tt-buy-menu .tt-buy-skeleton > span { width:100%; margin-top:10px; }
+}
+@media(max-width:375px) {
+  .tt-mobile-menu .tt-buy-menu .tt-buy-panel a.tt-buy-car,
+  .tt-mobile-menu .tt-buy-menu .tt-buy-skeleton { grid-template-columns:90px minmax(0,1fr); }
+  .tt-mobile-menu .tt-buy-menu .tt-buy-car strong { font-size:clamp(15px,4.4vw,17px); }
 }
 @media(prefers-reduced-motion:reduce) { .tt-buy-menu .tt-buy-panel,.tt-buy-menu .tt-buy-content { animation:none; } .tt-buy-menu .tt-buy-panel :is(a,button,img) { transition:none; } }

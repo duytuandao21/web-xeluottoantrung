@@ -463,6 +463,9 @@ body.ss .id_ss { display:inline-flex; align-items:center; gap:8px; min-height:44
 .wap_camnhan .xemtatca2 a:focus-visible { outline:3px solid #ffe47a; outline-offset:4px; }
 @media (prefers-reduced-motion:reduce) { .wap_camnhan .xemtatca2 a { transition:none; } .wap_camnhan .xemtatca2 a:hover { transform:none; } }
 .lendoi.trade-in-landing { align-items:flex-start; column-gap:32px; }
+.lendoi.sell-car-landing { align-items:flex-start; }
+.sell-car-landing .lendoi_l .ten .sell-car-heading-highlight,
+.trade-in-landing .lendoi_l .ten .trade-in-heading-highlight { color:var(--color-red-hover,#f2de84); }
 .wap_lendoi.tt-trade-in-background {
   position:relative;
   isolation:isolate;
@@ -497,13 +500,21 @@ body.ss .id_ss { display:inline-flex; align-items:center; gap:8px; min-height:44
   .wap_lendoi.tt-trade-in-background::before { background:rgba(15,24,40,.58); }
 }
 .trade-in-landing .lendoi_l { display:block; }
-.trade-in-landing .lendoi_l .ten { white-space:nowrap; margin-bottom:20px; }
+.trade-in-landing .lendoi_l .ten { white-space:normal; margin-bottom:20px; }
+.trade-in-landing .lendoi_l .ten .trade-in-heading-line { display:block; }
 .trade-in-landing .lendoi_l .lienhe_ct { width:100%; }
 .trade-in-landing .trade-in-contact-label { margin:0; font-size:18px; line-height:1.5; }
 .trade-in-landing .lendoi_l > .img { margin-top:32px; }
-@media(max-width:600px) { .trade-in-landing .lendoi_l > .img { margin-top:24px; } }
+@media(max-width:600px) {
+  .trade-in-landing .lendoi_l .ten.trade-in-split-headline { white-space:nowrap; font-size:clamp(18px,5.3vw,26px); line-height:1.3; margin-bottom:8px; }
+  .trade-in-landing .lendoi_l .ten .trade-in-heading-line { display:inline; }
+  .trade-in-landing .lendoi_l .ten .trade-in-heading-highlight { margin-left:.18em; }
+  .trade-in-landing .lendoi_l .ten .trade-in-heading-line:first-child::after { content:'.'; }
+  .trade-in-landing .lendoi_l > .img { margin-top:24px; }
+}
 @media(min-width:961px) {
-  .trade-in-landing .lendoi_l { min-width:510px; }
+  .trade-in-landing .lendoi_l { min-width:0; }
+  .trade-in-landing .lendoi_l .ten { font-size:clamp(32px,3.8vw,54px); }
   .trade-in-landing .lendoi_r { min-width:0; }
 }
 .lendoi_l .lienhe_ct .sell-car-valuation {
@@ -669,7 +680,8 @@ body.ss .id_ss { display:inline-flex; align-items:center; gap:8px; min-height:44
 .menu_mobi_add .mobile-submenu-toggle.is-expanded { color:var(--color-main); }
 .menu_mobi_add .mobile-submenu-toggle.is-expanded .mobile-menu-chevron { transform:translateY(-50%) rotate(225deg); }
 @media(max-width:960px) {
-  .menu_mobi_add.tt-mobile-menu { height:100dvh; overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; padding-bottom:calc(20px + env(safe-area-inset-bottom,0px)); }
+  .menu_mobi_add.tt-mobile-menu { box-sizing:border-box; width:calc(100% - 32px); max-width:440px; height:100dvh; overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; padding-bottom:calc(20px + env(safe-area-inset-bottom,0px)); border-radius:0 20px 20px 0; }
+  .menu_mobi_add.tt-mobile-menu.menu_mobi_active { box-shadow:10px 0 32px rgba(15,24,40,.18); }
   .tt-mobile-menu .logo_m { min-height:84px; padding:14px 18px 14px 28px; margin-bottom:0; border-bottom:1px solid #e2e4e8; }
   .tt-mobile-menu .logo_m a { display:block; line-height:0; }
   .tt-mobile-menu .logo_m img { display:block; width:160px; max-height:60px; object-fit:contain; }
@@ -694,7 +706,6 @@ body.ss .id_ss { display:inline-flex; align-items:center; gap:8px; min-height:44
   .menu_mobi .logo { min-width:0; }
   .menu_mobi .sale-header-button { flex:0 0 44px; }
 }
-@media(max-width:575px) { .menu_mobi_add.tt-mobile-menu { width:100%; max-width:none; } }
 @media(prefers-reduced-motion:reduce) { .sale-header-button { transition:none; } }
 .wapper select:not([multiple]):not([size]),
 .migrated-dialog select:not([multiple]):not([size]) {
@@ -1053,6 +1064,7 @@ body .wap_item { justify-content:flex-start; column-gap:2%; }
 }
 @media(prefers-reduced-motion:reduce) { .muaxe .lookup-carousel-mobile { scroll-behavior:auto; } }
 .item .mota ul li img { flex:none; }
+.item[data-car-id] .car-card-spec__missing-short { display:none; }
 .item .car-license-plate,.right-pro-detail .car-license-plate {
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   min-height:44px; margin-top:12px; padding:9px 13px;
@@ -1152,8 +1164,8 @@ body.ss .item[data-car-id] .car-card-new-arrival { top:auto; bottom:10px; }
   .item[data-car-id] ul li { min-width:0; gap:4px; }
   .item[data-car-id] ul li img { flex:none; width:14px; height:14px; margin:0; object-fit:contain; }
   .item[data-car-id] .car-card-spec__value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .item[data-car-id] li[data-spec="Km"] .car-card-spec__value[title="Chưa cập nhật"] { white-space:normal; overflow:visible; text-overflow:clip; }
-  .item[data-car-id] .car-card-spec__unit { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+  .item[data-car-id] .car-card-spec__missing-short { display:inline; }
+  .item[data-car-id] :is(.car-card-spec__unit,.car-card-spec__missing-full) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
   .item[data-car-id] li[data-spec="Năm sản xuất"] { grid-column:1; grid-row:1; }
   .item[data-car-id] li[data-spec="Km"] { grid-column:2; grid-row:1; }
   .item[data-car-id] li[data-spec="Số chỗ"] { grid-column:1; grid-row:2; }

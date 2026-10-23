@@ -135,7 +135,10 @@ export default function BuyMenu({ brands, mobile = false, active = false, close,
     onPointerCancelCapture={() => { pointerActive.current = false; }}
     onPointerEnter={event => { if (!mobile && event.pointerType === 'mouse') { cancelHover(); setOpen(true); } }}
     onPointerLeave={event => { if (!mobile && !pinned.current && !pointerActive.current && event.pointerType === 'mouse') { cancelHover(); hoverTimer.current = setTimeout(() => setOpen(false), 160); } }}
-    onBlur={event => { if (!pointerActive.current && !event.currentTarget.contains(event.relatedTarget)) { pinned.current = false; setOpen(false); } }}>
+    // A touch browser may clear focus after pointerup but before its compatibility
+    // click. A null destination must not unmount the link before activation.
+    // Outside pointerdown and Escape already handle dismissal without a focus target.
+    onBlur={event => { if (event.relatedTarget !== null && !pointerActive.current && !event.currentTarget.contains(event.relatedTarget)) { pinned.current = false; setOpen(false); } }}>
     <a ref={trigger} role="button" tabIndex={0} className={active || pathname === '/san-pham' || open ? 'active' : ''} aria-haspopup="true" aria-controls={id} aria-expanded={open}
       onClick={toggleMenu} onKeyDown={event => {
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleMenu(); }

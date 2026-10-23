@@ -82,14 +82,30 @@ try {
       }else{
         // Real touch/mouse activation once; no Locator.click retry after a lost link.
         if(mobile)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);
-        await page.waitForURL(base+item.href,{timeout:10000});assert.equal(await panel.count(),0);
+        await page.waitForURL(base+item.href,{timeout:10000});await page.waitForLoadState('networkidle');assert.equal(await panel.count(),0);
         // Repeat with the null-relatedTarget focus transition seen on touch UIs.
         await page.goto(base+'/khuyen-mai',{waitUntil:'networkidle'});
         if(mobile){await page.locator('.icon_menu_mobi').tap();await root.locator('.mobile-submenu-toggle').tap();}else await root.locator(':scope > a').click();
         if(item.tab)await panel.locator('[role="tab"]').nth(item.tab).click();
         await target.scrollIntoViewIfNeeded();await page.waitForTimeout(250);const r=await target.boundingBox();
         await page.mouse.move(r.x+r.width/2,r.y+r.height/2);await page.mouse.down();await page.evaluate(()=>document.activeElement?.blur());await page.waitForTimeout(30);
-        assert.equal(await panel.count(),1,'Menu stays mounted until activation completes');await page.mouse.up();await page.waitForURL(base+item.href,{timeout:10000});
+        assert.equal(await panel.count(),1,'Menu stays mounted until activation completes');await page.mouse.up();await page.waitForURL(base+item.href,{timeout:10000});await page.waitForLoadState('networkidle');
+        if(mobile){
+          // Touch browsers may emit pointerup before compatibility mousedown,
+          // then blur the old tab without a relatedTarget. The link must remain
+          // mounted through that transition and navigate on this single tap.
+          await page.goto(base+'/khuyen-mai',{waitUntil:'networkidle'});
+          await page.locator('.icon_menu_mobi').tap();await root.locator('.mobile-submenu-toggle').tap();
+          if(item.tab)await panel.locator('[role="tab"]').nth(item.tab).tap();
+          await target.scrollIntoViewIfNeeded();await page.waitForTimeout(250);
+          await panel.locator('[role="tab"]').nth(item.tab).focus();
+          await page.evaluate(()=>document.addEventListener('mousedown',()=>{
+            if(document.activeElement instanceof HTMLElement)document.activeElement.blur();
+          },{capture:true,once:true}));
+          const touchBox=await target.boundingBox();assert(touchBox);
+          await page.touchscreen.tap(touchBox.x+touchBox.width/2,touchBox.y+touchBox.height/2);
+          await page.waitForURL(base+item.href,{timeout:10000});await page.waitForLoadState('networkidle');assert.equal(await panel.count(),0);
+        }
         console.log(width,item.name,'one activation and pointer-focus regression passed');
       }
     }
@@ -99,10 +115,25 @@ try {
         if(mobile){await page.locator('.icon_menu_mobi').tap();await root.locator('.mobile-submenu-toggle').tap();}else await root.locator(':scope > a').click();
         await panel.waitFor();
       };
-      await openMenu();await panel.locator('.tt-buy-heading a').focus();await page.keyboard.press('Enter');await page.waitForURL(base+'/san-pham');
+      await openMenu();await panel.locator('.tt-buy-heading a').focus();await page.keyboard.press('Enter');await page.waitForURL(base+'/san-pham');await page.waitForLoadState('networkidle');
       await openMenu();await panel.locator('[role="tab"]').first().focus();
       await page.locator(mobile?'.tt-mobile-menu .close_menu':'.hidden_m .sale-header-button').focus();await panel.waitFor({state:'detached'});
       await root.locator(':scope > a').press('ArrowDown');await panel.waitFor();await page.keyboard.press('Escape');await panel.waitFor({state:'detached'});
+      // Query-only transitions must work repeatedly without a document reload.
+      await page.goto(base+'/san-pham',{waitUntil:'networkidle'});
+      for(const tab of [1,2,1,2]){
+        if(mobile){await page.locator('.icon_menu_mobi').tap();await root.locator('.mobile-submenu-toggle').tap();}
+        else await root.locator(':scope > a').click();
+        await panel.waitFor();await panel.locator('[role="tab"]').nth(tab).click();
+        const viewAll=panel.locator('.tt-buy-heading a');await viewAll.scrollIntoViewIfNeeded();
+        const box=await viewAll.boundingBox();assert(box);
+        if(mobile)await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);
+        else await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
+        await page.waitForURL(base+(tab===1?'/san-pham?xe-moi-ve=true':'/san-pham?dang-giam-gia=true'));
+        await page.waitForLoadState('networkidle');
+        assert.equal(await panel.count(),0);
+        if(mobile)assert.equal(await page.locator('.tt-mobile-menu').getAttribute('aria-hidden'),'true');
+      }
       console.log(width,'keyboard navigation, focus-out dismissal and Escape passed');
     }
     assert.deepEqual(errors,[]);await page.close();

@@ -211,6 +211,7 @@ function CarCardState({car,imageLoading}:{car:Car;imageLoading?:'eager'|'lazy'})
           {spec.icon && <ResponsiveImage src={spec.icon} profile="icon" sizes="18px" alt={spec.alt || ''} />}
           <span className="car-card-spec__value" title={spec.text}>{showroom
             ? <><span className="car-card-showroom__name">{showroom[1]}</span>{' '}<span className="car-card-showroom__branch">{showroom[2]}</span></>
+            : spec.alt==='Km'&&text==='Chưa cập nhật'?<><span className="car-card-spec__missing-full">{text}</span><span className="car-card-spec__missing-short" aria-hidden="true">_</span></>
             : spec.alt==='Km'&&text.endsWith(' km')?<>{text.slice(0,-3)}<span className="car-card-spec__unit"> km</span></>:text}</span>
         </li>;
       })}</ul>

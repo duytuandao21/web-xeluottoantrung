@@ -1,0 +1,371 @@
+[
+  {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "cards": 6,
+    "loaded": true,
+    "overflow": [
+      0,
+      0
+    ],
+    "extras": 0,
+    "legacyCSS": 0,
+    "clipped": 0,
+    "titleClippedVertically": 0,
+    "brands": [
+      {
+        "text": "Toyota",
+        "expected": "Toyota",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 0.502963
+      },
+      {
+        "text": "Toyota",
+        "expected": "Toyota",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 0.502963
+      },
+      {
+        "text": "Hyundai",
+        "expected": "Hyundai",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 0.502963
+      },
+      {
+        "text": "Mercedes-Benz",
+        "expected": "Mercedes-Benz",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 0.502963
+      },
+      {
+        "text": "Vinfast",
+        "expected": "Vinfast",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 0.502963
+      },
+      {
+        "text": "Ford",
+        "expected": "Ford",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 0.502963
+      }
+    ],
+    "clipDetails": [],
+    "title": "Bảng giá xe đang bán | Xe Lướt Toàn Trung",
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "stableHeader": {
+      "samples": 662,
+      "transitionFrames": 150,
+      "maxDelta": 0,
+      "maxCardDelta": 0,
+      "mutations": 0,
+      "blankFrames": 0,
+      "unreadyImages": 0,
+      "coveredIncomingFrames": 0,
+      "sameNodes": true,
+      "heading": "BẢNG GIÁ XE ĐANG BÁN"
+    }
+  },
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "cards": 6,
+    "loaded": true,
+    "overflow": [
+      0,
+      0
+    ],
+    "extras": 0,
+    "legacyCSS": 0,
+    "clipped": 0,
+    "titleClippedVertically": 0,
+    "brands": [
+      {
+        "text": "Toyota",
+        "expected": "Toyota",
+        "preserved": true,
+        "ratio": 1.1799988128685053,
+        "stroke": 0.357837
+      },
+      {
+        "text": "Toyota",
+        "expected": "Toyota",
+        "preserved": true,
+        "ratio": 1.1799988128685053,
+        "stroke": 0.357837
+      },
+      {
+        "text": "Hyundai",
+        "expected": "Hyundai",
+        "preserved": true,
+        "ratio": 1.1799988128685053,
+        "stroke": 0.357837
+      },
+      {
+        "text": "Mercedes-Benz",
+        "expected": "Mercedes-Benz",
+        "preserved": true,
+        "ratio": 1.1799988128685053,
+        "stroke": 0.357837
+      },
+      {
+        "text": "Vinfast",
+        "expected": "Vinfast",
+        "preserved": true,
+        "ratio": 1.1799988128685053,
+        "stroke": 0.357837
+      },
+      {
+        "text": "Ford",
+        "expected": "Ford",
+        "preserved": true,
+        "ratio": 1.1799988128685053,
+        "stroke": 0.357837
+      }
+    ],
+    "clipDetails": [],
+    "title": "Bảng giá xe đang bán | Xe Lướt Toàn Trung",
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "stableHeader": {
+      "samples": 657,
+      "transitionFrames": 148,
+      "maxDelta": 0,
+      "maxCardDelta": 0,
+      "mutations": 0,
+      "blankFrames": 0,
+      "unreadyImages": 0,
+      "coveredIncomingFrames": 0,
+      "sameNodes": true,
+      "heading": "BẢNG GIÁ XE ĐANG BÁN"
+    }
+  },
+  {
+    "viewport": {
+      "width": 3840,
+      "height": 2160
+    },
+    "cards": 6,
+    "loaded": true,
+    "overflow": [
+      0,
+      0
+    ],
+    "extras": 0,
+    "legacyCSS": 0,
+    "clipped": 0,
+    "titleClippedVertically": 0,
+    "brands": [
+      {
+        "text": "Toyota",
+        "expected": "Toyota",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 1.00593
+      },
+      {
+        "text": "Toyota",
+        "expected": "Toyota",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 1.00593
+      },
+      {
+        "text": "Hyundai",
+        "expected": "Hyundai",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 1.00593
+      },
+      {
+        "text": "Mercedes-Benz",
+        "expected": "Mercedes-Benz",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 1.00593
+      },
+      {
+        "text": "Vinfast",
+        "expected": "Vinfast",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 1.00593
+      },
+      {
+        "text": "Ford",
+        "expected": "Ford",
+        "preserved": true,
+        "ratio": 1.180000703828829,
+        "stroke": 1.00593
+      }
+    ],
+    "clipDetails": [],
+    "title": "Bảng giá xe đang bán | Xe Lướt Toàn Trung",
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 3840,
+      "height": 2160
+    },
+    "stableHeader": {
+      "samples": 658,
+      "transitionFrames": 150,
+      "maxDelta": 0,
+      "maxCardDelta": 0,
+      "mutations": 0,
+      "blankFrames": 0,
+      "unreadyImages": 0,
+      "coveredIncomingFrames": 0,
+      "sameNodes": true,
+      "heading": "BẢNG GIÁ XE ĐANG BÁN"
+    }
+  },
+  {
+    "viewport": {
+      "width": 1080,
+      "height": 1920
+    },
+    "cards": 6,
+    "loaded": true,
+    "overflow": [
+      0,
+      0
+    ],
+    "extras": 0,
+    "legacyCSS": 0,
+    "clipped": 0,
+    "titleClippedVertically": 0,
+    "brands": [
+      {
+        "text": "Toyota",
+        "expected": "Toyota",
+        "preserved": true,
+        "ratio": 1.18,
+        "stroke": 0.516132
+      },
+      {
+        "text": "Toyota",
+        "expected": "Toyota",
+        "preserved": true,
+        "ratio": 1.18,
+        "stroke": 0.516132
+      },
+      {
+        "text": "Hyundai",
+        "expected": "Hyundai",
+        "preserved": true,
+        "ratio": 1.18,
+        "stroke": 0.516132
+      },
+      {
+        "text": "Mercedes-Benz",
+        "expected": "Mercedes-Benz",
+        "preserved": true,
+        "ratio": 1.18,
+        "stroke": 0.516132
+      },
+      {
+        "text": "Vinfast",
+        "expected": "Vinfast",
+        "preserved": true,
+        "ratio": 1.18,
+        "stroke": 0.516132
+      },
+      {
+        "text": "Ford",
+        "expected": "Ford",
+        "preserved": true,
+        "ratio": 1.18,
+        "stroke": 0.516132
+      }
+    ],
+    "clipDetails": [],
+    "title": "Bảng giá xe đang bán | Xe Lướt Toàn Trung",
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 1080,
+      "height": 1920
+    },
+    "stableHeader": {
+      "samples": 659,
+      "transitionFrames": 151,
+      "maxDelta": 0,
+      "maxCardDelta": 0,
+      "mutations": 0,
+      "blankFrames": 0,
+      "unreadyImages": 0,
+      "coveredIncomingFrames": 0,
+      "sameNodes": true,
+      "heading": "BẢNG GIÁ XE ĐANG BÁN"
+    }
+  },
+  {
+    "independentFiveSecondHotlines": "PASS",
+    "salesOnly": "PASS",
+    "noPhoneRotationAPIReads": true
+  },
+  {
+    "customTVConfigurationAndIntervals": "PASS"
+  },
+  {
+    "longConfiguredHeaderFits": "PASS"
+  },
+  {
+    "slowNextImage": "PASS",
+    "noRotationAPIReads": true
+  },
+  {
+    "refresh": "PASS",
+    "updatedTVConfigurationAndLogoFallback": "PASS",
+    "failureKeepsLastGoodData": "PASS"
+  },
+  {
+    "completeCycleIncludingPartialLastPage": "PASS",
+    "stableSlots": {
+      "samples": 4184,
+      "transitionFrames": 152,
+      "maxDelta": 0,
+      "maxCardDelta": 0,
+      "mutations": 0,
+      "blankFrames": 0,
+      "unreadyImages": 0,
+      "coveredIncomingFrames": 0,
+      "sameNodes": true,
+      "heading": "BẢNG GIÁ XE ĐANG BÁN"
+    }
+  },
+  {
+    "emptyInventory": "PASS"
+  },
+  {
+    "missingImage": "PASS",
+    "reducedMotionRotation": "PASS"
+  },
+  {
+    "normalWebsiteLayout": "PASS"
+  }
+]
