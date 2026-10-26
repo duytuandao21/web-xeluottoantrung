@@ -3,7 +3,7 @@ import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Metadata } from 'next';
 import { routeMetadata } from '@/lib/page-metadata';
 import { cache } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import CarGallery from '@/components/car/CarGallery';
 import AccessoryCallback from '@/components/accessories/AccessoryCallback';
 import InstallationStoreCard from '@/components/accessories/InstallationStoreCard';
@@ -12,17 +12,18 @@ import SiteBreadcrumb from '@/components/common/SiteBreadcrumb';
 import { optionalPublicApi, publicApi, type Accessory, type PageResult } from '@/lib/public-api';
 import { safeHtml } from '@/lib/safe-html';
 import { zaloHref } from '@/lib/contact-links';
+import { accessoryHref, isAccessoryId, isAccessorySlug } from '@/lib/accessory-links';
 
 export const dynamic = 'force-dynamic';
 
 type PageProps = { params: Promise<{ id: string }> };
-const validId = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-const getAccessory = cache(async (id: string) => validId(id) ? optionalPublicApi<Accessory>(`/accessories/${id}`) : null);
+const getAccessory = cache(async (key: string) => isAccessoryId(key) || isAccessorySlug(key)
+  ? optionalPublicApi<Accessory>(`/accessories/${encodeURIComponent(key)}`) : null);
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const item = await getAccessory((await params).id);
   if (!item) return { title: 'Không tìm thấy phụ kiện', robots: { index: false } };
-  return routeMetadata(`/phu-kien-o-to/${item.id}`, {
+  return routeMetadata(accessoryHref(item), {
     title: `${item.name} | Phụ kiện ô tô`,
     description: `${item.name} - ${Number(item.price).toLocaleString('vi-VN')} đ. Xem ảnh và thông tin phụ kiện tại Toàn Trung.`,
     openGraph: { images: [item.imageUrl] },
@@ -30,8 +31,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function AccessoryDetailPage({ params }: PageProps) {
-  const item = await getAccessory((await params).id);
+  const key = (await params).id;
+  const item = await getAccessory(key);
   if (!item) notFound();
+  if (isAccessorySlug(item.slug) && key !== item.slug) permanentRedirect(accessoryHref(item));
   const [sameBrand, latest, settings, storeSettings] = await Promise.all([
     item.brandId ? publicApi<PageResult<Accessory>>('/accessories', { brandId: item.brandId, limit: 12 }) : Promise.resolve(null),
     publicApi<PageResult<Accessory>>('/accessories', { limit: 24, sort: 'newest' }),

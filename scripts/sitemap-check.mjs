@@ -28,6 +28,11 @@ const read = async (path, query) => {
   }
   if (path === '/brands') return [{ slug: 'toyota' }];
   if (path === '/content') return [{ key: 'chinh-sach-quyen-rieng-tu' }];
+  if (path === '/accessories') return { data: [
+    { id: '00000000-0000-4000-8000-000000000001', slug: 'camera-70mai' },
+    { id: '00000000-0000-4000-8000-000000000002' }, // previous API during rollout
+    { id: '00000000-0000-4000-8000-000000000003', slug: '../unsafe' },
+  ], meta: { totalPages: 1 } };
   const rows = path === '/cars' ? query.page === 2 ? [{ slug: 'car-page-two' }] : cars : [];
   return { data: rows, meta: { totalPages: path === '/cars' ? 2 : 0 } };
 };
@@ -49,6 +54,7 @@ const pages = locs(await service.get('pages'));
 assert(pages.includes(origin + '/') && pages.includes(origin + '/san-pham'));
 assert(pages.every(url => !new URL(url).search && !url.includes('tim-kiem')));
 assert.deepEqual(locs(await service.get('policies')), [origin + '/chinh-sach-quyen-rieng-tu']);
+assert.deepEqual(locs(await service.get('accessories')), [origin + '/phu-kien-o-to/00000000-0000-4000-8000-000000000002', origin + '/phu-kien-o-to/camera-70mai'], 'Slug URLs replace UUIDs; only unmigrated responses use legacy IDs');
 for (const [name, page] of [['__proto__', 1], ['admin', 1], ['pages', 2], ['cars', 0], ['cars', 5001], ['cars', 3]])
   await assert.rejects(service.get(name, page), SitemapNotFound);
 cars = [{ slug: 'car-updated' }]; clock += 300_001;
@@ -75,7 +81,7 @@ const queued = Array.from({ length: 16 }, (_, i) => queuedService.get('cars', i 
 await assert.rejects(queuedService.get('cars', 17), error => error.status === 503);
 release(); await Promise.all(queued);
 assert.equal(generationPeak, 1, 'Cold sitemap files generate serially; queue overflow fails without API work');
-const out = '../docs/artifacts/sitemap-2026-10-16'; await mkdir(out, { recursive: true });
+const out = process.env.SITEMAP_TEST_ARTIFACT_DIR || '../docs/artifacts/sitemap-2026-10-16'; await mkdir(out, { recursive: true });
 await writeFile(`${out}/unit-checks.json`, JSON.stringify({ passed: true, indexFirstPageReads: 10, maxSeoConcurrency: peak,
   checks: ['XML namespaces/escaping', 'public pagination', 'index warm cache', 'single-flight', 'noindex/canonical/unsafe URL exclusions', 'static/policy URLs', 'invalid sections/pages', 'XML expiry and new inventory', '503 cooldown and recovery', 'capacity fails explicitly', 'serial generation and bounded queue overflow'] }, null, 2));
 for (const key of ['PublicApiError', 'SITE_ORIGIN', 'publicApi']) delete globalThis[key];

@@ -178,7 +178,7 @@ export type Testimonial = { id: string; name: string; content: string; rating: n
 export type Faq = { id: string; slug: string; question: string; answer: string; excerpt?: string | null; imageUrl?: string | null; featured?: boolean; sortOrder: number; createdAt?: string | null };
 export type Slide = { id: string; title: string; imageUrl: string; link?: string | null };
 export type Service = { id: string; slug: string; title: string; description: string; imageUrl?: string | null; icon?: string | null };
-export type Accessory = { id: string; name: string; brand: string; brandId?: string | null; categoryId?: string | null; price: number; imageUrl: string; imageUrls: string[]; description?: string | null };
+export type Accessory = { id: string; slug?: string; name: string; brand: string; brandId?: string | null; categoryId?: string | null; price: number; imageUrl: string; imageUrls: string[]; description?: string | null };
 export type AccessoryLookup = { id: string; name: string; imageUrl?: string | null };
 export type Recruitment = { id: string; slug: string; title: string; description: string; excerpt?: string | null;
   imageUrl?: string | null; createdAt?: string | null };

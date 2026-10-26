@@ -22,7 +22,7 @@ export function mountAboutStoryMotion(root: HTMLElement): () => void {
       const focusedCleanup: Array<() => void> = [];
 
       const hero = root.querySelector<HTMLElement>('.tt-story__hero');
-      const heroLines = hero?.querySelectorAll<HTMLElement>('.tt-story__eyebrow, h1, .tt-story__hero-lead, .tt-story__hero-body, .tt-story__scroll-cue');
+      const heroLines = hero?.querySelectorAll<HTMLElement>('h1, .tt-story__hero-lead, .tt-story__hero-body, .tt-story__hero-cta, .tt-story__hero-facts');
       if (hero && heroLines?.length) {
         // The text remains readable even if the enhancement arrives after first paint.
         gsap.fromTo(heroLines, { y: 22, opacity: 0.84 }, { y: 0, opacity: 1, duration: 0.8,

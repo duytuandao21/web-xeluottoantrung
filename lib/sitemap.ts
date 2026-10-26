@@ -15,7 +15,7 @@ const sources: Record<string, { path: string; prefix: string; field: keyof Row; 
   faqs: { path: '/faqs', prefix: '/cau-hoi/', field: 'slug' },
   services: { path: '/services', prefix: '/dich-vu/', field: 'slug' },
   recruitments: { path: '/recruitments', prefix: '/tuyen-dung/', field: 'slug' },
-  accessories: { path: '/accessories', prefix: '/phu-kien-o-to/', field: 'id' },
+  accessories: { path: '/accessories', prefix: '/phu-kien-o-to/', field: 'slug' },
   brands: { path: '/brands', prefix: '/', field: 'slug', array: true },
   'body-styles': { path: '/lookups/body-styles', prefix: '/', field: 'slug' },
   policies: { path: '/content', params: { group: 'thiet-lap-chinh-sach-dieu-kien' }, prefix: '/', field: 'key', array: true },
@@ -77,7 +77,11 @@ export function createSitemapService(read: Reader, now: () => number = Date.now)
       const { rows, pages } = await catalog(section, page);
       if (page > pages) throw new SitemapNotFound();
       const { prefix, field } = sources[section];
-      paths = rows.flatMap(row => typeof row[field] === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(row[field]) ? [prefix + row[field]] : []);
+      paths = rows.flatMap(row => {
+        // Support the previous API during rollout; a migrated item always has a slug.
+        const value = row[field] ?? (section === 'accessories' ? row.id : undefined);
+        return typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) ? [prefix + value] : [];
+      });
     }
     const urls: string[] = [];
     // At most two sitemap SEO reads at once, within the existing eight slots.
