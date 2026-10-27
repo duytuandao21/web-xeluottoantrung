@@ -1,6 +1,9 @@
 import type { TVHotline } from '@/types/tv';
+import { defaultTVAnniversary, parseTVAnniversary, type TVAnniversarySettings } from './tv-anniversary-settings';
 
 export type TVSettings = {
+  theme: 'standard' | 'anniversary-4';
+  anniversary: TVAnniversarySettings;
   logoUrl: string;
   title: string;
   hotlineTitle: string;
@@ -10,6 +13,8 @@ export type TVSettings = {
   hotlines: TVHotline[];
 };
 export const defaultTVSettings: TVSettings = {
+  theme: 'standard',
+  anniversary: defaultTVAnniversary,
   logoUrl: '', title: 'Bảng giá xe đang bán', hotlineTitle: 'Hotline',
   carIntervalSeconds: 15, hotlineIntervalSeconds: 5, syncSalesContacts: true, hotlines: [],
 };
@@ -36,6 +41,8 @@ export function parseTVSettings(value?: string | null): TVSettings {
   const data: unknown = JSON.parse(value);
   if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid TV settings');
   const raw = data as TVSettings;
+  const theme = raw.theme === undefined ? 'standard' : raw.theme;
+  if (theme !== 'standard' && theme !== 'anniversary-4') throw new Error('Invalid TV theme');
   if (typeof raw.title !== 'string' || !raw.title.trim() || raw.title.length > 60 ||
     typeof raw.hotlineTitle !== 'string' || !raw.hotlineTitle.trim() || raw.hotlineTitle.length > 24 ||
     typeof raw.logoUrl !== 'string' || raw.logoUrl && !/^(https:\/\/[^\s]+|\/(?!\/)[^\s]*)$/i.test(raw.logoUrl) ||
@@ -45,5 +52,5 @@ export function parseTVSettings(value?: string | null): TVSettings {
     throw new Error('Invalid TV settings');
   const hotlines = validTVHotlines(raw.hotlines);
   if (!raw.syncSalesContacts && !hotlines.length) throw new Error('Missing TV hotlines');
-  return { ...raw, hotlines };
+  return { ...raw, theme, anniversary: parseTVAnniversary(raw.anniversary), hotlines };
 }

@@ -4,11 +4,15 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { defaultTVAnniversary } from '../lib/tv-anniversary-settings.ts';
 
 // Production build required. All API data and image bytes below are local fixtures.
 const base = 'http://127.0.0.1:3117';
 const artifactDir = 'artifacts/tv-display';
 const headerOnly = process.argv.includes('--header-only');
+const themeOnly = process.argv.includes('--theme-check');
+const anniversaryOnly = process.argv.includes('--anniversary-check');
+const marqueeOnly = process.argv.includes('--marquee-check');
 const rotationOnly = process.argv.includes('--rotation-only');
 const checkPositions = !process.argv.includes('--smoke');
 const calls = [];
@@ -121,7 +125,7 @@ try {
     const observer = new MutationObserver(records => {
       mutations += records.filter(record => {
         const node = record.target.nodeType === Node.ELEMENT_NODE ? record.target : record.target.parentElement;
-        return !node?.closest('.tv-hotline__numbers, .tv-brand-ribbon');
+        return !node?.closest('.tv-hotline__numbers, .tv-brand-ribbon, .tv-anniversary-badge');
       }).length;
     });
     observer.observe(nodes[0], { attributes: true, childList: true, characterData: true, subtree: true });
@@ -155,10 +159,10 @@ try {
         heading: document.querySelector('.tv-heading h1').innerText };
     };
   });
-  const finishPositionCheck = async page => {
+  const finishPositionCheck = async (page, requireCarTransition = true) => {
     const result = await page.evaluate(() => window.stopTVPositionCheck());
     console.log(JSON.stringify({ positionCheck: result }));
-    assert.ok(result.samples > 50 && result.transitionFrames > 10, 'sample the animated frames, not only the final state');
+    assert.ok(result.samples > 50 && (!requireCarTransition || result.transitionFrames > 10), 'sample the animated frames, not only the final state');
     assert.equal(result.maxDelta, 0, 'header, stage and footer remain stationary');
     assert.equal(result.maxCardDelta, 0, 'every visible card stays in the same slot throughout transitions and buffer reuse');
     assert.equal(result.mutations, 0, 'rotation does not modify the header DOM');
@@ -169,7 +173,445 @@ try {
     return result;
   };
 
-  for (const viewport of (rotationOnly ? [] : [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }, { width: 3840, height: 2160 }, { width: 1080, height: 1920 }])) {
+  if (marqueeOnly) {
+    const fixedGeometry = page => page.evaluate(()=>[...document.querySelectorAll('.tv-footer,.tv-hotline,.tv-stage,.tv-logo,.tv-qr,.tv-masthead')].map(node=>{const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height];}));
+    for (const viewport of [{width:1920,height:1080},{width:1366,height:768},{width:3840,height:2160},{width:1080,height:1920},{width:1920,height:886}]) {
+      const fullHD=viewport.width===1920 && viewport.height===1080;
+      for (const count of fullHD ? [1,2,5] : [5]) {
+        const event=structuredClone(defaultTVAnniversary);
+        event.slideEnabled=false;
+        event.messages=count===1 ? ['Cảm ơn'] : [...defaultTVAnniversary.messages,...Array.from({length:3},(_,i)=>`Auto Toàn Trung tri ân khách hàng đồng hành · Lời tri ân ${i+3}`)].slice(0,count);
+        tvConfig={...defaultFixtureConfig,theme:'anniversary-4',anniversary:event};
+        const {context,page}=await createPage(viewport);
+        const errors=[]; page.on('pageerror',error=>errors.push(error.message));
+        await page.clock.install(); const reads=calls.length;
+        await page.goto(`${base}/TV`); await page.clock.runFor(1800);
+        await page.locator('.tv-stage[data-ready="true"]').waitFor();
+        await page.locator('.tv-gratitude[data-fit="true"]').waitFor();
+        const geometry=await fixedGeometry(page);
+        const details=await page.evaluate(()=>{
+          const node=document.querySelector('.tv-gratitude'), view=node.querySelector('.tv-gratitude__viewport'), track=node.querySelector('.tv-gratitude__track');
+          const groups=[...track.children], unit=groups[0].firstElementChild;
+          const animation=track.getAnimations()[0]; animation.pause();
+          const duration=Number(animation.effect.getTiming().duration), width=groups[0].getBoundingClientRect().width;
+          const position=time=>{animation.currentTime=time;return new DOMMatrixReadOnly(getComputedStyle(track).transform).m41;};
+          const start=position(1000), end=position(3000);
+          const coverage=time=>{position(time);const rect=view.getBoundingClientRect(), boxes=groups.map(g=>g.getBoundingClientRect());return boxes.some(b=>b.left<=rect.left+1 && b.right>=rect.right-1);};
+          const seam=coverage(duration-1)&&coverage(duration+1);
+          animation.currentTime=4000;
+          window.marqueeAnimation=animation;
+          const r=node.getBoundingClientRect(),footer=node.closest('.tv-footer');
+          const left=footer.querySelector('.tv-brand-summary--active .tv-brand-summary__count').getBoundingClientRect().right;
+          const right=footer.querySelector('.tv-hotline__icon').getBoundingClientRect().left;
+          return {duration,width,viewportWidth:view.clientWidth,sequenceCount:groups[0].children.length,
+            groupWidths:groups.map(g=>g.getBoundingClientRect().width),seam,leftward:end<start,pixelsPerSecond:(start-end)/2,
+            firstMessages:unit.querySelectorAll('.tv-gratitude__text').length,
+            withinGap:innerHeight>innerWidth || r.left>=left && r.right<=right,
+            red:getComputedStyle(node).color,fontSize:parseFloat(getComputedStyle(node).fontSize),nowrap:[...unit.children].every(item=>getComputedStyle(item).whiteSpace==='nowrap'),
+            noDocumentOverflow:document.documentElement.scrollWidth<=innerWidth && document.documentElement.scrollHeight<=innerHeight};
+        });
+        assert.ok(details.leftward&&details.seam&&details.withinGap&&details.nowrap&&details.noDocumentOverflow,JSON.stringify(details));
+        assert.equal(details.firstMessages,count); assert.equal(details.red,'rgb(226, 0, 0)');
+        assert.ok(details.width>=details.viewportWidth && details.sequenceCount<=24);
+        assert.ok(Math.abs(details.groupWidths[0]-details.groupWidths[1])<.01,'both copies have equal width within subpixel rectangle precision');
+        assert.ok(Math.abs(details.pixelsPerSecond-details.fontSize*14/9)<.1,'speed scales with the actual landscape or portrait font size');
+        if (fullHD && count===2 || !fullHD) {
+          await page.locator('.tv-footer').screenshot({path:`${artifactDir}/marquee-footer-${viewport.width}x${viewport.height}.png`});
+        }
+        // Seeking/pausing through WAAPI overrides CSS play-state. Recreate only
+        // the test animation, then check the app's actual CSS pause behavior.
+        await page.evaluate(()=>{
+          const track=document.querySelector('.tv-gratitude__track');
+          track.style.animationName='none'; void getComputedStyle(track).animationName;
+          track.style.removeProperty('animation-name'); window.marqueeAnimation=track.getAnimations()[0];
+        });
+        await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});
+        const paused=await page.locator('.tv-gratitude__track').evaluate(node=>getComputedStyle(node).animationPlayState);
+        assert.equal(paused,'paused');
+        await page.evaluate(()=>window.marqueeAnimation.ready);
+        const hiddenTime=await page.evaluate(()=>window.marqueeAnimation.currentTime);
+        await page.waitForTimeout(100);
+        assert.equal(await page.evaluate(()=>window.marqueeAnimation.currentTime),hiddenTime);
+        await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
+        assert.equal(await page.locator('.tv-gratitude__track').evaluate(node=>getComputedStyle(node).animationPlayState),'running');
+        await page.clock.fastForward(14000); await page.clock.runFor(2500);
+        await pumpUntil(page,async()=>await page.locator('.tv-board--active [data-car-slug="tv-car-7"]').count()===1);
+        assert.ok(await page.evaluate(()=>document.querySelector('.tv-gratitude__track').getAnimations()[0]===window.marqueeAnimation),'vehicle rotation does not recreate the marquee');
+        assert.deepEqual(await fixedGeometry(page),geometry);
+        assert.equal(calls.length-reads,7,'marquee does not fetch API data');
+        await page.emulateMedia({reducedMotion:'reduce'});
+        assert.equal(await page.locator('.tv-gratitude__track').evaluate(node=>getComputedStyle(node).animationName),'none');
+        assert.equal(await page.locator('.tv-gratitude__track').evaluate(node=>getComputedStyle(node).transform),'none');
+        assert.deepEqual(errors,[]);
+        summaries.push({marqueeViewport:viewport,messages:count,...details,hiddenPause:true,reducedMotion:true,fixedGeometry:true,noExtraReads:true,errors});
+        console.log(JSON.stringify(summaries.at(-1))); await context.close();
+      }
+    }
+    tvConfig=null;
+  }
+  if (themeOnly) {
+    const observeIntros = page => page.addInitScript(() => {
+      window.tvAnniversaryIntroCount = 0;
+      const animated = new WeakSet();
+      new MutationObserver(records => {
+        for (const { target } of records) {
+          if (target instanceof HTMLElement && target.matches('.tv-anniversary-badge__number') &&
+            target.style.transform && target.style.transform !== 'none' && !animated.has(target)) {
+            animated.add(target); window.tvAnniversaryIntroCount++;
+          }
+        }
+      }).observe(document, { subtree: true, attributes: true, attributeFilter: ['style'] });
+    });
+    const motionState = page => page.evaluate(() => {
+      const root = document.querySelector('.tv-anniversary-badge');
+      const gold = root.querySelector('.tv-anniversary-badge__number strong');
+      const light = root.querySelector('.tv-anniversary-ribbon-glint');
+      return { intros: window.tvAnniversaryIntroCount,
+        light: Number.parseFloat(gold.style.getPropertyValue('--tv-anniversary-glint') || '140'),
+        x: light.transform.baseVal.consolidate()?.matrix.e ?? -130,
+        introTransform: root.querySelector('.tv-anniversary-badge__number').style.transform,
+        masked: getComputedStyle(gold, '::after').maskImage !== 'none',
+      };
+    });
+    const checkMotion = async page => {
+      const reads = calls.length;
+      assert.equal((await motionState(page)).intros, 1, 'intro is observed once across vehicle rotations');
+      await startPositionCheck(page);
+      await page.clock.fastForward(30000); await page.clock.runFor(450);
+      const sweep = await motionState(page);
+      assert.ok(sweep.masked);
+      assert.ok(sweep.light < 140 && sweep.light > -40 && sweep.x > -130 && sweep.x < 660, `both gold/ribbon lights move: ${JSON.stringify(sweep)}`);
+      await page.screenshot({ path: `${artifactDir}/motion-light-sweep.png` });
+      await page.clock.runFor(1300);
+      await finishPositionCheck(page, false);
+      await page.clock.fastForward(30000); await page.clock.runFor(450);
+      await page.evaluate(() => {
+        Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+      const hidden = await motionState(page);
+      assert.ok(hidden.masked, 'pausing GSAP preserves the numeral mask');
+      assert.equal(hidden.light, 140); assert.equal(hidden.x, -130); assert.equal(hidden.introTransform, '');
+      await page.clock.fastForward(60000); await page.clock.runFor(2000);
+      assert.deepEqual(await motionState(page), hidden, 'hidden tabs cancel their light schedule and restore the static design');
+      await page.evaluate(() => {
+        Object.defineProperty(document, 'hidden', { configurable: true, get: () => false });
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+      await page.waitForTimeout(100);
+      // Wait for the resumed context to exist before advancing its timeout.
+      // Crossing the deadline in fastForward can skip the entire short sweep;
+      // approach it first, then sample its actual frames with runFor.
+      await page.waitForFunction(() => document.querySelector('.tv-anniversary-badge__number strong')?.style.getPropertyValue('--tv-anniversary-glint') === '140%');
+      await page.clock.fastForward(27000); await page.clock.runFor(1500);
+      const resumed = await motionState(page);
+      assert.equal(resumed.intros, 1); assert.ok(resumed.light < 140 && resumed.light > -40, `resumed sweep: ${JSON.stringify(resumed)}`);
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.waitForTimeout(100);
+      const reduced = await motionState(page);
+      assert.ok(reduced.masked, 'reduced motion preserves the numeral mask');
+      assert.equal(reduced.light, 140); assert.equal(reduced.x, -130);
+      await page.clock.fastForward(30000); await page.clock.runFor(2000);
+      assert.deepEqual(await motionState(page), reduced, 'live reduced-motion preference stops and restores decoration only');
+      assert.equal(calls.length, reads, 'intro, repeated lights and visibility/preference changes add no API reads');
+      return { oncePerScreen: true, lightSweep: true, hiddenResume: true, liveReducedMotion: true, noExtraReads: true };
+    };
+    const geometry = page => page.evaluate(() => {
+      const rect = node => { const box = node.getBoundingClientRect(); return [box.x, box.y, box.width, box.height]; };
+      // The event may align content within the footer; its outer height and
+      // every region outside the footer must match the standard template.
+      return [...document.querySelectorAll('.tv-masthead, .tv-logo, .tv-qr, .tv-footer, .tv-stage, .tv-board--active [data-tv-card]')].map(rect);
+    });
+    for (const viewport of [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }, { width: 3840, height: 2160 }, { width: 1080, height: 1920 }, { width: 1920, height: 886 }]) {
+      let standardGeometry;
+      for (const theme of ['standard', 'anniversary-4']) {
+        tvConfig = { ...defaultFixtureConfig, theme };
+        const { context, page } = await createPage(viewport);
+        const errors = [];
+        page.on('pageerror', error => errors.push(error.message));
+        const fullHD = viewport.width === 1920 && viewport.height === 1080;
+        if (fullHD) await observeIntros(page);
+        await page.clock.install();
+        const reads = calls.length;
+        await page.goto(`${base}/TV`);
+        await page.clock.runFor(1800);
+        await page.locator('.tv-stage[data-ready="true"]').waitFor();
+        assert.equal(await page.locator('.tv-screen').getAttribute('data-theme'), theme);
+        if (theme === 'anniversary-4') {
+          // Rasterize the real SVGs: bounding boxes alone cannot detect a
+          // painted curve crossing the logo, QR or phone clearance.
+          const clearance = await page.evaluate(async () => {
+            const results = [];
+            for (const position of ['header', 'footer']) {
+              const svg = document.querySelector(`.tv-anniversary-trim--${position}`);
+              const bounds = svg.getBoundingClientRect();
+              const clone = svg.cloneNode(true);
+              clone.setAttribute('width', bounds.width); clone.setAttribute('height', bounds.height);
+              const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml' }));
+              try {
+                const image = new Image(); image.src = url; await image.decode();
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.ceil(bounds.width); canvas.height = Math.ceil(bounds.height);
+                const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0, bounds.width, bounds.height);
+                const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                const selector = position === 'header' ? '.tv-qr' : '.tv-brand-summary__logo, .tv-hotline__icon, .tv-hotline > div, .tv-gratitude';
+                const gap = Math.max(6, Math.min(20, innerWidth / 1920 * 10));
+                let overlaps = 0;
+                for (const node of svg.parentElement.querySelectorAll(selector)) {
+                  const box = node.getBoundingClientRect();
+                  const left = Math.max(0, Math.ceil(box.left - bounds.left - gap));
+                  const right = Math.min(canvas.width, Math.floor(box.right - bounds.left + gap));
+                  const top = Math.max(0, Math.ceil(box.top - bounds.top - gap));
+                  const bottom = Math.min(canvas.height, Math.floor(box.bottom - bounds.top + gap));
+                  for (let y = top; y < bottom; y++) for (let x = left; x < right; x++) if (pixels[(y * canvas.width + x) * 4 + 3]) overlaps++;
+                }
+                const continuous = position !== 'footer' || Array.from({ length: canvas.width }, (_, x) => pixels[((canvas.height - 2) * canvas.width + x) * 4 + 3]).every(alpha => alpha > 0);
+                results.push({ position, overlaps, continuous, visible: pixels.some((value, index) => index % 4 === 3 && value > 0) });
+              } finally { URL.revokeObjectURL(url); }
+            }
+            const confetti = document.querySelector('.tv-event-confetti');
+            const inset = getComputedStyle(confetti).clipPath.match(/inset\(0px ([\d.]+)%/);
+            const contentLeft = Math.min(...[...document.querySelectorAll('.tv-qr > span, .tv-qr img')].map(node => node.getBoundingClientRect().left));
+            return { trims: results, confettiClearOfQR: Boolean(inset) && innerWidth * (1 - Number(inset[1]) / 100) <= contentLeft - 6 };
+          });
+          assert.ok(clearance.trims.every(item => item.visible && item.continuous && item.overlaps === 0), `painted ribbon is continuous and clear of QR, brand logo, phone and marquee: ${JSON.stringify(clearance)}`);
+          assert.ok(clearance.confettiClearOfQR, 'animated confetti is clipped before the QR and caption area');
+        }
+        if (fullHD && theme === 'anniversary-4') {
+          const pieces=page.locator('.tv-event-confetti i');
+          assert.equal(await pieces.count(),12,'two additional pieces fill the space before the QR caption');
+          const positions=()=>pieces.evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2];}));
+          const before=await positions(); await page.waitForTimeout(1200); const after=await positions();
+          assert.ok(after.some((point,i)=>Math.hypot(point[0]-before[i][0],point[1]-before[i][1])>2),'confetti has visible drift over a short real compositor interval');
+          assert.equal(await page.locator('.tv-event-confetti').evaluate(node=>getComputedStyle(node).overflow),'hidden','drifting pieces are clipped to the header');
+          assert.equal(await page.locator('.tv-footer .tv-event-confetti').count(),0,'the text footer stays clear');
+        }
+        const bounds = await geometry(page);
+        if (theme === 'standard') standardGeometry = bounds;
+        else assert.deepEqual(bounds, standardGeometry, 'event does not move/resize header, logo, QR, footer, stage or cards');
+        assert.equal(await page.locator('.tv-anniversary-badge').count(), theme === 'standard' ? 0 : 1);
+        const display = await page.evaluate(() => {
+          const inside = (node, parent) => {
+            const box = node.getBoundingClientRect(), outer = parent.getBoundingClientRect();
+            return box.left >= outer.left - 1 && box.right <= outer.right + 1 && box.top >= outer.top - 1 && box.bottom <= outer.bottom + 1;
+          };
+          const heading = document.querySelector('.tv-heading');
+          const badge = heading.querySelector('.tv-anniversary-badge');
+          const badgeBox = badge?.getBoundingClientRect();
+          const badgeNumber = badge?.querySelector('.tv-anniversary-badge__number').getBoundingClientRect();
+          const ribbon = badge?.querySelector('.tv-anniversary-badge__message > strong');
+          const ribbonBox = ribbon?.getBoundingClientRect();
+          const title = heading.querySelector('h1');
+          const titleBox = title.getBoundingClientRect();
+          const header = document.querySelector('.tv-masthead');
+          const wreath = badge?.querySelector('svg').getBBox();
+          return {
+            overflow: document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight,
+            headingFits: [...heading.children].every(node => inside(node, document.querySelector('.tv-masthead'))),
+            loaded: [...document.querySelectorAll('.tv-board--active img, .tv-logo, .tv-qr img')].every(img => img.complete && img.naturalWidth),
+            captionFits: [...document.querySelectorAll('.tv-anniversary-badge__message > *')].every(node => node.scrollWidth <= node.clientWidth + 1),
+            badgeClearOfTop: !badgeNumber || badgeNumber.top >= header.getBoundingClientRect().top + innerHeight * .008,
+            badgeCentered: !badgeBox || Math.abs(badgeBox.left + badgeBox.width / 2 - innerWidth / 2) < 2,
+            ribbonCenteredOnTitle: !ribbonBox || Math.abs(ribbonBox.left + ribbonBox.width / 2 - titleBox.left - titleBox.width / 2) < 2,
+            ribbonProminent: !ribbon || parseFloat(getComputedStyle(ribbon).fontSize) / parseFloat(getComputedStyle(title).fontSize) > .7,
+            numberClearOfLogo: !badgeNumber || badgeNumber.left >= document.querySelector('.tv-logo').getBoundingClientRect().right,
+            badgeContentsFit: !badge || [...badge.querySelectorAll('div, strong, span, svg')].every(node => inside(node, header)),
+            wreathUnclipped: !wreath || (wreath.x >= 0 && wreath.y >= 0 && wreath.x + wreath.width <= 100 && wreath.y + wreath.height <= 100),
+            wreathBounds: wreath ? [wreath.x, wreath.y, wreath.width, wreath.height] : null,
+            numberLightMask: !badge || getComputedStyle(badge.querySelector('.tv-anniversary-badge__number strong'), '::after').maskImage !== 'none',
+            brandRibbonShown: getComputedStyle(heading.querySelector('.tv-brand-ribbon')).display !== 'none',
+          };
+        });
+        assert.equal(display.overflow, false); assert.ok(display.headingFits && display.loaded && display.captionFits);
+        assert.ok(display.badgeClearOfTop && display.badgeCentered && display.badgeContentsFit && display.wreathUnclipped, `the entire event badge is centered, inside the header, with top clearance and no SVG clipping: ${JSON.stringify(display)}`);
+        assert.ok(display.ribbonCenteredOnTitle && display.ribbonProminent && display.numberClearOfLogo, `the larger ribbon shares the title center, with its numeral outside and clear of the logo: ${JSON.stringify(display)}`);
+        assert.equal(display.brandRibbonShown, theme === 'standard', 'only the event hides the header brand; the standard theme restores it');
+        assert.ok(display.numberLightMask, 'the numeral light is masked to the custom vector outline');
+        assert.equal(calls.length - reads, 7, 'the skin adds no API or database reads');
+        await page.screenshot({ path: `${artifactDir}/theme-${theme}-${viewport.width}x${viewport.height}.png` });
+        await page.locator('.tv-masthead').screenshot({ path: `${artifactDir}/header-${theme}-${viewport.width}x${viewport.height}.png` });
+        if (theme === 'anniversary-4') await page.locator('.tv-footer').screenshot({ path: `${artifactDir}/footer-${theme}-${viewport.width}x${viewport.height}.png` });
+        if (theme === 'anniversary-4') await page.locator('.tv-anniversary-badge__number').screenshot({ path: `${artifactDir}/emblem-four-${viewport.width}x${viewport.height}.png` });
+        const rotationReads = calls.length;
+        await startPositionCheck(page);
+        for (const slug of ['tv-car-7', 'tv-car-13']) {
+          await page.clock.fastForward(14000); await page.clock.runFor(2500);
+          await pumpUntil(page, async () => await page.locator(`.tv-board--active [data-car-slug="${slug}"]`).count() === 1);
+        }
+        const stability = await finishPositionCheck(page);
+        assert.equal(calls.length, rotationReads, 'switching vehicles does not request API data');
+        const motion = fullHD && theme === 'anniversary-4' ? await checkMotion(page) : undefined;
+        // Apply and remove the event through the existing five-minute refresh,
+        // without navigation/reload, preserving the same header and card nodes.
+        if (viewport.width === 1920 && theme === 'standard') {
+          for (const nextTheme of (fullHD ? ['anniversary-4', 'standard', 'anniversary-4', 'standard'] : ['anniversary-4', 'standard'])) {
+            tvConfig = { ...defaultFixtureConfig, theme: nextTheme };
+            await page.clock.fastForward(300000);
+            await pumpUntil(page, async () => await page.locator('.tv-screen').getAttribute('data-theme') === nextTheme);
+            await page.screenshot({ path: `${artifactDir}/theme-refresh-${nextTheme}.png` });
+            assert.deepEqual(await geometry(page), standardGeometry, 'refresh-driven theme changes keep card and frame geometry');
+            assert.equal(await page.locator('.tv-anniversary-badge').count(), nextTheme === 'standard' ? 0 : 1);
+            if (fullHD && nextTheme === 'anniversary-4') {
+              await page.waitForTimeout(100); await page.clock.runFor(1200);
+              assert.equal((await motionState(page)).intros, 1, 'turning the event off/on and refreshing data does not replay its intro');
+            }
+          }
+        }
+        assert.deepEqual(errors, []);
+        summaries.push({ viewport, theme, unchangedGeometry: true, ...display, stability, motion, errors });
+        console.log(JSON.stringify({ viewport, theme, unchangedGeometry: true, ...display }));
+        await context.close();
+      }
+    }
+    tvConfig = null;
+  }
+  if (anniversaryOnly) {
+    tvConfig = { ...defaultFixtureConfig, theme: 'anniversary-4', carIntervalSeconds: 5 };
+    const visibleEvent = page => page.locator('.tv-anniversary-slide[data-visible="true"]').count();
+    const firstCar = page => page.locator('.tv-board--active [data-car-slug]').first().getAttribute('data-car-slug');
+    const advanceUntil = async (page, check, seconds = 24) => {
+      for (let i = 0; i < seconds * 2; i++) {
+        if (await check()) return;
+        await page.clock.runFor(500); await page.waitForTimeout(10);
+      }
+      assert.fail('Anniversary state did not arrive within its visible-time budget');
+    };
+    const fixedGeometry = page => page.evaluate(() => [...document.querySelectorAll('.tv-masthead,.tv-logo,.tv-qr,.tv-hotline,.tv-stage,.tv-footer')]
+      .map(node => { const r = node.getBoundingClientRect(); return [r.x,r.y,r.width,r.height]; }));
+    for (const viewport of [{width:1920,height:1080}, {width:1366,height:768}, {width:3840,height:2160}, {width:1080,height:1920}, {width:1920,height:886}]) {
+      const fullHD = viewport.width === 1920 && viewport.height === 1080;
+      mixedBrands = fullHD;
+      const expectedCar = index => `tv-car-${fullHD ? [1,7,9,15,16][index % 5] : index * 6 + 1}`;
+      const { context, page } = await createPage(viewport);
+      const errors = []; page.on('pageerror', error => errors.push(error.message));
+      await page.clock.install();
+      const reads = calls.length;
+      await page.goto(`${base}/TV`); await page.clock.runFor(1800);
+      await page.locator('.tv-stage[data-ready="true"]').waitFor();
+      await page.waitForFunction(() => document.querySelector('.tv-anniversary-slide img')?.naturalWidth > 0);
+      const geometry = await fixedGeometry(page);
+      assert.equal(await page.locator('.tv-event-confetti i').count(), 12);
+      const pages = fullHD ? 18 : 6;
+      for (let next = 1; next <= pages; next++) {
+        if (next % 6 === 0) {
+          await advanceUntil(page, async () => !!await visibleEvent(page));
+          assert.equal(await firstCar(page), expectedCar(next - 1), 'interlude does not consume or alter the car index');
+          assert.deepEqual(await fixedGeometry(page), geometry);
+          assert.ok(await page.locator('.tv-anniversary-slide img').evaluate(img => img.complete && img.naturalWidth > 0));
+          if (next === 6) {
+            await page.clock.runFor(800);
+            // Native CSS transitions follow compositor time, not page.clock.
+            await page.waitForTimeout(850);
+            assert.equal(await page.locator('.tv-anniversary-slide').evaluate(node => getComputedStyle(node).opacity), '1');
+            const fit = await page.evaluate(() => {
+              const footer = document.querySelector('.tv-footer'), gratitude = footer.querySelector('.tv-gratitude').getBoundingClientRect();
+              const count = footer.querySelector('.tv-brand-summary--active .tv-brand-summary__count').getBoundingClientRect();
+              const phone = footer.querySelector('.tv-hotline__icon').getBoundingClientRect();
+              const slide = document.querySelector('.tv-anniversary-slide__copy');
+              return { gratitudeClear: innerWidth < innerHeight || gratitude.left >= count.right && gratitude.right <= phone.left,
+                slideFits: slide.scrollHeight <= slide.clientHeight + 1 && slide.scrollWidth <= slide.clientWidth + 1,
+                overflow: document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight };
+            });
+            assert.ok(fit.gratitudeClear && fit.slideFits && !fit.overflow, JSON.stringify(fit));
+            await page.screenshot({ path: `${artifactDir}/anniversary-slide-${viewport.width}x${viewport.height}.png` });
+            if (fullHD) {
+              await page.evaluate(() => { Object.defineProperty(document, 'hidden', {configurable:true,get:()=>true}); document.dispatchEvent(new Event('visibilitychange')); });
+              await page.clock.fastForward(60000);
+              assert.equal(await visibleEvent(page), 1, 'hidden time must not consume the interlude');
+              assert.ok(await page.locator('.tv-event-confetti i').evaluateAll(nodes => nodes.every(node => getComputedStyle(node).animationPlayState === 'paused')));
+              await page.evaluate(() => { delete document.hidden; document.dispatchEvent(new Event('visibilitychange')); });
+              await page.clock.runFor(4000);
+              assert.equal(await visibleEvent(page), 1, 'interlude resumes its remaining visible time');
+            }
+          }
+        }
+        await advanceUntil(page, async () => await firstCar(page) === expectedCar(next) && !await visibleEvent(page));
+      }
+      assert.deepEqual(await fixedGeometry(page), geometry);
+      assert.equal(calls.length - reads, fullHD ? 6 : 7, 'event decoration/interludes introduce no API reads');
+      await page.emulateMedia({reducedMotion:'reduce'});
+      assert.ok(await page.locator('.tv-event-animated').evaluateAll(nodes => nodes.every(node => getComputedStyle(node).animationName === 'none')));
+      assert.equal(await page.locator('.tv-gratitude__track').evaluate(node => getComputedStyle(node).transform), 'none');
+      assert.deepEqual(errors, []);
+      summaries.push({ anniversaryViewport:viewport, carPages:pages, interludes:pages / 6, noSkippedPages:true, fixedGeometry:true, noExtraReads:true, errors });
+      console.log(JSON.stringify(summaries.at(-1)));
+      await context.close();
+    }
+    // Admin-managed content/timing and independently disabled effects.
+    {
+      const custom = structuredClone(defaultTVAnniversary);
+      custom.pagesBetweenSlides = 1; custom.slideSeconds = 5; custom.messageSeconds = 7;
+      custom.messages = ['Lời tri ân tùy chỉnh 1','Lời tri ân tùy chỉnh 2'];
+      custom.confetti = false; custom.silk = false; custom.sparkles = false;
+      custom.slides = [
+        {...custom.slides[0],title:'A'.repeat(60),highlight:'B'.repeat(60),body:'C'.repeat(240)},
+        {...custom.slides[0],id:'second',imageUrl:custom.slides[0].imageUrl+'?tribute=second',title:'Tri ân khách hàng thứ hai'},
+      ];
+      tvConfig = {...defaultFixtureConfig,theme:'anniversary-4',carIntervalSeconds:5,anniversary:custom};
+      const {context,page} = await createPage();
+      await page.clock.install(); const reads = calls.length;
+      await page.goto(`${base}/TV`); await page.clock.runFor(1800);
+      await page.locator('.tv-stage[data-ready="true"]').waitFor();
+      assert.equal(await page.locator('.tv-event-confetti,.tv-event-sparkles,.tv-event-silk').count(),0);
+      assert.equal(await page.locator('.tv-gratitude span').first().textContent(),custom.messages[0]);
+      assert.ok(await page.locator('.tv-gratitude__track').evaluate(node=>parseFloat(getComputedStyle(node).animationDuration)>0));
+      for (const [index,slide] of custom.slides.entries()) {
+        await advanceUntil(page,async()=>!!await visibleEvent(page));
+        assert.equal(await page.locator('.tv-anniversary-slide h2').textContent(),slide.title+slide.highlight);
+        assert.ok(await page.locator('.tv-anniversary-slide__copy').evaluate(node=>node.scrollHeight<=node.clientHeight+1),'long admin text fits without enlarging the stage');
+        await advanceUntil(page,async()=>!await visibleEvent(page));
+        assert.equal(await firstCar(page),`tv-car-${(index+1)*6+1}`);
+      }
+      assert.equal(calls.length-reads,7);
+      custom.slideEnabled=false; custom.gratitude=false;
+      tvConfig={...tvConfig,anniversary:structuredClone(custom)};
+      await page.clock.fastForward(300000);
+      await pumpUntil(page,async()=>await page.locator('.tv-anniversary-slide,.tv-gratitude').count()===0);
+      tvConfig={...tvConfig,theme:'standard'};
+      await page.clock.fastForward(300000);
+      await pumpUntil(page,async()=>await page.locator('.tv-screen').getAttribute('data-theme')==='standard');
+      assert.equal(await page.locator('.tv-anniversary-badge,.tv-anniversary-trim,.tv-event-confetti,.tv-anniversary-slide,.tv-gratitude').count(),0);
+      assert.notEqual(await page.locator('.tv-brand-ribbon').evaluate(node=>getComputedStyle(node).display),'none');
+      await context.close(); summaries.push({adminManagedContentTimingAndEffects:true,alternatingSlides:true,longTextFits:true,standardRestoresOldUI:true});
+      tvConfig={...defaultFixtureConfig,theme:'anniversary-4',carIntervalSeconds:5};
+    }
+    // Failed showroom image must never replace a perfectly usable vehicle page.
+    for (const mode of ['failed', 'slow', 'single-page']) {
+      inventoryLimit = mode === 'single-page' ? 1 : 128;
+      const {context, page} = await createPage();
+      let release; const gate = new Promise(resolve => { release = resolve; });
+      let photoReads = 0;
+      if (mode !== 'single-page') await context.route('**/upload/photo/img8444-2-7758.jpg', async route => {
+        photoReads++;
+        if (mode === 'slow') await gate;
+        await route.fulfill({status:mode === 'failed' ? 404 : 200,contentType:'image/jpeg',body:mode === 'failed' ? '' : photo});
+      });
+      await page.clock.install();
+      await page.goto(`${base}/TV`, {waitUntil:'domcontentloaded'}); await page.clock.runFor(1800);
+      await page.locator('.tv-stage[data-ready="true"]').waitFor();
+      if (mode === 'single-page') {
+        await advanceUntil(page, async () => !!await visibleEvent(page), 40);
+        await advanceUntil(page, async () => !await visibleEvent(page));
+        assert.equal(await firstCar(page), 'tv-car-1');
+      } else {
+        await advanceUntil(page, async () => await firstCar(page) === 'tv-car-43', 50);
+        assert.equal(await visibleEvent(page), 0, 'unready photo skips interludes, never cars');
+        assert.equal(photoReads, 1, 'no repeated image requests while unavailable');
+        if (mode === 'slow') {
+          release();
+          // A timed-out URL is skipped until the existing five-minute refresh.
+          await page.clock.fastForward(300000);
+          await advanceUntil(page,async()=>await page.locator('.tv-anniversary-slide img').evaluateAll(nodes=>nodes.some(img=>img.naturalWidth>0)),40);
+          await advanceUntil(page, async () => !!await visibleEvent(page));
+          assert.ok(photoReads<=2,'failed photos retry at most once per snapshot refresh');
+        }
+      }
+      release(); await context.close();
+      summaries.push({anniversaryImageMode:mode, passed:true});
+    }
+    inventoryLimit = 128; tvConfig = null;
+  }
+  for (const viewport of (rotationOnly || themeOnly || anniversaryOnly || marqueeOnly ? [] : [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }, { width: 3840, height: 2160 }, { width: 1080, height: 1920 }])) {
     const { context, page } = await createPage(viewport);
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -265,7 +707,7 @@ try {
     await context.close();
   }
 
-  if (!process.argv.includes('--smoke') && !headerOnly) {
+  if (!process.argv.includes('--smoke') && !headerOnly && !themeOnly && !anniversaryOnly && !marqueeOnly) {
   // Brand boundary, partial pages, next-logo readiness, and repeated buffers.
   {
     mixedBrands = true;
@@ -534,7 +976,7 @@ try {
   }
   }
   }
-  await writeFile(`${artifactDir}/${rotationOnly ? 'rotation-results' : headerOnly ? 'header-results' : process.argv.includes('--smoke') ? 'smoke-results' : 'results'}.json`, JSON.stringify(summaries, null, 2));
+  await writeFile(`${artifactDir}/${marqueeOnly ? 'marquee-results' : anniversaryOnly ? 'anniversary-results' : themeOnly ? 'theme-results' : rotationOnly ? 'rotation-results' : headerOnly ? 'header-results' : process.argv.includes('--smoke') ? 'smoke-results' : 'results'}.json`, JSON.stringify(summaries, null, 2));
   console.log(JSON.stringify(summaries, null, 2));
 } finally {
   clearTimeout(watchdog);

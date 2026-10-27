@@ -75,6 +75,84 @@
 .tv-preparing,.tv-empty { position:absolute; inset:var(--tv-header-height) 0 var(--tv-footer-height); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2vh; padding:4vw; text-align:center; background:#f2f4fa; font-size:clamp(18px,2vw,60px); }
 .tv-preparing > span { width:4vw; height:4px; background:var(--tv-red); }
 .tv-empty p { color:#657083; font-size:.7em; }
+/* Optional event skin. Standard rules above remain the rollback template. */
+.tv-anniversary-trim { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.tv-screen[data-theme="anniversary-4"] { background:radial-gradient(ellipse at 50% 0,#fff9ed,transparent 65%),#f2f4fa; }
+.tv-screen[data-theme="anniversary-4"] .tv-masthead { grid-template-rows:minmax(0,1fr); background:linear-gradient(110deg,#fff9f0,#fff 36%,#fff 66%,#fff7ef); border-bottom-color:#ead9bc; }
+.tv-screen[data-theme="anniversary-4"] .tv-masthead > :not(.tv-anniversary-trim) { position:relative; z-index:1; }
+.tv-screen[data-theme="anniversary-4"] .tv-heading { left:.5vw; min-height:0; gap:.35vh; }
+.tv-screen[data-theme="anniversary-4"] .tv-heading h1 { font-size:min(clamp(22px,2.05vw,78px),3.9vh); }
+.tv-screen[data-theme="anniversary-4"] .tv-brand-ribbon { display:none; }
+.tv-screen[data-theme="anniversary-4"] .tv-heading::before,
+.tv-screen[data-theme="anniversary-4"] .tv-heading::after { display:none; }
+.tv-anniversary-badge { --tv-badge-number:8.5vh; --tv-badge-gap:.35vw; position:relative; flex:none; display:grid; grid-template-columns:var(--tv-badge-number) max-content var(--tv-badge-number); grid-template-rows:minmax(0,1fr); align-items:center; column-gap:var(--tv-badge-gap); width:max-content; height:7.3vh; }
+/* An empty third column balances the numeral, centering the ribbon itself. */
+.tv-anniversary-badge__number { grid-column:1; position:relative; isolation:isolate; width:var(--tv-badge-number); height:7.2vh; text-align:center; }
+.tv-anniversary-badge__number svg { position:absolute; inset:0; width:100%; height:100%; }
+/* The numeral and its light sweep sit in front of both laurel branches. */
+.tv-anniversary-badge__laurel { z-index:0; pointer-events:none; }
+.tv-anniversary-badge__number > strong { position:absolute; inset:0; z-index:1; display:block; }
+.tv-anniversary-badge__number > strong::after { content:''; position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(110deg,transparent 43%,#fff8d0 50%,transparent 57%); background-size:250% 100%; background-position:var(--tv-anniversary-glint,140%) 0%; background-repeat:no-repeat; mask:var(--tv-anniversary-number-mask) center / 100% 100% no-repeat; -webkit-mask:var(--tv-anniversary-number-mask) center / 100% 100% no-repeat; }
+.tv-anniversary-badge__message { grid-column:2; min-width:0; display:flex; flex-direction:column; align-items:center; gap:.3vh; }
+.tv-anniversary-badge__message > strong { position:relative; display:block; max-width:100%; padding:.75vh 1.8vw; color:#fff1b0; font-size:min(1.6vw,3vh); line-height:1.15; white-space:nowrap; }
+.tv-anniversary-badge__message > strong svg { position:absolute; inset:0; width:100%; height:100%; }
+.tv-anniversary-badge__message > strong > span { position:relative; text-shadow:0 1px 0 #940007; }
+.tv-anniversary-badge__message > strong > .tv-anniversary-ribbon-wrap { position:absolute; inset:0; pointer-events:none; }
+.tv-anniversary-badge__message > span { display:flex; align-items:center; gap:.5vw; color:#786d58; font-family:'tieude',Arial,sans-serif; font-size:min(.95vw,1.8vh); line-height:1.05; white-space:nowrap; }
+.tv-anniversary-badge__message > span::before,
+.tv-anniversary-badge__message > span::after { content:''; width:2.5vw; height:1px; background:linear-gradient(90deg,transparent,#d2a348); }
+.tv-anniversary-badge__message > span::after { transform:rotate(180deg); }
+.tv-screen[data-theme="anniversary-4"] .tv-footer { padding-bottom:2.3vh; padding-right:1.2vw; background:linear-gradient(110deg,#fff9f1,#fff 28%,#fff 76%,#fff8f1); }
+.tv-screen[data-theme="anniversary-4"] .tv-footer .tv-hotline__icon { width:min(3.8vw,6vh); height:min(3.8vw,6vh); }
+.tv-screen[data-theme="anniversary-4"] .tv-footer::before { display:none; }
+.tv-screen[data-theme="anniversary-4"] .tv-footer > :not(.tv-anniversary-trim) { position:relative; z-index:1; }
+/* Event decoration stays clipped to the masthead, behind its readable content. */
+.tv-screen[data-theme="anniversary-4"] .tv-masthead > .tv-event-confetti { position:absolute; inset:0; z-index:0; overflow:hidden; clip-path:inset(0 var(--tv-event-safe-right,25%) 0 18%); pointer-events:none; }
+.tv-event-confetti i { position:absolute; display:block; width:.45vw; height:.95vh; max-width:17px; max-height:20px; background:var(--event-color); border:1px solid #d7aa4355; border-radius:1px; opacity:.7; animation:tv-event-drift var(--event-duration) ease-in-out var(--event-delay) infinite alternate; }
+@keyframes tv-event-drift { from { transform:translate3d(-.7vw,-2.1vh,0) rotate(-45deg); } to { transform:translate3d(.8vw,3.2vh,0) rotate(90deg); } }
+.tv-event-silk { transform-box:fill-box; transform-origin:0% 50%; animation:tv-event-breeze 9.7s ease-in-out infinite alternate; }
+.tv-event-silk--right { transform-origin:100% 50%; animation-duration:12.3s; animation-delay:-4s; }
+@keyframes tv-event-breeze { from { transform:translateY(-1px) rotate(-1.3deg) scaleY(.98); } to { transform:translateY(1.5px) rotate(1.5deg) scaleY(1.03); } }
+.tv-event-sparkles { position:absolute; inset:0; pointer-events:none; }
+.tv-anniversary-badge > .tv-event-sparkles { right:calc(var(--tv-badge-number) + var(--tv-badge-gap)); }
+.tv-event-sparkles i { position:absolute; width:.55vh; height:.55vh; background:#dcae48; clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%); opacity:0; animation:tv-event-sparkle var(--event-duration) ease-in-out var(--event-delay) infinite; }
+@keyframes tv-event-sparkle { 0%,18%,48%,100% { opacity:0; transform:scale(.6) rotate(0); } 32% { opacity:.65; transform:scale(1) rotate(15deg); } }
+.tv-screen[data-theme="anniversary-4"] .tv-footer > .tv-gratitude { position:absolute; left:var(--gratitude-left,35%); width:var(--gratitude-width,0); top:calc((100% - 2.2vh)/2); transform:translateY(-50%); display:flex; align-items:center; gap:.55vw; height:2em; color:var(--tv-red); font-size:clamp(11px,.82vw,32px); line-height:1.25; pointer-events:none; visibility:hidden; overflow:hidden; }
+.tv-gratitude[data-fit="true"] { visibility:visible !important; }
+.tv-gratitude__arrows { flex:none; width:1.55vw; height:1.2em; color:#dfad42; }
+.tv-gratitude__viewport { flex:1; min-width:0; overflow:hidden; mask-image:linear-gradient(90deg,transparent,#000 .6vw,#000 calc(100% - .6vw),transparent); }
+.tv-gratitude__track { display:flex; width:max-content; animation:tv-gratitude-marquee var(--tv-gratitude-duration,30s) linear infinite; will-change:transform; }
+.tv-gratitude__group,.tv-gratitude__sequence { display:flex; flex:none; width:max-content; align-items:center; }
+.tv-gratitude__item { display:flex; flex:none; align-items:center; gap:.65vw; padding-right:.85vw; white-space:nowrap; }
+.tv-gratitude__star { flex:none; width:.45vw; height:.85em; color:#dfad42; }
+@keyframes tv-gratitude-marquee { from { transform:translate3d(0,0,0); } to { transform:translate3d(-50%,0,0); } }
+.tv-anniversary-slide { position:absolute; inset:0; z-index:3; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); overflow:hidden; border:1px solid #e8d6ac; border-radius:.85vw; background:linear-gradient(135deg,#fffdf7,#fff9ed 70%,#ffe7c5); opacity:0; visibility:hidden; pointer-events:none; transition:opacity .7s ease-in-out,visibility 0s .7s; }
+.tv-anniversary-slide[data-visible="true"] { opacity:1; visibility:visible; transition:opacity .7s ease-in-out; }
+.tv-anniversary-slide__photo { position:relative; min-width:0; min-height:0; overflow:hidden; }
+.tv-anniversary-slide__photo::after { content:''; position:absolute; inset:0; background:linear-gradient(0deg,#350909aa,transparent 40%); }
+.tv-anniversary-slide__photo img { display:block; width:100%; height:100%; object-fit:cover; object-position:55% center; }
+.tv-anniversary-slide__photo > span { position:absolute; z-index:1; bottom:3vh; left:2vw; color:#fff5dc; font-size:1.3vw; }
+.tv-anniversary-slide__copy { min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.8vh; padding:3vh 3vw; text-align:center; border-left:.35vw solid #d9b258; }
+.tv-anniversary-slide__seal { display:grid; justify-items:center; color:#a27521; }
+.tv-anniversary-slide__seal > strong { font-size:clamp(64px,11vh,240px); line-height:.9; background:linear-gradient(135deg,#b27f1d,#f4d787 40%,#bd861c); background-clip:text; -webkit-background-clip:text; color:transparent; }
+.tv-anniversary-slide__seal > span { margin-top:.6vh; font-family:'tieude',Arial,sans-serif; font-size:1.15vw; letter-spacing:.25em; }
+.tv-anniversary-slide__seal > small { margin-top:.7vh; font-size:.95vw; }
+.tv-anniversary-slide .tv-anniversary-slide__eyebrow { padding:.7vh 1.5vw; border-radius:3px; background:#dc0008; color:#fff4c4; font-family:'tieude',Arial,sans-serif; font-size:1vw; letter-spacing:.08em; }
+.tv-anniversary-slide h2 { color:var(--tv-ink); font-family:'tieude',Arial,sans-serif; font-weight:400; font-size:calc(3vw * var(--tv-tribute-scale,1)); line-height:1.16; overflow-wrap:anywhere; }
+.tv-anniversary-slide h2 em { color:#df0008; font-style:normal; }
+.tv-anniversary-slide__copy > p:not(.tv-anniversary-slide__eyebrow) { max-width:32em; color:#5b5260; font-size:calc(1.15vw * var(--tv-tribute-scale,1)); line-height:1.55; overflow-wrap:anywhere; }
+.tv-anniversary-slide__signature { color:#af7d25; font-family:'tieude',Arial,sans-serif; font-size:1.35vw; }
+.tv-screen[data-motion-paused="true"] .tv-event-animated { animation-play-state:paused; }
+@media(prefers-reduced-motion:reduce) {
+ .tv-screen .tv-event-animated { animation:none; }
+ .tv-event-sparkles { display:none; }
+ .tv-gratitude__track { transform:none; will-change:auto; }
+ .tv-gratitude__track,.tv-gratitude__group,.tv-gratitude__sequence { width:100%; }
+ .tv-gratitude__group[aria-hidden="true"],.tv-gratitude__sequence[aria-hidden="true"],.tv-gratitude__item:not(:first-child) { display:none; }
+ .tv-gratitude__item { flex:1; min-width:0; }
+ .tv-gratitude__text { overflow:hidden; text-overflow:ellipsis; }
+ .tv-anniversary-slide { transition:none; }
+}
 @media(orientation:portrait) {
  .tv-screen { --tv-header-height:13%; --tv-footer-height:9%; }
  .tv-masthead { grid-template-columns:18% minmax(0,1fr) 21%; gap:2vw; padding:1vh 3vw; }
@@ -116,4 +194,27 @@
  .tv-qr img { width:min(10vh,100%); height:auto; aspect-ratio:1; }
  .tv-qr > span { order:1; font-size:1.9vw; text-align:center; }
  .tv-qr__break { display:none; }
+ .tv-screen[data-theme="anniversary-4"] .tv-heading { left:1.5vw; gap:.4vh; }
+ .tv-screen[data-theme="anniversary-4"] .tv-heading h1 { font-size:3.25vw; }
+ .tv-anniversary-badge { --tv-badge-number:9vw; --tv-badge-gap:.5vw; height:5vh; }
+ .tv-anniversary-badge__number { height:8.1vw; }
+ .tv-anniversary-badge__message > strong { padding:.65vh 2.5vw; font-size:2.3vw; }
+ .tv-anniversary-badge__message > span { font-size:1.7vw; }
+ .tv-screen[data-theme="anniversary-4"] .tv-footer { padding-bottom:3.8vh; padding-right:2vw; }
+ .tv-screen[data-theme="anniversary-4"] .tv-footer .tv-hotline__icon { width:min(6vw,6vh); height:min(6vw,6vh); }
+ .tv-screen[data-theme="anniversary-4"] .tv-brand-summaries { height:4vh; }
+ .tv-screen[data-theme="anniversary-4"] .tv-footer > .tv-gratitude { left:18%; width:64%; top:auto; bottom:2.2vh; transform:none; font-size:1.5vw; }
+ .tv-gratitude__arrows { width:3vw; }
+ .tv-gratitude__star { width:.9vw; }
+ .tv-event-confetti i { width:.75vw; height:.8vh; }
+ .tv-anniversary-slide { grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) minmax(0,1fr); }
+ .tv-anniversary-slide__copy { padding:1.5vh 5vw; gap:.8vh; border-left:0; border-top:.35vw solid #d9b258; }
+ .tv-anniversary-slide__photo > span { bottom:1.2vh; left:3vw; font-size:2.4vw; }
+ .tv-anniversary-slide__seal > strong { font-size:7vh; }
+ .tv-anniversary-slide__seal > span { font-size:2.1vw; }
+ .tv-anniversary-slide__seal > small { font-size:1.9vw; }
+ .tv-anniversary-slide .tv-anniversary-slide__eyebrow { font-size:2vw; }
+ .tv-anniversary-slide h2 { font-size:calc(4.8vw * var(--tv-tribute-scale,1)); }
+ .tv-anniversary-slide__copy > p:not(.tv-anniversary-slide__eyebrow) { font-size:calc(2.3vw * var(--tv-tribute-scale,1)); }
+ .tv-anniversary-slide__signature { font-size:2.6vw; }
 }

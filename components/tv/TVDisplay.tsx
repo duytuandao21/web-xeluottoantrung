@@ -1,12 +1,16 @@
 'use client';
 
-import { memo, useEffect, useMemo, useRef, useState, type RefObject, type ReactNode } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type RefObject, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { responsiveImage } from '@/lib/image-delivery';
 import { prepareTVImage, tvImage, tvPrice, TV_REFRESH_INTERVAL } from '@/lib/tv-images';
 import { tvPages, tvNextPage } from '@/lib/tv-pages';
 import type { TVCar, TVSnapshot, TVHotline, TVBrand } from '@/types/tv';
 import TVHotlineNumbers from './TVHotlineNumbers';
+import { TVAnniversaryBadge, TVAnniversaryTrim } from './TVAnniversary';
+import { TVAnniversaryConfetti, TVAnniversarySlide, TVGratitude } from './TVAnniversaryExtras';
+import { TV_ANNIVERSARY, waitForTVVisibleTime } from '@/lib/tv-anniversary';
+import { defaultTVAnniversary, parseTVAnniversary, type TVAnniversarySettings } from '@/lib/tv-anniversary-settings';
 
 type Batch = { snapshot: TVSnapshot; page: number; token: number };
 type Slot = 0 | 1;
@@ -27,8 +31,10 @@ function Icon({ kind }: { kind: 'year' | 'mileage' | 'fuel' | 'phone' }) {
 }
 
 /** The masthead is independent of the two rotating car buffers. */
-const TVMasthead = memo(function TVMasthead({ logoUrl, siteName, title, logoRef, brands, children }: {
+const TVMasthead = memo(function TVMasthead({ logoUrl, siteName, title, logoRef, brands, anniversary, eventConfig, children }: {
   logoUrl: string; siteName: string; title: string;
+  anniversary: boolean;
+  eventConfig: TVAnniversarySettings;
   logoRef: RefObject<HTMLImageElement | null>; brands: TVBrand[]; children: ReactNode;
 }) {
   const headingRef = useRef<HTMLDivElement>(null);
@@ -60,12 +66,13 @@ const TVMasthead = memo(function TVMasthead({ logoUrl, siteName, title, logoRef,
     if (headingRef.current) observer.observe(headingRef.current);
     void document.fonts.ready.then(fit);
     return () => { live = false; observer.disconnect(); };
-  }, [title]);
+  }, [title, anniversary]);
   return <header className="tv-masthead">
+    {anniversary && <><TVAnniversaryTrim position="header" silk={eventConfig.silk}/>{eventConfig.confetti && <TVAnniversaryConfetti/>}</>}
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img ref={logoRef} className="tv-logo" src={logo.src} srcSet={logo.srcSet} sizes={logo.sizes} alt={siteName}
       data-tv-original={logo.original} data-tv-fallback="/upload/photo/logo-tt-gold-6981.webp" />
-    <div className="tv-heading" ref={headingRef}><h1 ref={headingTextRef}>{title}</h1><div className="tv-brand-ribbon">
+    <div className="tv-heading" ref={headingRef}>{anniversary && <TVAnniversaryBadge sparkles={eventConfig.sparkles}/>}<h1 ref={headingTextRef}>{title}</h1><div className="tv-brand-ribbon">
       {/* Overlapping invisible labels size the ribbon to its widest brand without loading any images. */}
       {brands.map(brand => <div key={brand.slug} className="tv-brand-measure" data-logo={Boolean(brand.imageUrl)} aria-hidden="true">
         <strong>{brand.name}</strong></div>)}
@@ -189,12 +196,37 @@ export default function TVDisplay({ initial, unavailable = false }: { initial: T
   const sequence = useRef(0);
   const initialized = useRef(false);
   const pending = useRef<TVSnapshot | null>(null);
+  const eventImageReady = useRef<string | null>(null);
+  const failedImageUrls = useRef(new Set<string>());
+  const [failedImages, setFailedImages] = useState<string[]>([]);
+  const [eventCursor, setEventCursor] = useState(0);
+  const onEventImageReady = useCallback((url: string, status: 'loading' | 'ready' | 'failed') => {
+    eventImageReady.current = status === 'ready' ? url : null;
+    if (status === 'failed') { failedImageUrls.current.add(url); setFailedImages([...failedImageUrls.current]); }
+  }, []);
+  const [celebrating, setCelebrating] = useState(false);
   const [slots, setSlots] = useState<[Batch, Batch | null]>([{ snapshot: initial, page: 0, token: 0 }, null]);
   const [active, setActive] = useState<Slot>(0);
   const [ready, setReady] = useState(false);
   const [stale, setStale] = useState(unavailable);
   const [snapshot, setSnapshot] = useState(initial);
   const displayBrands = useMemo(() => [...new Map(tvPages(snapshot).map(item => [item.brand.slug, item.brand])).values()], [snapshot]);
+  const eventConfig = snapshot.anniversary || defaultTVAnniversary;
+  const eventSlides = eventConfig.slides.filter(item=>item.enabled && item.imageUrl && !failedImages.includes(item.imageUrl));
+  const eventCandidate = eventSlides[eventCursor % eventSlides.length];
+  useEffect(() => {
+    // Retry failed photos at most once per existing snapshot refresh, not per
+    // car/interlude. This also recovers after a temporary network outage.
+    failedImageUrls.current.clear(); setFailedImages([]);
+  }, [snapshot.updatedAt]);
+
+  useEffect(() => {
+    const screen = screenRef.current;
+    const synchronize = () => { if (screen) screen.dataset.motionPaused = String(document.hidden); };
+    synchronize();
+    document.addEventListener('visibilitychange', synchronize);
+    return () => document.removeEventListener('visibilitychange', synchronize);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -214,11 +246,13 @@ export default function TVDisplay({ initial, unavailable = false }: { initial: T
         if (!Array.isArray(data.cars) || !Array.isArray(data.brands) || data.brands.some(brand => !brand?.slug || !brand.name) ||
           data.cars.some(car => !car?.brandSlug || !data.brands.some(brand => brand.slug === car.brandSlug)) ||
           !data.updatedAt || typeof data.logo !== 'string' || typeof data.title !== 'string' ||
-          typeof data.hotlineTitle !== 'string' || !Array.isArray(data.hotlines) || !data.hotlines.length ||
+          typeof data.hotlineTitle !== 'string' || (data.theme !== undefined && data.theme !== 'standard' && data.theme !== 'anniversary-4') ||
+          !Array.isArray(data.hotlines) || !data.hotlines.length ||
           data.hotlines.some(item => !item || !/^\+?\d{9,12}$/.test(item.phone)) ||
           !Number.isInteger(data.carIntervalSeconds) || data.carIntervalSeconds < 5 || data.carIntervalSeconds > 300 ||
           !Number.isInteger(data.hotlineIntervalSeconds) || data.hotlineIntervalSeconds < 2 || data.hotlineIntervalSeconds > 120)
           throw new Error('Invalid TV snapshot');
+        data.anniversary = parseTVAnniversary(data.anniversary);
         if (!controller.signal.aborted) { pending.current = data; setStale(false); }
       } catch { if (!controller.signal.aborted) setStale(true); }
       finally {
@@ -238,7 +272,7 @@ export default function TVDisplay({ initial, unavailable = false }: { initial: T
       // Effects can restart after new server props or a development refresh.
       // Recreate the matching buffers instead of waiting forever for token 0.
       pending.current = null;
-      setSlots([firstBatch, null]); setActive(0); setSnapshot(initial); setReady(false); setStale(unavailable);
+      setSlots([firstBatch, null]); setActive(0); setSnapshot(initial); setReady(false); setStale(unavailable); setCelebrating(false); setEventCursor(0);
     }
     initialized.current = true;
     const timers = new Set<ReturnType<typeof setTimeout>>();
@@ -277,6 +311,8 @@ export default function TVDisplay({ initial, unavailable = false }: { initial: T
       let current = initial;
       let currentPage = 0;
       let slot: Slot = 0;
+      let completedCarPages = 0;
+      let tributeIndex = 0;
       await Promise.all([prepare(slot, firstBatch), document.fonts.ready,
         logoRef.current ? prepareTVImage(logoRef.current, signal) : Promise.resolve()]);
       if (signal.aborted) return;
@@ -298,13 +334,42 @@ export default function TVDisplay({ initial, unavailable = false }: { initial: T
         if (pending.current && pending.current !== planned) {
           planned = pending.current; nextPage = tvNextPage(current, currentPage, planned); await stage();
         }
-        if (planned === current && nextPage === currentPage) continue;
+        // Interludes never enter tvPages()/tvNextPage() or consume a car index.
+        // The outgoing car page remains underneath until the next is ready.
+        let interlude = false;
+        const event = current.anniversary || defaultTVAnniversary;
+        const nextEvent = planned.anniversary || defaultTVAnniversary;
+        const eligible = event.slides.filter(item=>item.enabled && item.imageUrl && !failedImageUrls.current.has(item.imageUrl));
+        const candidate = eligible[tributeIndex % eligible.length];
+        if (current.theme === 'anniversary-4' && planned.theme === 'anniversary-4' && event.slideEnabled && nextEvent.slideEnabled && current.cars.length) {
+          completedCarPages = Math.min(completedCarPages + 1, event.pagesBetweenSlides);
+          if (completedCarPages >= event.pagesBetweenSlides && candidate && eventImageReady.current === candidate.imageUrl) {
+            completedCarPages = 0; interlude = true;
+            flushSync(() => setCelebrating(true));
+            await waitForTVVisibleTime(event.slideSeconds * 1000, signal);
+            if (signal.aborted) return;
+            // Refresh can finish during the interlude. Prepare that snapshot
+            // before revealing cars, using the same existing page resolver.
+            if (pending.current && pending.current !== planned) {
+              planned = pending.current; nextPage = tvNextPage(current, currentPage, planned); await stage();
+            }
+            while (!signal.aborted && document.hidden) await wait(1000);
+          }
+        } else completedCarPages = 0;
+        if (signal.aborted) return;
+        const revealCars = async () => {
+          if (!interlude) return;
+          flushSync(() => setCelebrating(false));
+          await waitForTVVisibleTime(window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : TV_ANNIVERSARY.fadeMilliseconds, signal);
+          if (!signal.aborted) { tributeIndex++; setEventCursor(tributeIndex); }
+        };
+        if (planned === current && nextPage === currentPage) { await revealCars(); continue; }
         if (signal.aborted) return;
         const incoming = boards[other].current!;
         const outgoing = boards[slot].current!;
         const gsap = await gsapPromise;
         if (signal.aborted) return;
-        if (gsap && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (!interlude && gsap && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
           await new Promise<void>(resolve => {
             animation = gsap.timeline({ onComplete: resolve });
             // Keep every slot stationary. The outgoing board stays opaque under
@@ -334,6 +399,7 @@ export default function TVDisplay({ initial, unavailable = false }: { initial: T
         flushSync(() => { setActive(slot); setSnapshot(current); });
         // Commit the active class before clearing opacity to avoid a blank frame.
         gsap?.set([outgoing, incoming, oldBadge, badges[slot].current, oldSummary, summaries[slot].current], { clearProps: 'opacity,visibility,zIndex' });
+        await revealCars();
       }
     };
     void run().catch(() => { if (!signal.aborted) { setStale(true); setReady(true); } });
@@ -345,18 +411,21 @@ export default function TVDisplay({ initial, unavailable = false }: { initial: T
     };
   }, [initial, unavailable]);
 
-  return <main className="tv-screen" ref={screenRef}>
+  const anniversary = snapshot.theme === 'anniversary-4';
+  return <main className="tv-screen" data-theme={anniversary ? 'anniversary-4' : 'standard'} ref={screenRef}>
     <TVMasthead logoUrl={snapshot.logo} siteName={snapshot.siteName} title={snapshot.title}
-      logoRef={logoRef} brands={displayBrands}>
+      logoRef={logoRef} brands={displayBrands} anniversary={anniversary} eventConfig={eventConfig}>
       <BrandBadge batch={slots[0]} badgeRef={firstBrandRef} active={active === 0}/>
       {slots[1] && <BrandBadge batch={slots[1]} badgeRef={secondBrandRef} active={active === 1}/>}
     </TVMasthead>
     <section className="tv-stage" data-ready={ready} aria-label="Danh sách xe đang bán">
       <Board batch={slots[0]} boardRef={firstRef} active={active === 0}/>
-      {slots[1] && <Board batch={slots[1]} boardRef={secondRef} active={active === 1}/>}</section>
+      {slots[1] && <Board batch={slots[1]} boardRef={secondRef} active={active === 1}/>}
+      {anniversary && eventConfig.slideEnabled && eventCandidate && <TVAnniversarySlide key={eventCandidate.imageUrl} slide={eventCandidate} visible={celebrating} onReady={onEventImageReady}/>}</section>
     {!ready && <div className="tv-preparing" role="status"><span/>Đang chuẩn bị hình ảnh và bảng giá…</div>}
     {ready && snapshot.cars.length === 0 && <div className="tv-empty"><strong>{stale ? 'Chưa tải được danh sách xe' : 'Danh sách xe đang được cập nhật'}</strong><p>{stale ? 'Màn hình sẽ tự kết nối lại.' : 'Vui lòng liên hệ hotline để được tư vấn.'}</p></div>}
     <footer className="tv-footer">
+      {anniversary && <TVAnniversaryTrim position="footer"/>}
       <div className="tv-pagination">
         <div className="tv-brand-summaries">
           <BrandSummary batch={slots[0]} summaryRef={firstSummaryRef} active={active === 0}/>
@@ -364,6 +433,7 @@ export default function TVDisplay({ initial, unavailable = false }: { initial: T
         </div>
         {stale && <small>Kết nối gián đoạn · Dữ liệu lúc {new Date(snapshot.updatedAt).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit' })}</small>}</div>
       <TVHotlinePanel title={snapshot.hotlineTitle} hotlines={snapshot.hotlines} seconds={snapshot.hotlineIntervalSeconds}/>
+      {anniversary && eventConfig.gratitude && <TVGratitude messages={eventConfig.messages} seconds={eventConfig.messageSeconds} layoutKey={`${active}:${slots[active]?.token}:${snapshot.hotlineTitle}:${snapshot.hotlines.map(item => item.phone).join('|')}`}/>}
     </footer>
   </main>;
 }
