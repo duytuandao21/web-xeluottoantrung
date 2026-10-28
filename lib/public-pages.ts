@@ -128,7 +128,8 @@ async function listingPage(page: LegacyPageData, pathname: string, searchParams:
       if (group === 'mausac' && item.colorCode && /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(item.colorCode))
         choice.append($('<span></span>').attr('style', `background:${item.colorCode}`));
       if (item.imageUrl && group !== 'chinhanh') choice.append($('<img>').attr({ src: item.imageUrl, alt: item.name }));
-      choice.append(item.name);
+      // Append only the text node; keep the existing logo and color swatch.
+      choice.append($('<span></span>').text(item.name).contents());
       target.append(choice);
     }
   }
@@ -904,7 +905,8 @@ export async function getPublicPage(pathname: string, searchParams: SearchParams
         const query = new URLSearchParams({ [index === 0 ? 'hang-xe' : 'kieu-dang']: item.slug });
         const anchor = $('<a></a>').attr({ href: `/san-pham?${query}`, title: item.name });
         if (item.imageUrl) anchor.append($('<img>').attr({ src: item.imageUrl, alt: item.name }));
-        anchor.append(item.name);
+        // The temporary span is not inserted into the rendered DOM.
+        anchor.append($('<span></span>').text(item.name).contents());
         $(element).append($('<p class="img"></p>').append(anchor));
       }
     });

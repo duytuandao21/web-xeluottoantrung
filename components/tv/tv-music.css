@@ -1,0 +1,3 @@
+.tv-music-start{position:fixed;z-index:50;right:24px;bottom:12vh;display:inline-flex;align-items:center;gap:9px;max-width:calc(100vw - 32px);min-height:44px;padding:10px 17px;border:1px solid #f1d3d3;border-radius:999px;background:#fff;color:#bd0000;box-shadow:0 5px 24px #14213a16;font-family:inherit;font-size:15px;font-weight:600;line-height:1.4;cursor:pointer}
+.tv-music-start:focus-visible{outline:3px solid #e20000;outline-offset:4px}
+@media(max-width:600px){.tv-music-start{right:16px;font-size:14px}}

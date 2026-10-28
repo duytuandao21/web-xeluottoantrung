@@ -11,6 +11,8 @@ import { TVAnniversaryBadge, TVAnniversaryTrim } from './TVAnniversary';
 import { TVAnniversaryConfetti, TVAnniversarySlide, TVGratitude } from './TVAnniversaryExtras';
 import { TV_ANNIVERSARY, waitForTVVisibleTime } from '@/lib/tv-anniversary';
 import { defaultTVAnniversary, parseTVAnniversary, type TVAnniversarySettings } from '@/lib/tv-anniversary-settings';
+import TVMusicPlayer from './TVMusicPlayer';
+import { defaultTVMusic, parseTVMusic } from '@/lib/tv-music-settings';
 
 type Batch = { snapshot: TVSnapshot; page: number; token: number };
 type Slot = 0 | 1;
@@ -253,6 +255,7 @@ export default function TVDisplay({ initial, unavailable = false }: { initial: T
           !Number.isInteger(data.hotlineIntervalSeconds) || data.hotlineIntervalSeconds < 2 || data.hotlineIntervalSeconds > 120)
           throw new Error('Invalid TV snapshot');
         data.anniversary = parseTVAnniversary(data.anniversary);
+        try { data.music = parseTVMusic(data.music); } catch { data.music = defaultTVMusic; }
         if (!controller.signal.aborted) { pending.current = data; setStale(false); }
       } catch { if (!controller.signal.aborted) setStale(true); }
       finally {
@@ -413,6 +416,7 @@ export default function TVDisplay({ initial, unavailable = false }: { initial: T
 
   const anniversary = snapshot.theme === 'anniversary-4';
   return <main className="tv-screen" data-theme={anniversary ? 'anniversary-4' : 'standard'} ref={screenRef}>
+    <TVMusicPlayer music={snapshot.music} ready={ready && snapshot.cars.length > 0}/>
     <TVMasthead logoUrl={snapshot.logo} siteName={snapshot.siteName} title={snapshot.title}
       logoRef={logoRef} brands={displayBrands} anniversary={anniversary} eventConfig={eventConfig}>
       <BrandBadge batch={slots[0]} badgeRef={firstBrandRef} active={active === 0}/>

@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { PageResult, PublicCar } from '@/lib/public-api';
 import SaleLogoutConfirmation from './SaleLogoutConfirmation';
+import ErrorNotice from '@/components/errors/ErrorNotice';
 
 const saleEmailDomain = 'sales.xeluottoantrung.com';
 let authClient: SupabaseClient | null = null;
@@ -133,7 +134,7 @@ export function SaleAccessProvider({ children }: { children: ReactNode }) {
           if (!current()) return;
           if (response?.ok) { retryNotBefore = 0; setAuthorized(true); setError(''); setOpen(false); return; }
           if (response?.status === 401 || response?.status === 403) {
-            message = 'Tài khoản này chưa được cấp quyền nhân viên sale hoặc phiên đăng nhập đã hết hạn.';
+            message = response.status === 401 ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' : 'Tài khoản này chưa được cấp quyền nhân viên sale. Vui lòng liên hệ người quản trị để được hỗ trợ.';
             break;
           }
           if (response && ![429, 502, 503, 504].includes(response.status)) break;
@@ -224,7 +225,7 @@ export function SaleAccessProvider({ children }: { children: ReactNode }) {
         <form data-skip-legacy-submit onSubmit={event => void submit(event)}>
           <label>Tên đăng nhập<input ref={usernameInput} autoComplete="username" value={username} onChange={event => setUsername(event.target.value)} required /></label>
           <label>Mật khẩu<input type="password" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} required /></label>
-          {error && <div className="sale-login-error" role="alert">{error}</div>}
+          {error && <ErrorNotice message={error} />}
           <button type="submit" disabled={busy}>{busy ? 'Đang đăng nhập…' : 'Đăng nhập'}</button>
         </form>
       </section>

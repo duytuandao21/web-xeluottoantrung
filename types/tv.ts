@@ -1,4 +1,5 @@
 import type { TVAnniversarySettings } from '@/lib/tv-anniversary-settings';
+import type { TVMusicSettings } from '@/lib/tv-music-settings';
 
 export type TVCar = {
   slug: string;
@@ -18,6 +19,7 @@ export type TVBrand = { slug: string; name: string; imageUrl: string | null };
 export type TVHotline = { name: string; phone: string };
 
 export type TVSnapshot = {
+  music?: TVMusicSettings;
   theme?: 'standard' | 'anniversary-4';
   anniversary?: TVAnniversarySettings;
   cars: TVCar[];

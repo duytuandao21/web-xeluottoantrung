@@ -56,7 +56,7 @@ export const getTVSnapshot = cache(async (): Promise<TVSnapshot> => {
       originalPrice: row.originalPrice ?? null, mileage: row.mileage ?? null, fuel: row.fuel?.trim() || 'Chưa cập nhật',
       cover: row.cover || null, coverWidth: row.coverWidth ?? null, coverHeight: row.coverHeight ?? null, brandSlug: row.brand.slug });
   }
-  return { ...branding, theme: config.theme, anniversary: config.anniversary, logo: config.logoUrl || branding.logo, title: config.title, hotlineTitle: config.hotlineTitle,
+  return { ...branding, theme: config.theme, music: config.music, anniversary: config.anniversary, logo: config.logoUrl || branding.logo, title: config.title, hotlineTitle: config.hotlineTitle,
     hotlines, carIntervalSeconds: config.carIntervalSeconds, hotlineIntervalSeconds: config.hotlineIntervalSeconds,
     cars, brands, updatedAt: new Date().toISOString() };
 });

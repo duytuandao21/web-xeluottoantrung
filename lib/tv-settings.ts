@@ -1,7 +1,9 @@
 import type { TVHotline } from '@/types/tv';
+import { defaultTVMusic, parseTVMusic, type TVMusicSettings } from './tv-music-settings';
 import { defaultTVAnniversary, parseTVAnniversary, type TVAnniversarySettings } from './tv-anniversary-settings';
 
 export type TVSettings = {
+  music: TVMusicSettings;
   theme: 'standard' | 'anniversary-4';
   anniversary: TVAnniversarySettings;
   logoUrl: string;
@@ -13,6 +15,7 @@ export type TVSettings = {
   hotlines: TVHotline[];
 };
 export const defaultTVSettings: TVSettings = {
+  music: defaultTVMusic,
   theme: 'standard',
   anniversary: defaultTVAnniversary,
   logoUrl: '', title: 'Bảng giá xe đang bán', hotlineTitle: 'Hotline',
@@ -52,5 +55,7 @@ export function parseTVSettings(value?: string | null): TVSettings {
     throw new Error('Invalid TV settings');
   const hotlines = validTVHotlines(raw.hotlines);
   if (!raw.syncSalesContacts && !hotlines.length) throw new Error('Missing TV hotlines');
-  return { ...raw, theme, anniversary: parseTVAnniversary(raw.anniversary), hotlines };
+  let music;
+  try { music = parseTVMusic(raw.music); } catch { music = structuredClone(defaultTVMusic); }
+  return { ...raw, theme, music, anniversary: parseTVAnniversary(raw.anniversary), hotlines };
 }
