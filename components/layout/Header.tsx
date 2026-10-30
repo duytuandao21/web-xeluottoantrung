@@ -1,6 +1,6 @@
 "use client";
 import ResponsiveImage from '@/components/common/ResponsiveImage';
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import shared from '@/data/shared.json';
@@ -59,7 +59,7 @@ function HeaderActions({ phone, showSaleLogin = true, onContact, mobile = false 
     {showSaleLogin && <SaleLoginButton />}
   </div>;
 }
-export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }: { phone?: string; services?: Service[]; logoUrl: string; mobileLogoUrl: string }) {
+export default function Header({ phone, services = [], logoUrl, mobileLogoUrl, announcement }: { phone?: string; services?: Service[]; logoUrl: string; mobileLogoUrl: string; announcement?: { desktop: ReactNode; mobile: ReactNode } }) {
   const [open,setOpen]=useState(false);const pathname=usePathname();
   const pendingHomeTop = useRef(false);
   useEffect(() => {
@@ -109,7 +109,7 @@ export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }:
     ] },
   ];
   return <>
-    <div className="wap_header clear hidden_m"><div className="wap_header2 main_fix">
+    <div className="wap_header clear hidden_m">{announcement?.desktop}<div className="wap_header2 main_fix">
       <div className="header"><Link className="logo" href="/" scroll={false} aria-label="Về đầu trang chủ" onClick={goHomeTop}>{logo}</Link></div>
       <div className="wap_menu clear"><div className="menu" role="navigation" aria-label="Điều hướng chính">
         <MenuList items={menu} close={()=>setOpen(false)}/>
@@ -121,6 +121,7 @@ export default function Header({ phone, services = [], logoUrl, mobileLogoUrl }:
       <MenuList items={menu} mobile close={()=>setOpen(false)}/><HeaderActions phone={phone} mobile showSaleLogin={false} onContact={()=>setOpen(false)} />
     </div>
     <div className="menu_mobi hidden_d">
+      {announcement?.mobile}
       <p className="menu_baophu" style={{display:open?'block':'none'}} onClick={()=>setOpen(false)}/>
       <p className="icon_menu_mobi" role="button" tabIndex={0} aria-label="Mở menu" aria-expanded={open} onClick={()=>setOpen(true)}><i className="fas fa-bars"/></p>
       <Link className="logo" href="/" scroll={false} aria-label="Về đầu trang chủ" onClick={goHomeTop}>{mobileLogo}</Link><SaleLoginButton onAction={()=>setOpen(false)} />

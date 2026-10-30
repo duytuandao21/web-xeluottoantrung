@@ -85,7 +85,7 @@ export default async function AccessoryDetailPage({ params }: PageProps) {
                 <span>Liên hệ qua</span><strong><ResponsiveImage profile="icon" src="/assets/images/zalo_ct.png" alt="" /> ZALO</strong>
               </a>
             </div>
-            <AccessoryCallback name={item.name} />
+            <AccessoryCallback name={item.name} productId={item.id} />
           </div>
           <InstallationStoreCard store={store} />
         </div>

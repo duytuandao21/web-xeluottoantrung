@@ -1421,7 +1421,7 @@ body.ss .item[data-car-id] .car-card-new-arrival { top:auto; bottom:10px; }
 @media(prefers-reduced-motion:reduce) { .vehicle-detail-overview__more { transition:none; } }
 .migrated-dialog #goilai {
   width:min(600px,calc(100vw - 32px)); max-width:600px;
-  padding:34px; overflow:hidden; border:1px solid #f2d6d3; border-radius:22px;
+  max-height:calc(100dvh - 32px); padding:34px; overflow-x:hidden; overflow-y:auto; border:1px solid #f2d6d3; border-radius:22px;
   background:#fff; box-shadow:0 24px 70px rgba(25,31,45,.22);
   color:#202737;
 }
@@ -1469,6 +1469,9 @@ body.ss .item[data-car-id] .car-card-new-arrival { top:auto; bottom:10px; }
 .migrated-dialog #goilai .btn-secondary:hover { background:#e9edf3; }
 .migrated-dialog #goilai .btn:focus-visible { outline:3px solid #f1d777; outline-offset:2px; }
 .migrated-dialog #goilai .btn:disabled { opacity:.65; cursor:wait; transform:none; }
+.migrated-dialog #goilai .tt-form-turnstile { margin-top:12px; }
+.tt-protected-form-status { margin:12px 0 0; color:#334155; font-size:14px; line-height:1.5; }
+.tt-protected-form-status[role="alert"] { color:#b00020; }
 .migrated-dialog #goilai .fancybox-close-small {
   top:13px; right:13px; width:34px; height:34px; padding:8px;
   border-radius:50%; background:#f3f5f8; color:#536174;
@@ -1643,6 +1646,7 @@ body.ss .item[data-car-id] .car-card-new-arrival { top:auto; bottom:10px; }
 }
 .tt-footer-news-form button:hover { background:#ffeaa5; transform:translateY(-1px); }
 .tt-footer-news-form button:focus-visible { outline:2px solid #8a0000; outline-offset:-4px; }
+.tt-footer-news > .tt-form-turnstile { margin-top:8px; }
 .tt-footer-news .tt-footer-news-notice { margin:12px 0 0; color:#fff9d7; font-size:14px; }
 .tt-footer-showrooms { padding:20px 0 22px; }
 .tt-footer-showrooms > .tt-footer-heading { margin-bottom:13px; }
@@ -2265,3 +2269,44 @@ button.scrollToTop:focus-visible { outline:2px solid #a50000; outline-offset:3px
   .tt-call-contact { padding:13px; }
 }
 :where(img[data-image-original]) { aspect-ratio: var(--tt-image-source-ratio, auto); }
+
+/* Shared confirmation for the four protected customer forms. */
+dialog.tt-form-feedback-dialog,
+.tt-accessory-callback.tt-accessory-callback--success,
+.migrated-dialog .fancybox-content.tt-form-feedback-dialog {
+  box-sizing:border-box; width:min(460px,calc(100vw - 32px)); max-width:460px;
+  max-height:calc(100dvh - 32px); margin:auto; padding:0; overflow-y:auto;
+  border:1px solid #f0d9d5; border-radius:20px; background:#fff;
+  color:#14213a; text-align:center; box-shadow:0 24px 70px rgba(12,22,38,.23);
+}
+dialog.tt-form-feedback-dialog::backdrop,
+.tt-accessory-callback.tt-accessory-callback--success::backdrop { background:rgba(12,22,38,.66); }
+.tt-form-feedback-dialog { position:relative; }
+.tt-form-feedback { position:relative; padding:58px 32px 32px; font-family:Arial,sans-serif; }
+.tt-form-feedback::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:5px;
+  background:linear-gradient(90deg,#b90000 0%,#eb1118 62%,#d6a74c 100%);
+}
+.tt-form-feedback h2 { margin:0; color:#14213a; font:700 clamp(22px,5vw,27px)/1.28 'tieude',Arial,sans-serif; }
+.tt-form-feedback__description { max-width:355px; margin:14px auto 25px; color:#58657a; font-size:15px; line-height:1.65; }
+.tt-form-feedback__button {
+  display:inline-flex; align-items:center; justify-content:center; min-width:185px; min-height:46px;
+  padding:10px 20px; border:0; border-radius:9px; background:#d00000; color:#fff;
+  font:700 15px/1.4 Arial,sans-serif; cursor:pointer; transition:background-color .2s ease;
+}
+.tt-form-feedback__button:hover { background:#aa0000; }
+.tt-form-feedback__button:focus-visible,.tt-form-feedback__close:focus-visible { outline:3px solid #d6a74c; outline-offset:3px; }
+.tt-form-feedback__close,
+.migrated-dialog .tt-form-feedback-dialog .fancybox-close-small {
+  position:absolute; top:12px; right:12px; z-index:1; display:grid; place-items:center;
+  width:34px; height:34px; padding:0; border:0; border-radius:50%;
+  background:#f5f6f8; color:#526076; font:26px/1 Arial,sans-serif; cursor:pointer;
+}
+.tt-form-feedback__close:hover,
+.migrated-dialog .tt-form-feedback-dialog .fancybox-close-small:hover { background:#fff0ee; color:#c90000; }
+.migrated-dialog .tt-form-feedback-dialog .fancybox-close-small svg { width:18px; height:18px; }
+@media(max-width:575px) {
+  .tt-form-feedback { padding:56px 24px 26px; }
+  .tt-form-feedback__description { font-size:14px; }
+}
+@media(prefers-reduced-motion:reduce) { .tt-form-feedback__button { transition:none; } }

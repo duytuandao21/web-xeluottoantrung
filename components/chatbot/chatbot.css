@@ -10,6 +10,15 @@
   .tt-chat-layer.is-dismissed>.tt-chat-launcher { display:none; }
 }
 @media(max-width:960px) { .tt-chat-launcher { bottom:calc(var(--tt-mobile-contact-offset,52px) + 84px); } }
+/* The search backdrop leaves its input clear. Keep floating chat controls out
+   of that cutout while mobile search owns focus; preserve chat/dismiss state. */
+@media(max-width:767px) {
+  body:has(.tt-search-anchor--open) .tt-chat-layer > .tt-chat-launcher,
+  body:has(.tt-search-anchor--open) .tt-chat-layer > .tt-chat-dismiss {
+    visibility:hidden;
+    pointer-events:none;
+  }
+}
 .tt-chat-launcher__label { position:absolute; top:50%; right:calc(100% + 10px); transform:translateY(-50%); padding:7px 10px; border:1px solid #eed5d5; border-radius:8px; background:#fff; color:#14213a; white-space:nowrap; font-size:13px; font-weight:600; opacity:0; visibility:hidden; transition:opacity .2s,visibility .2s; }
 @media(hover:hover) { .tt-chat-launcher:hover { transform:scale(1.04); box-shadow:0 6px 20px #a0000026; } .tt-chat-launcher:hover .tt-chat-launcher__label { opacity:1; visibility:visible; } }
 .tt-chat-panel { position:absolute; display:flex; flex-direction:column; overflow:hidden; min-width:0; border:1px solid #ead5d5; border-radius:18px; background:#fff; box-shadow:0 15px 50px #14213a33; pointer-events:auto; animation:tt-chat-open .2s ease-out; }

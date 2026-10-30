@@ -4,13 +4,15 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import Markup from './Markup';
-import { getPublic, submitPublic } from '@/lib/public-client';
+import { getPublic } from '@/lib/public-client';
+import { submitProtectedForm, type FormAction } from '@/lib/protected-form';
+import { FormSuccessContent } from './FormSuccess';
 import { calculateInstallment } from '@/lib/installment-calculator';
 import { formatKmInput, kmDigits } from '@/lib/valuation';
 import CarComparison from '@/components/car/CarComparison';
 import ContactMethods, { type ContactMethodDetails } from './ContactMethods';
 
-type Dialog = {html?:string;className?:string;id?:string;label?:string;images?:{src:string;alt:string}[];index?:number;contact?:ContactMethodDetails};
+type Dialog = {html?:string;className?:string;id?:string;label?:string;images?:{src:string;alt:string}[];index?:number;contact?:ContactMethodDetails;formSuccess?:FormAction};
 
 export default function SiteInteractions() {
   const pathname=usePathname(); const query=useSearchParams();
@@ -370,7 +372,7 @@ export default function SiteInteractions() {
       if(gallery){event.preventDefault();const links=[...document.querySelectorAll<HTMLAnchorElement>('.album_pro .slick-slide:not(.slick-cloned) a')];setDialog({images:links.map(a=>({src:a.href,alt:a.querySelector('img')?.alt||''})),index:Number(gallery.dataset.index)});return;}
       const footer=target.closest('.title_f i');if(footer){footer.closest('.item_f')?.classList.toggle('item_f_active');return;}
       const read=target.closest('.noidung_anhien .xemthem,.noidung_anhien .anbot');if(read){event.preventDefault();read.closest('.noidung_anhien')?.classList.toggle('noidung_anhien_active',read.classList.contains('xemthem'));return;}
-      const staff=target.closest('.item_tv .ten');if(staff){const parent=staff.closest('.item_tv');const was=parent?.classList.contains('item_tv_active');document.querySelectorAll('.item_tv_active').forEach(el=>el.classList.remove('item_tv_active'));if(!was)parent?.classList.add('item_tv_active');window.scrollTo({top:staff.getBoundingClientRect().top+scrollY-80,behavior:'smooth'});return;}
+      const staff=target.closest('.item_tv .ten');if(staff){const parent=staff.closest('.item_tv');const was=parent?.classList.contains('item_tv_active');document.querySelectorAll('.item_tv_active').forEach(el=>el.classList.remove('item_tv_active'));if(!was)parent?.classList.add('item_tv_active');const announcementHeight=Math.max(0,...Array.from(document.querySelectorAll('.tt-anniversary-bar'),bar=>bar.getBoundingClientRect().height));window.scrollTo({top:staff.getBoundingClientRect().top+scrollY-80-announcementHeight,behavior:'smooth'});return;}
       const filter=target.closest<HTMLElement>('.vehicle-filter-panel__open,.chonloc li,.boloc_l li');if(filter){selectTab(filter.dataset.id||'.hangxe_tk');document.querySelector('.wap_boloc')?.classList.add('wap_boloc_active');return;}
       if(target.closest('.dong_boloc,.close_boloc')){document.querySelector('.wap_boloc')?.classList.remove('wap_boloc_active');document.querySelector('.wap_sosanhxe')?.classList.remove('wap_sosanhxe_active');return;}
       const choice=target.closest<HTMLElement>('.goiy_hangxe p,.goiy_kieudang p,.goiy_hopso p,.goiy_mausac p,.goiy_mucgia p,.goiy_chinhanh p');
@@ -467,9 +469,19 @@ export default function SiteInteractions() {
           desiredCar:[text('hangxe_lendoimm'),text('dongxe_lendoimm')].filter(Boolean).join(' ')||undefined,
         } : { type:'callback', phone, name:String(values.get('ten')||'').trim(),
           carName:document.querySelector('.right-pro-detail .name_sp')?.textContent?.trim()||undefined };
-        void submitPublic('/leads',payload).then(()=>{form.reset();notify('Đã gửi yêu cầu. Nhân viên Toàn Trung sẽ liên hệ với bạn.');})
-          .catch(error=>notify(error instanceof Error?error.message:'Không thể gửi yêu cầu. Vui lòng thử lại.'))
-          .finally(()=>{submittingForms.delete(form);if(button)button.disabled=false;});
+        const action = payload.type === 'sell' ? 'sell_car' : payload.type === 'trade_in' ? 'trade_in' : 'callback';
+        let succeeded=false;
+        let status=form.nextElementSibling;
+        if(!(status instanceof HTMLElement) || !status.classList.contains('tt-protected-form-status')){
+          status=document.createElement('p');status.className='tt-protected-form-status';status.setAttribute('role','status');form.after(status);
+        }
+        const formStatus=status;
+        formStatus.setAttribute('role','status');
+        formStatus.textContent='Đang xác minh và gửi yêu cầu...';
+        form.setAttribute('aria-busy','true');
+        void submitProtectedForm(form,action,'/leads',payload).then(()=>{succeeded=true;formStatus.remove();form.reset();setDialog({formSuccess:action});})
+          .catch(error=>{formStatus.setAttribute('role','alert');formStatus.textContent=error instanceof Error?error.message:'Không thể gửi yêu cầu. Vui lòng thử lại.';})
+          .finally(()=>{form.removeAttribute('aria-busy');submittingForms.delete(form);if(button){if(succeeded)window.setTimeout(()=>{button.disabled=false;},30_000);else button.disabled=false;}});
         return;
       }
       if(form.closest('.banxe')){
@@ -525,10 +537,10 @@ export default function SiteInteractions() {
   return <>
     <CarComparison />
     {showTop && <button type="button" className="scrollToTop" aria-label="Về đầu trang" onClick={()=>window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'})}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button>}
-    {dialog && createPortal(<div className={`fancybox-container fancybox-is-open migrated-dialog${dialog.contact?' migrated-dialog--contact-methods':''}`} role="dialog" aria-modal="true" aria-label={dialog.contact?`Liên hệ ${dialog.contact.name}`:dialog.label || (image?'Ảnh xe':dialog.id==='nutgoi'?'Liên hệ Toàn Trung':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin')} tabIndex={-1} ref={dialogRef}>
+    {dialog && createPortal(<div className={`fancybox-container fancybox-is-open migrated-dialog${dialog.contact?' migrated-dialog--contact-methods':''}`} role="dialog" aria-modal="true" aria-label={dialog.formSuccess?'Xác nhận gửi yêu cầu':dialog.contact?`Liên hệ ${dialog.contact.name}`:dialog.label || (image?'Ảnh xe':dialog.id==='nutgoi'?'Liên hệ Toàn Trung':dialog.className==='installment-schedule-dialog'?'Chi tiết khoản trả góp hàng tháng':'Thông tin')} tabIndex={-1} ref={dialogRef}>
       <div className="fancybox-bg"/><div className="fancybox-inner"><div className="fancybox-stage"><div className="fancybox-slide fancybox-slide--html fancybox-slide--current fancybox-slide--complete" onClick={e=>{if(e.target===e.currentTarget)closeDialog();}}>
-        <div className={`fancybox-content ${dialog.contact?'tt-contact-method-dialog':image?'dialog-gallery':dialog.className||''}`} id={dialog.id}>
-          {dialog.contact?<ContactMethods contact={dialog.contact} onBack={dialog.html?()=>setDialog(d=>d?{...d,contact:undefined}:null):undefined}/>:image?<ResponsiveImage profile="content" className="dialog-image" src={image.src} alt={image.alt}/>:<Markup html={dialog.html||''}/>}
+        <div className={`fancybox-content ${dialog.formSuccess?'tt-form-feedback-dialog':dialog.contact?'tt-contact-method-dialog':image?'dialog-gallery':dialog.className||''}`} id={dialog.id}>
+          {dialog.formSuccess?<FormSuccessContent action={dialog.formSuccess} onClose={closeDialog}/>:dialog.contact?<ContactMethods contact={dialog.contact} onBack={dialog.html?()=>setDialog(d=>d?{...d,contact:undefined}:null):undefined}/>:image?<ResponsiveImage profile="content" className="dialog-image" src={image.src} alt={image.alt}/>:<Markup html={dialog.html||''}/>}
           <button type="button" className="fancybox-button fancybox-close-small" aria-label="Đóng" onClick={closeDialog}><svg viewBox="0 0 24 24"><path d="M12 10.6l6-6 1.4 1.4-6 6 6 6-1.4 1.4-6-6-6 6-1.4-1.4 6-6-6-6L6 4.6z"/></svg></button>
         </div>
         {dialog.images && dialog.images.length>1 && <>{[-1,1].map(dir=><button key={dir} className={`fancybox-button fancybox-button--arrow_${dir===-1?'left':'right'}`} aria-label={dir===-1?'Ảnh trước':'Ảnh tiếp theo'} onClick={()=>setDialog(d=>d?.images?{...d,index:((d.index||0)+dir+d.images.length)%d.images.length}:d)} style={{position:'absolute',top:'50%',left:dir===-1?0:undefined,right:dir===1?0:undefined}}>{dir===-1?'‹':'›'}</button>)}</>}

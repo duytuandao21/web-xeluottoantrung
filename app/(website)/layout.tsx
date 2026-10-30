@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
+import AnniversaryAnnouncementBar from '@/components/layout/AnniversaryAnnouncementBar';
+import '@/components/layout/anniversary-announcement.css';
 import MobileContactBar from '@/components/layout/MobileContactBar';
 import "../globals.css";
 import '@/components/search/search.css';
@@ -53,6 +55,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     publicApi<ContentEntry[]>('/content', { group: 'thiet-lap-ung-dung' }),
   ]);
   const info = results[0].status === 'fulfilled' ? results[0].value : {};
+  // Enabled for the current anniversary until Admin explicitly switches it off.
+  // Reuse site-info above: no additional API call or database read.
+  const anniversaryEnabled = info.anniversaryBarEnabled !== 'false';
   const branches = results[1].status === 'fulfilled' ? results[1].value : [];
   const regions = results[2].status === 'fulfilled' ? results[2].value : [];
   const footerRows = results[3].status === 'fulfilled' ? results[3].value : [];
@@ -65,8 +70,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const footerSettings = Object.fromEntries(footerRows.map(row => [row.key, row.value]));
   const showrooms = groupShowrooms(branches, regions);
   return (
-    <html lang="vi"><head>{legacyStyles.map((href) => <link key={href} rel="stylesheet" href={href} />)}</head>
-      <body><SaleAccessProvider><div className="wapper"><Header phone={info.phone} services={services} logoUrl={branding.logo} mobileLogoUrl={branding.logoMobile} />{children}<Footer showrooms={showrooms} phone={info.phone} zalo={info.zalo} settings={footerSettings} callContacts={callContacts} policies={policies} logoUrl={branding.logoDark} socialLinks={socialLinks} appLinks={appLinks} /></div><MobileContactBar zalo={info.zalo} mapHref={showroom10MapHref(branches)}/><Suspense fallback={null}><SiteInteractions/><SearchSuggestions/></Suspense><ChatbotLauncher /><PromotionAdvertisement /></SaleAccessProvider></body>
+    <html lang="vi" className={anniversaryEnabled ? 'tt-has-anniversary' : undefined}><head>{legacyStyles.map((href) => <link key={href} rel="stylesheet" href={href} />)}</head>
+      <body><SaleAccessProvider><div className="wapper"><Header phone={info.phone} services={services} logoUrl={branding.logo} mobileLogoUrl={branding.logoMobile} announcement={anniversaryEnabled ? { desktop: <AnniversaryAnnouncementBar variant="desktop" />, mobile: <AnniversaryAnnouncementBar variant="mobile" /> } : undefined} />{children}<Footer showrooms={showrooms} phone={info.phone} zalo={info.zalo} settings={footerSettings} callContacts={callContacts} policies={policies} logoUrl={branding.logoDark} socialLinks={socialLinks} appLinks={appLinks} /></div><MobileContactBar zalo={info.zalo} mapHref={showroom10MapHref(branches)}/><Suspense fallback={null}><SiteInteractions/><SearchSuggestions/></Suspense><ChatbotLauncher /><PromotionAdvertisement /></SaleAccessProvider></body>
     </html>
   );
   });

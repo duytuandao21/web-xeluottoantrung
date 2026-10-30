@@ -25,8 +25,10 @@ try {
       items: ['car', 'accessory', 'car', 'accessory'].map((kind, index) => ({ id: String(index), kind, name: `${query || 'Suggested'} ${kind} ${index}`, href: `/product-${index}`, imageUrl: null, price: 1000000 })) } });
   });
   const popup = page.locator('#tt-product-search-popup');
-  const checkGeometry = async () => {
-    await page.waitForFunction(() => {
+  const launcher = page.locator('.tt-chat-launcher');
+  const dismissChat = page.locator('.tt-chat-dismiss');
+  const checkGeometry = async (home = false) => {
+    await page.waitForFunction(home => {
       const input = document.querySelector('#keyword, input[data-product-search]');
       const popup = document.querySelector('#tt-product-search-popup');
       const backdrop = document.querySelector('.tt-search-backdrop');
@@ -35,13 +37,17 @@ try {
       const field = input.getBoundingClientRect();
       const bounds = anchor.getBoundingClientRect();
       const box = popup.getBoundingClientRect();
+      const layer = document.querySelector('.tt-search-layer').getBoundingClientRect();
       const viewport = window.visualViewport;
-      return bounds.top >= viewport.offsetTop && field.bottom <= viewport.offsetTop + viewport.height
+      return (home ? bounds.top >= 0 : bounds.top >= viewport.offsetTop)
+        && field.bottom <= viewport.offsetTop + viewport.height
+        && layer.top <= 0 && layer.bottom >= window.innerHeight
         && Math.abs(box.top - bounds.bottom - 8) < 1
         && box.bottom <= viewport.offsetTop + viewport.height - 11
         && box.left >= viewport.offsetLeft + 11 && box.right <= viewport.offsetLeft + viewport.width - 11
-        && document.elementFromPoint(field.left + field.width / 2, field.top + field.height / 2) === input;
-    }, undefined, { timeout: 10000 }).catch(async error => {
+        && [[.5, .5], [.93, .25], [.93, .75]].every(([x, y]) =>
+          document.elementFromPoint(field.left + field.width * x, field.top + field.height * y) === input);
+    }, home, { timeout: 10000 }).catch(async error => {
       console.error(await page.evaluate(() => {
         const box = el => el && JSON.parse(JSON.stringify(el.getBoundingClientRect()));
         const input = document.querySelector('#keyword, input[data-product-search]');
@@ -67,16 +73,24 @@ try {
     });
     assert(covered, 'The blurred border must stay aligned with the search bar');
     assert.equal(await page.evaluate(() => document.body.style.position), 'fixed');
+    assert.equal(await launcher.isVisible(), false, 'Hide the chatbot icon while mobile search is open');
+    for (const control of await page.locator('.tt-chat-launcher,.tt-chat-dismiss').all()) {
+      assert.equal(await control.isVisible(), false, 'Hide both floating chat controls');
+      assert.equal(await control.evaluate(el => getComputedStyle(el).pointerEvents), 'none', 'Hidden chat controls must not intercept taps');
+    }
   };
 
   for (const path of ['/', '/san-pham', '/phu-kien-o-to', '/tim-kiem']) {
+    const home = path === '/';
     await page.goto(`${base}${path}`, { waitUntil: 'domcontentloaded' });
+    await launcher.waitFor({ state: 'visible' });
     const input = page.locator('#keyword, input[data-product-search]').first();
     await input.scrollIntoViewIfNeeded();
     const originalScroll = await page.evaluate(() => window.scrollY);
     await input.tap();
     await popup.waitFor();
-    await checkGeometry();
+    await checkGeometry(home);
+    const homeInputTop = home ? await input.evaluate(el => el.getBoundingClientRect().top) : 0;
     assert.equal(await input.evaluate(el => {
       const anchor = el.closest('.tt-search-anchor--open');
       return anchor && getComputedStyle(anchor).touchAction;
@@ -101,30 +115,32 @@ try {
     // Keyboard animates through several heights before it settles.
     for (const [height, offsetTop] of [[540, 0], [420, 40], [360, 100], [420, 120]]) {
       await page.evaluate(values => window.setSearchTestViewport(values), { height, offsetTop });
-      await checkGeometry();
+      await checkGeometry(home);
+      if (home) assert(Math.abs(await input.evaluate(el => el.getBoundingClientRect().top) - homeInputTop) < 2,
+        'Safari keyboard panning must not push the homepage search over brand and price choices');
       assert.equal(await page.evaluate(() => document.body.style.top), bodyTop, 'Keyboard panning must not move the locked body');
     }
     assert.equal(await page.locator('.tt-search-layer--compact').count(), 1);
     await input.fill('mazda');
     await popup.locator('.tt-search-suggestions__product').first().waitFor();
-    await checkGeometry();
+    await checkGeometry(home);
     // Fixed layer origins can also shift when a browser pans its viewport.
     await page.locator('.tt-search-layer').evaluate(el => { el.style.transform = 'translate(20px, 120px)'; });
     await page.evaluate(() => window.setSearchTestViewport({ offsetLeft: 20, width: 370 }));
-    await checkGeometry();
+    await checkGeometry(home);
     await page.locator('.tt-search-layer').evaluate(el => { el.style.transform = ''; });
     // Android/browser configurations that also shrink the layout viewport.
     await page.setViewportSize({ width: 390, height: 430 });
     await page.evaluate(() => window.setSearchTestViewport({ height: 430, offsetTop: 0, offsetLeft: 0, width: 390 }));
-    await checkGeometry();
+    await checkGeometry(home);
     // Hide keyboard, show it again without requiring another tap.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => window.setSearchTestViewport({ height: 844, offsetTop: 0 }));
-    await checkGeometry();
+    await checkGeometry(home);
     await page.evaluate(() => window.setSearchTestViewport({ height: 420, offsetTop: 80 }));
-    await checkGeometry();
+    await checkGeometry(home);
     await popup.locator('.tt-search-suggestions__keyword').first().tap();
-    await checkGeometry();
+    await checkGeometry(home);
     await page.locator('.tt-search-suggestions__heading button').tap();
     await popup.waitFor({ state: 'detached' });
     assert.equal(await input.evaluate(el => document.activeElement === el), false);
@@ -135,13 +151,34 @@ try {
     await page.evaluate(() => window.setSearchTestViewport({ height: 844, offsetTop: 0 }));
     await page.waitForTimeout(150);
     assert.equal(await page.evaluate(() => window.scrollY), originalScroll, 'Keyboard closing must preserve the restored location');
+    assert.equal(await launcher.isVisible(), true, 'Restore the chatbot icon after search closes');
+    assert.equal(await dismissChat.isVisible(), true, 'Restore the chatbot dismiss control after search closes');
     await input.tap();
     await popup.waitFor();
-    await checkGeometry();
+    await checkGeometry(home);
     await page.locator('.tt-search-suggestions__heading button').tap();
     await popup.waitFor({ state: 'detached' });
+    if (home) {
+      await dismissChat.tap();
+      assert.equal(await launcher.isVisible(), false);
+      await input.tap();
+      await popup.waitFor();
+      await checkGeometry(home);
+      await page.locator('.tt-search-suggestions__heading button').tap();
+      await popup.waitFor({ state: 'detached' });
+      assert.equal(await launcher.isVisible(), false, 'Search must preserve the manually dismissed chatbot state');
+    }
     console.log(`PASS mobile keyboard resize/pan, rounded cutout, typing, keyboard toggle, close and reopen: ${path}`);
   }
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.evaluate(() => window.setSearchTestViewport({ width: 1280, height: 900, offsetTop: 0, offsetLeft: 0 }));
+  await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
+  await launcher.waitFor({ state: 'visible' });
+  await page.locator('#keyword, input[data-product-search]').first().click();
+  await popup.waitFor();
+  assert.equal(await launcher.isVisible(), true, 'Desktop search must keep the existing chatbot behavior');
+  await page.locator('.tt-search-suggestions__heading button').click();
+  await popup.waitFor({ state: 'detached' });
   const serviceErrors = errors.filter(message => /^Public API \/lookups\/filter-options: 500$/.test(message));
   if (serviceErrors.length) console.warn('Baseline API lookup failures (outside popup test):', serviceErrors);
   assert.deepEqual(errors.filter(message => !serviceErrors.includes(message)), []);

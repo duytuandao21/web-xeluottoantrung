@@ -256,10 +256,13 @@ export default function SearchSuggestions() {
       const mobileAnchor = window.innerWidth <= 767 ? field.closest('.vehicle-search-row, .tt-accessory-filters__search-row') : null;
       const searchAnchor = field.closest(searchAnchorSelector) || field;
       const anchor = mobileAnchor || searchAnchor;
-      // Keep the document frozen. Only the original search row follows the
-      // visible viewport; its footprint and the desktop layout stay unchanged.
+      const homeSearch = mobile && searchAnchor.matches('.muaxe > .search');
+      // Keep the document frozen. Safari can pan the visual viewport far below
+      // the homepage form when its keyboard opens. Leave that form at the
+      // aligned position instead of pushing it over the brand/price choices.
+      // Search rows on the other pages still follow the visible viewport.
       const savedAnchor = lockedAnchor.current;
-      if (mobile && savedAnchor) {
+      if (mobile && savedAnchor && !homeSearch) {
         const targetTop = headerBottomAt(viewportTop) + 16;
         const baseTop = searchAnchor.getBoundingClientRect().top - savedAnchor.shift;
         const shift = targetTop - baseTop;
@@ -275,13 +278,13 @@ export default function SearchSuggestions() {
       const bounds = anchor.getBoundingClientRect();
       const searchBounds = searchAnchor.getBoundingClientRect();
       const oldOrigin = layer.getBoundingClientRect();
-      // Measure the fixed layer's actual origin, including WebKit viewport
-      // panning, before converting viewport coordinates into layer coordinates.
-      layer.style.left = mobile ? `${viewportLeft - oldOrigin.left + (parseFloat(layer.style.left) || 0)}px` : '';
-      layer.style.top = mobile ? `${viewportTop - oldOrigin.top + (parseFloat(layer.style.top) || 0)}px` : '';
+      // Cover the entire layout viewport, including content Safari can still
+      // paint above the panned visual viewport while its keyboard is open.
+      layer.style.left = mobile ? `${-oldOrigin.left + (parseFloat(layer.style.left) || 0)}px` : '';
+      layer.style.top = mobile ? `${-oldOrigin.top + (parseFloat(layer.style.top) || 0)}px` : '';
       const origin = layer.getBoundingClientRect();
-      const layerWidth = mobile ? viewportWidth : Math.max(window.innerWidth, viewportRight - origin.left);
-      const layerHeight = mobile ? viewportHeight : Math.max(window.innerHeight, viewportBottom - origin.top);
+      const layerWidth = Math.max(window.innerWidth, viewportRight - origin.left);
+      const layerHeight = Math.max(window.innerHeight, viewportBottom - origin.top);
       const compact = mobile && viewportHeight <= 500;
       const width = Math.min(bounds.width, viewportWidth - 24);
       const left = Math.max(viewportLeft + 12, Math.min(bounds.left, viewportRight - width - 12));

@@ -4,7 +4,8 @@ import ResponsiveImage from '@/components/common/ResponsiveImage';
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import type { CallContact, ContentEntry } from '@/lib/public-api';
-import { submitPublic } from '@/lib/public-client';
+import { submitProtectedForm } from '@/lib/protected-form';
+import { FormSuccessDialog } from '@/components/common/FormSuccess';
 import { zaloHref } from '@/lib/contact-links';
 
 const serviceLinks = [
@@ -47,7 +48,9 @@ function RegisteredBadge() {
 
 export default function Footer({ showrooms, phone, address, zalo, settings, callContacts, policies, logoUrl, socialLinks, appLinks }: { showrooms: { region: string; locations: { name: string; address: string; mapUrl?: string | null }[] }[]; phone?: string; address?: string; zalo?: string; settings: Record<string, string>; callContacts: CallContact[]; policies: ContentEntry[]; logoUrl: string; socialLinks: ContentEntry[]; appLinks: ContentEntry[] }) {
   const [newsletterNotice, setNewsletterNotice] = useState('');
+  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
   const value = (key: string, fallback: string) => settings[key] === undefined || (settings[key] === '' && fallbackForLegacyEmpty.has(key)) ? fallback : settings[key];
   const footerPhone = value('footerPhone', phone || '0777 393 913');
   const footerAddress = value('footerAddress', address || '338–340–342–344 Hùng Vương, Phường Pleiku, Tỉnh Gia Lai');
@@ -63,11 +66,15 @@ export default function Footer({ showrooms, phone, address, zalo, settings, call
     event.preventDefault();
     event.stopPropagation();
     const form = event.currentTarget;
+    if (submitting || cooldown) return;
     setSubmitting(true);
     try {
-      await submitPublic('/newsletter-subscriptions', { email: String(new FormData(form).get('email') || '') });
+      await submitProtectedForm(form, 'newsletter', '/newsletter-subscriptions', { email: String(new FormData(form).get('email') || '') });
       form.reset();
-      setNewsletterNotice('Đăng ký nhận tin thành công.');
+      setCooldown(true);
+      window.setTimeout(() => setCooldown(false), 30_000);
+      setNewsletterNotice('');
+      setNewsletterSuccess(true);
     } catch (error) {
       setNewsletterNotice(error instanceof Error ? error.message : 'Không thể đăng ký nhận tin. Vui lòng thử lại.');
     } finally { setSubmitting(false); }
@@ -103,7 +110,7 @@ export default function Footer({ showrooms, phone, address, zalo, settings, call
             <p>{value('newsletterDescription', 'Nhận thông tin xe mới về, chương trình ưu đãi và những cập nhật mới nhất.')}</p>
             <form className="tt-footer-news-form" onSubmit={submitNewsletter}>
               <input type="email" name="email" autoComplete="email" required aria-label="Địa chỉ email" placeholder={value('newsletterPlaceholder', 'Nhập email của bạn')} onChange={() => setNewsletterNotice('')} />
-              <button type="submit" disabled={submitting}>{submitting ? 'Đang gửi...' : value('newsletterButton', 'Đăng ký')}</button>
+              <button type="submit" disabled={submitting || cooldown}>{submitting ? 'Đang gửi...' : value('newsletterButton', 'Đăng ký')}</button>
             </form>
             {newsletterNotice && <p className="tt-footer-news-notice" role="status">{newsletterNotice}</p>}
           </div>
@@ -141,5 +148,6 @@ export default function Footer({ showrooms, phone, address, zalo, settings, call
       </a>)}</div>
       {!callContacts.length && <p className="tt-call-empty">Danh sách liên hệ đang được cập nhật. Vui lòng gọi <a href={`tel:${(phone || '0777393913').replace(/\D/g, '')}`} data-contact-phone={(phone || '0777393913').replace(/\D/g, '')} data-contact-name="Toàn Trung" aria-haspopup="dialog">{phone || '0777393913'}</a>.</p>}
     </div>
+    <FormSuccessDialog action="newsletter" open={newsletterSuccess} onClose={() => setNewsletterSuccess(false)} />
   </>;
 }

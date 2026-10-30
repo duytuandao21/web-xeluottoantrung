@@ -1,0 +1,50 @@
+/* Website only. Static inline artwork; no font download or additional request. */
+html.tt-has-anniversary { --tt-anniversary-height:clamp(34px,2.3vw,44px); scroll-padding-top:var(--tt-anniversary-height); }
+html.tt-has-anniversary .wapper { padding-top:var(--tt-anniversary-height); }
+/* Keep the fixed headers at top:0 so existing menu/search bounds remain valid. */
+html.tt-has-anniversary .wap_header,
+html.tt-has-anniversary .menu_mobi { padding-top:calc(10px + var(--tt-anniversary-height)); }
+@media(min-width:901px) {
+  html.tt-has-anniversary .tt-installation-store { top:calc(100px + var(--tt-anniversary-height)); }
+  html.tt-has-anniversary .tt-valuation-help { top:calc(110px + var(--tt-anniversary-height)); }
+  html.tt-has-anniversary .tt-story__milestone-media { top:calc(116px + var(--tt-anniversary-height)); }
+}
+
+.tt-anniversary-bar {
+  position:absolute; inset:0 0 auto; height:var(--tt-anniversary-height);
+  display:flex; align-items:center; justify-content:center; padding:0 14px; overflow:hidden;
+  border-top:1px solid #d8b26970; border-bottom:1px solid #e4c785b3;
+  background:radial-gradient(ellipse at 50% 75%,#bd19221f,transparent 65%),linear-gradient(90deg,#370709,#780b10 25%,#a20e16 50%,#780b10 75%,#370709);
+  color:#fff3de; font-family:'Times New Roman',Times,serif; cursor:default;
+}
+.tt-anniversary-bar__inner { position:relative; display:flex; align-items:center; justify-content:center; gap:clamp(9px,.8vw,16px); min-width:0; height:100%; }
+.tt-anniversary-bar__badge { display:block; flex:none; width:clamp(52px,4vw,78px); height:calc(var(--tt-anniversary-height) - 2px); overflow:visible; }
+.tt-anniversary-bar__badge use { opacity:.7; }
+.tt-anniversary-bar__four { font-family:Georgia,'Times New Roman',serif; font-size:58px; font-weight:700; }
+.tt-anniversary-bar__divider { flex:none; width:1px; height:64%; background:linear-gradient(transparent,#d9b059,transparent); }
+.tt-anniversary-bar p { margin:0; line-height:1.2; white-space:nowrap; font-family:inherit; text-shadow:0 1px 1px #39030870; }
+.tt-anniversary-bar__desktop { font-size:clamp(13px,1.05vw,18.5px); font-weight:400; letter-spacing:-.2px; }
+.tt-anniversary-bar strong { color:var(--color-red-hover,#f2de84); font-family:inherit; font-weight:600; }
+.tt-anniversary-bar .tt-anniversary-bar__years { font-size:clamp(14px,1.1vw,20px); color:var(--color-red-hover,#f2de84); }
+.tt-anniversary-bar__diamond { flex:none; width:4px; height:4px; transform:rotate(45deg); background:var(--color-red-hover,#f2de84); }
+.tt-anniversary-bar .tt-anniversary-bar__mobile { display:none; }
+
+@media(max-width:960px) {
+  html.tt-has-anniversary { --tt-anniversary-height:32px; }
+  .tt-anniversary-bar__inner { gap:9px; }
+  .tt-anniversary-bar__badge { width:52px; }
+  .tt-anniversary-bar__desktop { font-size:13px; }
+  .tt-anniversary-bar .tt-anniversary-bar__years { font-size:14px; }
+}
+@media(max-width:640px) {
+  .tt-anniversary-bar { padding:0 10px; }
+  .tt-anniversary-bar__inner { gap:8px; }
+  .tt-anniversary-bar__badge { width:44px; height:26px; }
+  .tt-anniversary-bar .tt-anniversary-bar__desktop,.tt-anniversary-bar .tt-anniversary-bar__years,
+  .tt-anniversary-bar__diamond { display:none; }
+  .tt-anniversary-bar__divider { height:20px; }
+  .tt-anniversary-bar .tt-anniversary-bar__mobile { display:block; font-size:11.5px; line-height:1.2; letter-spacing:.25px; }
+  .tt-anniversary-bar__mobile > span { display:block; margin-top:2px; font-size:10px; letter-spacing:.15px; }
+  .tt-anniversary-bar__mobile i { margin:0 3px; color:#f2de84; font-style:normal; }
+  .tt-anniversary-bar__mobile em { color:#f2de84; font-style:normal; }
+}
