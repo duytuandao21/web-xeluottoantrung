@@ -6,7 +6,7 @@ import { load } from 'cheerio';
 class PublicApiError extends Error {
   constructor(status, message, retryAfterMs) { super(message); this.status = status; this.retryAfterMs = retryAfterMs; }
 }
-const origin = 'https://toantrungxeluot.io.vn';
+const origin = 'https://xeluottoantrung.com';
 Object.assign(globalThis, { PublicApiError, SITE_ORIGIN: origin, publicApi: async () => { throw Error('Use isolated fixture'); } });
 const source = (await readFile('lib/sitemap.ts', 'utf8')).replace(/^import .*?;\r?\n/gm, '');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText;

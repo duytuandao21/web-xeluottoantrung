@@ -19,7 +19,7 @@ const allowedPaths = ['/', '/san-pham', '/san-pham/', '/toyota-vios-2025', '/toy
 const blockedPaths = ['/san-pham?hang-xe=toyota', '/san-pham?gia=gia%20asc&so-km=0-100000', '/san-pham?xe-moi-ve=true', '/san-pham?dang-giam-gia=true', '/san-pham?x=1&hang-xe=toyota', '/san-pham/?hang-xe=toyota', '/san-pham?page=2', '/san-pham?_rsc=abc'];
 for (const target of allowedPaths) assert(allowed(target), target);
 for (const target of blockedPaths) assert(!allowed(target), target);
-assert(robots.includes('Sitemap: https://toantrungxeluot.io.vn/sitemap.xml'));
+assert(robots.includes('Sitemap: https://xeluottoantrung.com/sitemap.xml'));
 console.log(`PASS robots policy: ${allowedPaths.length} allowed / ${blockedPaths.length} disallowed targets`);
 if (process.argv.includes('--static-only')) process.exit(0);
 
@@ -64,7 +64,7 @@ try {
     assert.equal(response.status, 200, target); assert(html.includes(car.name)); assert(!html.includes('Application error'));
     assert.equal(new URL($('link[rel="canonical"]').last().attr('href')).pathname, '/san-pham');
     assert.equal(new URL($('link[rel="canonical"]').last().attr('href')).search, '');
-    assert.equal(new URL($('link[rel="canonical"]').last().attr('href')).origin, 'https://toantrungxeluot.io.vn');
+    assert.equal(new URL($('link[rel="canonical"]').last().attr('href')).origin, 'https://xeluottoantrung.com');
     evidence.http.push({ target, status: response.status, canonical: $('link[rel="canonical"]').last().attr('href') });
   }
   seoOverride = true;
@@ -77,13 +77,13 @@ try {
   const sitemapDoc = load(sitemapXml, { xmlMode: true });
   assert.equal(sitemapDoc('sitemapindex').length, 1);
   const sitemapUrls = sitemapDoc('loc').map((_, el) => sitemapDoc(el).text()).get();
-  assert(sitemapUrls.includes('https://toantrungxeluot.io.vn/sitemap.xml?section=cars&page=1'));
-  for (const url of sitemapUrls) assert.equal(new URL(url).origin, 'https://toantrungxeluot.io.vn');
+  assert(sitemapUrls.includes('https://xeluottoantrung.com/sitemap.xml?section=cars&page=1'));
+  for (const url of sitemapUrls) assert.equal(new URL(url).origin, 'https://xeluottoantrung.com');
   let beforeSitemap = reads.length;
   await (await fetch(base + '/sitemap.xml')).text();
   assert.equal(reads.length, beforeSitemap, 'Warm sitemap index does not read API');
   const carsXml = load(await (await fetch(base + '/sitemap.xml?section=cars&page=1')).text(), { xmlMode: true });
-  assert.deepEqual(carsXml('loc').map((_, el) => carsXml(el).text()).get(), ['https://toantrungxeluot.io.vn/crawler-toyota']);
+  assert.deepEqual(carsXml('loc').map((_, el) => carsXml(el).text()).get(), ['https://xeluottoantrung.com/crawler-toyota']);
   beforeSitemap = reads.length;
   await (await fetch(base + '/sitemap.xml?section=cars&page=1')).text();
   assert.equal(reads.length, beforeSitemap, 'Warm sitemap child does not read API');

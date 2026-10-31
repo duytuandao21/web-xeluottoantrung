@@ -3,4 +3,4 @@ Allow: /
 Disallow: /san-pham?
 Disallow: /san-pham/?
 
-Sitemap: https://toantrungxeluot.io.vn/sitemap.xml
+Sitemap: https://xeluottoantrung.com/sitemap.xml

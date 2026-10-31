@@ -87,7 +87,7 @@ try {
   await old.body?.cancel();
   const html = await fetch(`http://127.0.0.1:3125/phu-kien-o-to/${items[0].slug}`).then(response => response.text());
   assert(html.includes('Camera SEO fixture'));
-  assert(html.includes(`rel="canonical" href="https://toantrungxeluot.io.vn/phu-kien-o-to/${items[0].slug}"`));
+  assert(html.includes(`rel="canonical" href="https://xeluottoantrung.com/phu-kien-o-to/${items[0].slug}"`));
   const sitemap = await fetch('http://127.0.0.1:3125/sitemap.xml?section=accessories&page=1').then(response => response.text());
   assert(sitemap.includes(`/phu-kien-o-to/${items[0].slug}`));
   assert(!sitemap.includes(items[0].id));

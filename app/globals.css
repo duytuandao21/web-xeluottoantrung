@@ -2282,6 +2282,7 @@ dialog.tt-form-feedback-dialog,
 dialog.tt-form-feedback-dialog::backdrop,
 .tt-accessory-callback.tt-accessory-callback--success::backdrop { background:rgba(12,22,38,.66); }
 .tt-form-feedback-dialog { position:relative; }
+dialog.tt-form-feedback-dialog { position:fixed; inset:0; height:fit-content; overscroll-behavior:contain; }
 .tt-form-feedback { position:relative; padding:58px 32px 32px; font-family:Arial,sans-serif; }
 .tt-form-feedback::before {
   content:''; position:absolute; top:0; left:0; right:0; height:5px;

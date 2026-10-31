@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import type { FormAction } from '@/lib/protected-form';
 
 const messages: Record<FormAction, { title: string; description: string }> = {
@@ -33,11 +33,48 @@ export function FormSuccessContent({ action, onClose }: { action: FormAction; on
 
 export function FormSuccessDialog({ action, open, onClose }: { action: FormAction; open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
+    if (!open) {
+      if (dialog.open) dialog.close();
+      return;
+    }
+
+    const body = document.body;
+    const root = document.documentElement;
+    const { scrollX, scrollY } = window;
+    const openingUrl = window.location.href;
+    const previousFocus = document.activeElement;
+    const save = (element: HTMLElement, properties: string[]) => properties.map(name =>
+      [name, element.style.getPropertyValue(name), element.style.getPropertyPriority(name)] as const);
+    const previousBody = save(body, ['position', 'top', 'left', 'width', 'overflow', 'padding-right']);
+    const previousRoot = save(root, ['overflow', 'overscroll-behavior']);
+    const scrollbar = window.innerWidth - root.clientWidth;
+    const padding = parseFloat(getComputedStyle(body).paddingRight) || 0;
+
+    // Fixed body also prevents background swipes on iOS. Lock before showModal
+    // so native focus cannot scroll the page away from the newsletter form.
+    body.style.position = 'fixed';
+    body.style.top = `${-scrollY}px`;
+    body.style.left = `${-scrollX}px`;
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
+    if (scrollbar > 0) body.style.paddingRight = `${padding + scrollbar}px`;
+    root.style.overflow = 'hidden';
+    root.style.overscrollBehavior = 'none';
+    if (!dialog.open) dialog.showModal();
+
+    return () => {
+      const restore = (element: HTMLElement, properties: typeof previousBody) => properties.forEach(([name, value, priority]) =>
+        value ? element.style.setProperty(name, value, priority) : element.style.removeProperty(name));
+      restore(body, previousBody);
+      restore(root, previousRoot);
+      if (window.location.href === openingUrl) {
+        window.scrollTo({ left: scrollX, top: scrollY, behavior: 'instant' });
+        if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
+      }
+    };
   }, [open]);
 
   return <dialog ref={ref} className="tt-form-feedback-dialog" aria-label={messages[action].title}
